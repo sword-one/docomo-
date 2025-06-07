@@ -1,1 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ドコモ新料金プラン完全解説 研修資料</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-content.active {
+            max-height: 3000px;
+            transition: max-height 0.5s ease-in;
+        }
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .no-wrap {
+            white-space: nowrap;
+        }
+        .table-header {
+            white-space: nowrap;
+            min-width: 80px;
+            font-size: 13px;
+        }
+        .table-cell {
+            white-space: nowrap;
+            min-width: 100px;
+            font-size: 12px;
+        }
+        .plan-name {
+            white-space: nowrap;
+            min-width: 120px;
+            font-weight: bold;
+        }
+        @media (max-width: 640px) {
+            .mobile-text {
+                font-size: 15px;
+            }
+            .mobile-title {
+                font-size: 18px;
+            }
+            .table-header {
+                font-size: 11px;
+                min-width: 70px;
+                padding: 8px 4px;
+            }
+            .table-cell {
+                font-size: 11px;
+                min-width: 90px;
+                padding: 8px 4px;
+            }
+            .plan-name {
+                min-width: 100px;
+                font-size: 12px;
+            }
+        }
+        .price-highlight {
+            color: #059669;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        @media (max-width: 640px) {
+            .price-highlight {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    
+    <!-- ヘッダー -->
+    <header class="bg-red-600 text-white py-4 px-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto">
+            <h1 class="text-xl md:text-2xl font-bold text-center">
+                <i class="fas fa-mobile-alt mr-2"></i>
+                ドコモ新料金プラン完全解説
+            </h1>
+            <p class="text-center text-sm mt-1 opacity-90">研修資料</p>
+        </div>
+    </header>
 
+    <!-- ナビゲーション -->
+    <nav class="bg-white shadow-md py-3 px-4 sticky top-16 z-40">
+        <div class="flex overflow-x-auto space-x-4 text-sm">
+            <a href="#overview" class="whitespace-nowrap px-3 py-2 bg-blue-100 text-blue-800 rounded-full">概要比較</a>
+            <a href="#discounts" class="whitespace-nowrap px-3 py-2 bg-green-100 text-green-800 rounded-full">割引一覧</a>
+            <a href="#plans" class="whitespace-nowrap px-3 py-2 bg-orange-100 text-orange-800 rounded-full">プラン詳細</a>
+            <a href="#comparison" class="whitespace-nowrap px-3 py-2 bg-purple-100 text-purple-800 rounded-full">旧プラン比較</a>
+            <a href="#campaigns" class="whitespace-nowrap px-3 py-2 bg-yellow-100 text-yellow-800 rounded-full">キャンペーン</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-6 space-y-6">
+
+        <!-- 重要なお知らせ -->
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                <h3 class="font-bold text-yellow-800">重要</h3>
+            </div>
+            <p class="text-sm mt-2 text-yellow-700">
+                2025年6月5日より新料金プラン開始<br>
+                「eximo」「irumo」は6月4日で新規受付終了
+            </p>
+        </div>
+
+        <!-- 新料金プラン4種の比較概要 -->
+        <section id="overview" class="bg-white rounded-lg shadow-md p-4">
+            <h2 class="text-lg md:text-xl font-bold text-red-600 mb-4 flex items-center">
+                <i class="fas fa-chart-bar mr-2"></i>
+                新料金プラン4種の比較概要
+            </h2>
+            
+            <div class="table-scroll">
+                <table class="min-w-full text-xs border-collapse border border-gray-300">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="table-header border border-gray-300 p-2 text-left">プラン名</th>
+                            <th class="table-header border border-gray-300 p-2 text-left">データ容量</th>
+                            <th class="table-header border border-gray-300 p-2 text-left">基本料金</th>
+                            <th class="table-header border border-gray-300 p-2 text-left">最大割引後</th>
+                            <th class="table-header border border-gray-300 p-2 text-left">主な特典</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-blue-50">
+                            <td class="plan-name border border-gray-300 p-2 text-blue-800">ドコモMAX</td>
+                            <td class="table-cell border border-gray-300 p-2">無制限</td>
+                            <td class="table-cell border border-gray-300 p-2">～1GB: ¥5,698<br>1～3GB: ¥6,798<br>3GB超: ¥8,448</td>
+                            <td class="table-cell border border-gray-300 p-2"><span class="price-highlight">～1GB: ¥2,398<br>1～3GB: ¥3,498<br>無制限: ¥5,148</span></td>
+                            <td class="table-cell border border-gray-300 p-2">Amazonプライム6ヶ月無料<br>DAZN見放題<br>海外30GB無料</td>
+                        </tr>
+                        <tr class="bg-green-50">
+                            <td class="plan-name border border-gray-300 p-2 text-green-800">ポイ活MAX</td>
+                            <td class="table-cell border border-gray-300 p-2">無制限</td>
+                            <td class="table-cell border border-gray-300 p-2">¥11,748</td>
+                            <td class="table-cell border border-gray-300 p-2"><span class="price-highlight">¥8,448</span></td>
+                            <td class="table-cell border border-gray-300 p-2">上記特典＋<br>最大10%ポイント還元<br>(月5,000pt上限)</td>
+                        </tr>
+                        <tr class="bg-yellow-50">
+                            <td class="plan-name border border-gray-300 p-2 text-yellow-800">ポイ活20</td>
+                            <td class="table-cell border border-gray-300 p-2">20GB<br>(超過後無制限)</td>
+                            <td class="table-cell border border-gray-300 p-2">～20GB: ¥7,898<br>20GB超: ¥9,570</td>
+                            <td class="table-cell border border-gray-300 p-2"><span class="price-highlight">～20GB: ¥4,818<br>無制限: ¥6,490</span></td>
+                            <td class="table-cell border border-gray-300 p-2">Amazonプライム6ヶ月無料<br>最大5%ポイント還元<br>(月2,500pt上限)</td>
+                        </tr>
+                        <tr class="bg-purple-50">
+                            <td class="plan-name border border-gray-300 p-2 text-purple-800">ドコモmini</td>
+                            <td class="table-cell border border-gray-300 p-2">4GB または 10GB</td>
+                            <td class="table-cell border border-gray-300 p-2">4GB: ¥2,750<br>10GB: ¥3,850</td>
+                            <td class="table-cell border border-gray-300 p-2"><span class="price-highlight">4GB: ¥880<br>10GB: ¥1,980</span></td>
+                            <td class="table-cell border border-gray-300 p-2">Amazonプライム3ヶ月無料</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 割引一覧 -->
+        <section id="discounts" class="bg-white rounded-lg shadow-md p-4">
+            <h2 class="text-lg md:text-xl font-bold mb-4 text-red-600 flex items-center">
+                <i class="fas fa-percentage mr-2"></i>
+                適用される割引一覧
+            </h2>
+            <div class="table-scroll">
+                <table class="w-full text-xs border-collapse border border-gray-300">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="table-header border border-gray-300 p-2 text-left">割引名</th>
+                            <th class="table-header border border-gray-300 p-2 text-center">ドコモMAX</th>
+                            <th class="table-header border border-gray-300 p-2 text-center">ポイ活MAX</th>
+                            <th class="table-header border border-gray-300 p-2 text-center">ポイ活20</th>
+                            <th class="table-header border border-gray-300 p-2 text-center">ドコモmini</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="table-cell border border-gray-300 p-2 font-medium">みんなドコモ割</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-red-50">× 対象外</td>
+                        </tr>
+                        <tr>
+                            <td class="table-cell border border-gray-300 p-2 font-medium">長期利用割</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -110円/-220円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -110円/-220円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-red-50">× 対象外</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-red-50">× 対象外</td>
+                        </tr>
+                        <tr>
+                            <td class="table-cell border border-gray-300 p-2 font-medium">dカードお支払割</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -220円/-550円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -220円/-550円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -220円/-550円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -220円/-550円</td>
+                        </tr>
+                        <tr>
+                            <td class="table-cell border border-gray-300 p-2 font-medium">ひかりセット割</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -1,210円</td>
+                        </tr>
+                        <tr>
+                            <td class="table-cell border border-gray-300 p-2 font-medium">でんきセット割</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -110円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -110円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -110円</td>
+                            <td class="table-cell border border-gray-300 p-2 text-center bg-green-50">○ -110円</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 各プランの詳細解説 -->
+        <section id="plans" class="space-y-4">
+            <h2 class="text-lg md:text-xl font-bold text-red-600 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                各プランの詳細解説
+            </h2>
+
+            <!-- ドコモMAX -->
+            <div class="bg-white rounded-lg shadow-md">
+                <button class="accordion-btn w-full p-4 text-left bg-blue-600 text-white rounded-t-lg flex justify-between items-center" onclick="toggleAccordion(this)">
+                    <span class="font-bold mobile-title">
+                        <i class="fas fa-rocket mr-2"></i>
+                        ドコモMAX
+                    </span>
+                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                </button>
+                <div class="accordion-content p-4">
+                    <div class="space-y-3">
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-bold text-blue-800 mb-2">料金体系（3段階制）</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• ～1GB: ¥5,698 → <span class="price-highlight">最大割引後 ¥2,398</span></li>
+                                <li>• 1～3GB: ¥6,798 → <span class="price-highlight">最大割引後 ¥3,498</span></li>
+                                <li>• 3GB超: ¥8,448 → <span class="price-highlight">最大割引後 ¥5,148</span></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-green-50 p-3 rounded">
+                            <h4 class="font-bold text-green-800 mb-2">豊富な特典内容</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• Amazonプライム最大6ヶ月無料（月額600円相当）</li>
+                                <li>• DAZN for docomo見放題（月額4,200円相当）</li>
+                                <li>• 海外ローミング30GBまで追加料金無料</li>
+                                <li>• Leminoプレミアム加入で最大6ヶ月間おトク</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-orange-50 p-3 rounded">
+                            <h4 class="font-bold text-orange-800 mb-2">適用可能な割引</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• みんなドコモ割: 最大-1,210円/月</li>
+                                <li>• 長期利用割: 10年以上-110円、20年以上-220円</li>
+                                <li>• dカードお支払割: 最大-550円/月</li>
+                                <li>• ドコモ光セット割: -1,210円/月</li>
+                                <li>• ドコモでんきセット割: -110円/月</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ドコモポイ活MAX -->
+            <div class="bg-white rounded-lg shadow-md">
+                <button class="accordion-btn w-full p-4 text-left bg-green-600 text-white rounded-t-lg flex justify-between items-center" onclick="toggleAccordion(this)">
+                    <span class="font-bold mobile-title">
+                        <i class="fas fa-star mr-2"></i>
+                        ドコモポイ活MAX
+                    </span>
+                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                </button>
+                <div class="accordion-content p-4">
+                    <div class="space-y-3">
+                        <div class="bg-green-50 p-3 rounded">
+                            <h4 class="font-bold text-green-800 mb-2">料金とポイント還元</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• 月額基本料金: ¥11,748（一律）</li>
+                                <li>• 各種割引適用後: <span class="price-highlight">¥8,448</span></li>
+                                <li>• <strong>最大10%ポイント還元</strong>（月5,000pt上限）</li>
+                                <li>• ポイント充当で<span class="price-highlight">実質¥2,948〜利用可能</span></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-3 rounded">
+                            <h4 class="font-bold text-yellow-800 mb-2">ポイント還元のメリット</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• dカードまたはd払いでの支払いが対象</li>
+                                <li>• 決済額の最大10%をdポイント還元</li>
+                                <li>• 現在キャンペーン中で一律10%還元</li>
+                                <li>• 月5万円利用で5,000pt還元</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-bold text-blue-800 mb-2">その他特典</h4>
+                            <p class="text-sm">ドコモMAXと同じ特典（Amazonプライム・DAZN・海外ローミング等）がすべて利用可能</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ドコモポイ活20 -->
+            <div class="bg-white rounded-lg shadow-md">
+                <button class="accordion-btn w-full p-4 text-left bg-yellow-600 text-white rounded-t-lg flex justify-between items-center" onclick="toggleAccordion(this)">
+                    <span class="font-bold mobile-title">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        ドコモポイ活20
+                    </span>
+                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                </button>
+                <div class="accordion-content p-4">
+                    <div class="space-y-3">
+                        <div class="bg-yellow-50 p-3 rounded">
+                            <h4 class="font-bold text-yellow-800 mb-2">2段階料金制</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• ～20GB: ¥7,898 → <span class="price-highlight">最大割引後 ¥4,818</span></li>
+                                <li>• 20GB超: ¥9,570 → <span class="price-highlight">最大割引後 ¥6,490</span></li>
+                                <li>• 20GB超過後は無制限で利用可能</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-green-50 p-3 rounded">
+                            <h4 class="font-bold text-green-800 mb-2">ポイント還元</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• <strong>最大5%ポイント還元</strong>（月2,500pt上限）</li>
+                                <li>• 現在キャンペーン中で一律5%還元</li>
+                                <li>• 月5万円利用で2,500pt還元</li>
+                                <li>• 中容量利用者に最適なバランス</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-bold text-blue-800 mb-2">特典</h4>
+                            <p class="text-sm">Amazonプライム6ヶ月無料</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ドコモmini -->
+            <div class="bg-white rounded-lg shadow-md">
+                <button class="accordion-btn w-full p-4 text-left bg-purple-600 text-white rounded-t-lg flex justify-between items-center" onclick="toggleAccordion(this)">
+                    <span class="font-bold mobile-title">
+                        <i class="fas fa-mobile-alt mr-2"></i>
+                        ドコモmini
+                    </span>
+                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                </button>
+                <div class="accordion-content p-4">
+                    <div class="space-y-3">
+                        <div class="bg-purple-50 p-3 rounded">
+                            <h4 class="font-bold text-purple-800 mb-2">選択式容量・料金</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• <strong>4GBプラン</strong>: ¥2,750 → <span class="price-highlight">最大割引後 ¥880</span></li>
+                                <li>• <strong>10GBプラン</strong>: ¥3,850 → <span class="price-highlight">最大割引後 ¥1,980</span></li>
+                                <li>• 容量に余裕のある設定で安心</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-orange-50 p-3 rounded">
+                            <h4 class="font-bold text-orange-800 mb-2">適用可能な割引</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• dカードお支払割: 最大-550円/月</li>
+                                <li>• ドコモ光セット割: -1,210円/月</li>
+                                <li>• ドコモでんきセット割: -110円/月</li>
+                            </ul>
+                            <p class="text-xs text-gray-600 mt-2">※みんなドコモ割・長期利用割は対象外</p>
+                        </div>
+
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-bold text-blue-800 mb-2">特典</h4>
+                            <p class="text-sm">Amazonプライム3ヶ月無料でエンタメも楽しめる</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 旧プランとの進化ポイント -->
+        <section id="comparison" class="bg-white rounded-lg shadow-md p-4">
+            <h2 class="text-lg md:text-xl font-bold text-red-600 mb-4 flex items-center">
+                <i class="fas fa-arrow-up mr-2"></i>
+                旧プランからの進化ポイント
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-blue-800 mb-3">eximo → ドコモMAX</h3>
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-green-700 mb-2">進化したポイント</h4>
+                        <ul class="text-sm space-y-1">
+                            <li>• 特典込みで総合的な付加価値が大幅向上</li>
+                            <li>• 長期利用者向けの新割引で更にお得</li>
+                            <li>• DAZN・プライム等が標準で利用可能</li>
+                            <li>• 各種割引の増額でより安く利用可能</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-purple-800 mb-3">irumo → ドコモmini</h3>
+                    <div class="space-y-2">
+                        <h4 class="font-semibold text-green-700 mb-2">進化したポイント</h4>
+                        <ul class="text-sm space-y-1">
+                            <li>• 割引適用時の料金が大幅に安くなった</li>
+                            <li>• 容量に余裕ができて使いやすく</li>
+                            <li>• Amazonプライム特典が新たに追加</li>
+                            <li>• シンプルな2コース制で分かりやすく</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- キャンペーン情報 -->
+        <section id="campaigns" class="bg-white rounded-lg shadow-md p-4">
+            <h2 class="text-lg md:text-xl font-bold text-red-600 mb-4 flex items-center">
+                <i class="fas fa-gift mr-2"></i>
+                関連キャンペーン情報（2025年6月時点）
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                    <h3 class="font-bold text-green-800 mb-2">
+                        <i class="fas fa-credit-card mr-2"></i>
+                        dカードお支払割 増額キャンペーン
+                    </h3>
+                    <p class="text-sm mb-2">カード種類問わず一律550円/月割引</p>
+                    <p class="text-xs text-gray-600">終了時期未定（通常はカード種別で差があるが、期間中は最大額適用）</p>
+                </div>
+
+                <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                    <h3 class="font-bold text-orange-800 mb-2">
+                        <i class="fas fa-percent mr-2"></i>
+                        ポイント還元増量キャンペーン
+                    </h3>
+                    <ul class="text-sm space-y-1">
+                        <li>• ポイ活MAX: 10%還元（通常はカード種別による）</li>
+                        <li>• ポイ活20: 5%還元（通常はカード種別による）</li>
+                    </ul>
+                    <p class="text-xs text-gray-600 mt-2">終了時期未定、最低2025年7月まで継続</p>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                    <h3 class="font-bold text-blue-800 mb-2">
+                        <i class="fas fa-video mr-2"></i>
+                        Lemino加入特典
+                    </h3>
+                    <p class="text-sm">ドコモMAX/ポイ活MAX契約者がLemino加入で最大6ヶ月間毎月100pt還元</p>
+                    <p class="text-xs text-gray-600">期間: 2025年6月5日〜11月</p>
+                </div>
+
+                <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                    <h3 class="font-bold text-yellow-800 mb-2">
+                        <i class="fas fa-baseball-ball mr-2"></i>
+                        阪神タイガース観戦チケットプレゼント
+                    </h3>
+                    <p class="text-sm">ドコモMAX契約者対象の抽選キャンペーン</p>
+                    <p class="text-xs text-gray-600">期間: 2025年6月5日〜7月30日（第1〜3弾あり）</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- まとめ -->
+        <section class="bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg p-4">
+            <h2 class="text-lg font-bold mb-3 flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                まとめ・営業ポイント
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <h3 class="font-bold mb-2">おすすめ対象</h3>
+                    <ul class="space-y-1">
+                        <li>• <strong>ドコモMAX</strong>: 大容量利用＋エンタメ需要</li>
+                        <li>• <strong>ポイ活MAX</strong>: 高還元率活用可能なユーザー</li>
+                        <li>• <strong>ポイ活20</strong>: 中容量＋ポイント重視</li>
+                        <li>• <strong>ドコモmini</strong>: 光セット割適用可能な小容量ユーザー</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-2">営業時の注意点</h3>
+                    <ul class="space-y-1">
+                        <li>• ポイント還元は期間限定ポイント（約3ヶ月有効）</li>
+                        <li>• キャンペーン終了時期に要注意</li>
+                        <li>• 割引適用条件の確認が重要</li>
+                        <li>• 長期利用割の提供時期2025年10月以降の提供開始予定。それまでの期間はdポイント還元で対応。
+                        但し、ドコモMAXでデータ量が1GB未満の場合、ポイント還元対象外。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- フッター -->
+    <footer class="bg-gray-800 text-white py-4 px-4 mt-8">
+        <div class="container mx-auto text-center">
+            <p class="text-sm">© 2025 ドコモ新料金プラン研修資料</p>
+            <p class="text-xs mt-1 opacity-70">営業支援ツール - ㈱ソードワン</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleAccordion(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('.fa-chevron-down');
+            
+            // すべてのアコーディオンを閉じる
+            document.querySelectorAll('.accordion-content').forEach(el => {
+                if (el !== content) {
+                    el.classList.remove('active');
+                }
+            });
+            
+            document.querySelectorAll('.accordion-btn .fa-chevron-down').forEach(el => {
+                if (el !== icon) {
+                    el.classList.remove('rotate-180');
+                }
+            });
+            
+            // 現在のアコーディオンをトグル
+            content.classList.toggle('active');
+            icon.classList.toggle('rotate-180');
+        }
+
+        // スムーススクロール
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // ナビゲーションアクティブ状態管理
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('nav a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 200;
+                if (scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('bg-blue-600', 'text-white');
+                link.classList.add('bg-blue-100', 'text-blue-800');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.remove('bg-blue-100', 'text-blue-800');
+                    link.classList.add('bg-blue-600', 'text-white');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
