@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>...</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="Untitled-1.css">
+  </head>
+    <div class="container">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">ドコモ料金プラン見積書作成システム</h1>
+            <!-- <p class="text-gray-600">iPad最適化版 - 2025年6月新料金プラン対応</p> -->
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <!-- 料金プラン選択 -->
+                <div class="card">
+                    <h2 class="section-title">料金プラン選択</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button class="plan-button" onclick="selectPlan('docomo-max')" id="plan-docomo-max">
+                            ドコモMAX<br><small>5,698円〜8,448円</small>
+                        </button>
+                        <button class="plan-button" onclick="selectPlan('point-max')" id="plan-point-max">
+                            ドコモポイ活MAX<br><small>11,748円</small>
+                        </button>
+                        <button class="plan-button" onclick="selectPlan('point-20')" id="plan-point-20">
+                            ドコモポイ活20<br><small>7,898円〜9,570円</small>
+                        </button>
+                        <button class="plan-button" onclick="selectPlan('docomo-mini')" id="plan-docomo-mini">
+                            ドコモmini<br><small>2,750円〜3,850円</small>
+                        </button>
+                    </div>
+                    
+                    <!-- データ容量選択（動的表示） -->
+                    <div id="capacity-docomo-max" class="hidden mt-4">
+                        <h3 class="text-lg font-semibold mb-3">データ容量選択</h3>
+                        <div class="flex flex-wrap">
+                            <div class="capacity-option" onclick="selectCapacity('docomo-max', '1gb', 5698)">1GB未満<br>5,698円</div>
+                            <div class="capacity-option" onclick="selectCapacity('docomo-max', '3gb', 6798)">3GB未満<br>6,798円</div>
+                            <div class="capacity-option" onclick="selectCapacity('docomo-max', 'unlimited', 8448)">無制限<br>8,448円</div>
+                        </div>
+                    </div>
+                    
+                    <div id="capacity-point-20" class="hidden mt-4">
+                        <h3 class="text-lg font-semibold mb-3">データ容量選択</h3>
+                        <div class="flex flex-wrap">
+                            <div class="capacity-option" onclick="selectCapacity('point-20', '20gb', 7898)">20GB未満<br>7,898円</div>
+                            <div class="capacity-option" onclick="selectCapacity('point-20', 'unlimited', 9570)">無制限<br>9,570円</div>
+                        </div>
+                    </div>
+                    
+                    <div id="capacity-docomo-mini" class="hidden mt-4">
+                        <h3 class="text-lg font-semibold mb-3">容量選択</h3>
+                        <div class="flex flex-wrap">
+                            <div class="capacity-option" onclick="selectCapacity('docomo-mini', '4gb', 2750)">4GB<br>2,750円</div>
+                            <div class="capacity-option" onclick="selectCapacity('docomo-mini', '10gb', 3850)">10GB<br>3,850円</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 割引選択 -->
+                <div class="card">
+                    <h2 class="section-title">割引選択</h2>
+                    
+                    <!-- dカードお支払割 -->
+                    <div class="discount-item">
+                        <h3 class="font-semibold mb-2">dカードお支払割</h3>
+                        <div class="radio-item">
+                            <input type="radio" name="dcard" value="campaign" id="dcard-campaign" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="dcard-campaign">キャンペーン料金（-550円）<br><small class="text-gray-600">dカードお支払割増額キャンペーン中（終了時期未定）</small></label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="dcard" value="normal" id="dcard-normal" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="dcard-normal">通常料金（-220円）<br><small class="text-gray-600">通常のdカードお支払割（レギュラーカード）</small></label>
+                        </div>
+                    </div>
+                    
+                    <!-- みんなドコモ割 -->
+                    <div class="discount-item" id="minna-discount">
+                        <h3 class="font-semibold mb-2">みんなドコモ割</h3>
+                        <div class="radio-item">
+                            <input type="radio" name="minna" value="2lines" id="minna-2" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="minna-2">2回線（-550円）</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="minna" value="3lines" id="minna-3" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="minna-3">3回線以上（-1,210円）</label>
+                        </div>
+                    </div>
+                    
+                    <!-- 長期利用割 -->
+                    <div class="discount-item" id="longterm-discount">
+                        <h3 class="font-semibold mb-2">長期利用割</h3>
+                        <div class="radio-item">
+                            <input type="radio" name="longterm" value="10years" id="longterm-10" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="longterm-10">10年以上（-110円）</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="longterm" value="20years" id="longterm-20" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="longterm-20">20年以上（-220円）</label>
+                        </div>
+                    </div>
+                    
+                    <!-- その他割引 -->
+                    <div class="discount-item">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="hikari-discount" onchange="updateEstimate()">
+                            <label for="hikari-discount">ドコモ光セット割（-1,210円）</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="denki-discount" onchange="updateEstimate()">
+                            <label for="denki-discount">ドコモでんきセット割（-110円）</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 通話オプション -->
+                <div class="card">
+                    <h2 class="section-title">通話オプション</h2>
+                    <div class="option-item">
+                        <div class="radio-item">
+                            <input type="radio" name="call-option" value="unlimited" id="unlimited-call" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="unlimited-call">かけ放題オプション（1,980円）</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="call-option" value="5min" id="5min-call" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="5min-call">5分通話無料オプション（880円）</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 基本オプション -->
+                <div class="card">
+                    <h2 class="section-title">基本オプション</h2>
+                    
+                    <!-- コネクトα -->
+                    <div class="option-item">
+                        <h3 class="font-semibold mb-2">コネクトα（3種類から1つ選択）</h3>
+                        <div class="radio-item">
+                            <input type="radio" name="connect" value="plus" id="connect-plus" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="connect-plus">コネクトαPlus（550円）</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="connect" value="platinum1" id="connect-platinum1" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="connect-platinum1">コネクトαPLATINUM（870円）</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="connect" value="platinum2" id="connect-platinum2" onclick="handleRadioClick(this)" onchange="updateEstimate()">
+                            <label for="connect-platinum2">コネクトαPLATINUM（1,280円）</label>
+                        </div>
+                    </div>
+                    
+                    <!-- その他基本オプション -->
+                    <div class="option-item">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="backup-service" onchange="updateEstimate()">
+                            <label for="backup-service">らくらくバックアップ（550円）</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ad-block" onchange="updateEstimate()">
+                            <label for="ad-block">広告ブロックプレミアム（880円）</label>
+                        </div>
+                        <!-- ドコモメール持ち運びオプション（ドコモminiのみ） -->
+                        <div class="checkbox-item" id="docomo-mail-option" style="display: none;">
+                            <input type="checkbox" id="docomo-mail" onchange="updateEstimate()">
+                            <label for="docomo-mail">ドコモメール持ち運びオプション（330円）</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- その他オプション（手入力） -->
+                <div class="card">
+                    <h2 class="section-title">その他オプション（手入力）</h2>
+                    
+                    <!-- 店頭サポート -->
+                    <div class="option-item mb-4">
+                        <h3 class="font-semibold mb-2">店頭サポート</h3>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shop-support-550" onchange="updateEstimate()">
+                            <label for="shop-support-550">店頭サポート（550円）</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="shop-support-990" onchange="updateEstimate()">
+                            <label for="shop-support-990">店頭サポート（990円）</label>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-option-1-name" placeholder="オプション名1" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-option-1-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-option-2-name" placeholder="オプション名2" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-option-2-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-option-3-name" placeholder="オプション名3" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-option-3-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-option-4-name" placeholder="オプション名4" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-option-4-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-option-5-name" placeholder="オプション名5" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-option-5-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- その他サービス（手入力） -->
+                <div class="card">
+                    <h2 class="section-title">その他サービス（手入力）</h2>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-service-1-name" placeholder="サービス名1" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-service-1-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-service-2-name" placeholder="サービス名2" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-service-2-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-service-3-name" placeholder="サービス名3" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-service-3-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-service-4-name" placeholder="サービス名4" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-service-4-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="input-field" id="other-service-5-name" placeholder="サービス名5" onchange="updateEstimate()">
+                            <input type="number" class="input-field" id="other-service-5-price" placeholder="料金" onchange="updateEstimate()">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 機種代金 -->
+                <div class="card">
+                    <h2 class="section-title">機種代金</h2>
+                    <div class="device-section">
+                        <div class="space-y-4">
+                            <!-- 機種種類選択 -->
+                            <div class="device-type-section">
+                                <h3 class="font-semibold mb-3">機種種類選択</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div class="radio-item">
+                                        <input type="radio" name="device-type" value="iPhone" id="device-iphone" onclick="handleRadioClick(this)" onchange="updateDeviceModels()">
+                                        <label for="device-iphone">iPhone</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="device-type" value="Android" id="device-android" onclick="handleRadioClick(this)" onchange="updateDeviceModels()">
+                                        <label for="device-android">Android</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="device-type" value="iPad" id="device-ipad" onclick="handleRadioClick(this)" onchange="updateDeviceModels()">
+                                        <label for="device-ipad">iPad</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="device-type" value="Other" id="device-other" onclick="handleRadioClick(this)" onchange="updateDeviceModels()">
+                                        <label for="device-other">その他</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 機種名選択 -->
+                            <div id="device-model-section" class="hidden">
+                                <label class="block text-sm font-medium mb-2">機種名選択</label>
+                                <select class="input-field" id="device-model-select" onchange="updateDeviceName()">
+                                    <option value="">機種を選択してください</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 手動入力オプション -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2">機種名（手動入力も可能）</label>
+                                <input type="text" class="input-field" id="device-name" placeholder="例：iPhone 15 Pro" onchange="updateEstimate()">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2">機種代金総額（円）</label>
+                                <input type="number" class="input-field" id="device-total" placeholder="128700" onchange="updatePaymentMethod(); calculateInstallment(); updateDailyPaymentTotal();">
+                            </div>
+                            
+                            <div>
+                                <h3 class="font-semibold mb-2">支払い方法選択</h3>
+                                <div class="radio-item">
+                                    <input type="radio" name="payment" value="bulk" id="payment-bulk" onclick="handleRadioClick(this)" onchange="updatePaymentMethod()">
+                                    <label for="payment-bulk">一括払い</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="payment" value="installment" id="payment-installment" onclick="handleRadioClick(this)" onchange="updatePaymentMethod()">
+                                    <label for="payment-installment">分割払い</label>
+                                </div>
+                            </div>
+                            
+                            <!-- 分割払い詳細 -->
+                            <div id="installment-details" class="hidden">
+                                <!-- 頭金（分割払い選択時のみ表示） -->
+                                <div id="downpayment-section">
+                                    <h3 class="font-semibold mb-2">頭金選択</h3>
+                                    <div class="radio-item">
+                                        <input type="radio" name="downpayment-type" value="fixed" id="downpayment-fixed" onclick="handleRadioClick(this)" onchange="updateDownpaymentType()">
+                                        <label for="downpayment-fixed">19,800円</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="downpayment-type" value="manual" id="downpayment-manual" onclick="handleRadioClick(this)" onchange="updateDownpaymentType()">
+                                        <label for="downpayment-manual">手入力</label>
+                                    </div>
+                                    <div id="downpayment-input-section" class="mt-2">
+                                        <label class="block text-sm font-medium mb-2">頭金（円）</label>
+                                        <input type="number" class="input-field" id="device-downpayment" placeholder="0" onchange="calculateInstallment(); updateDailyPaymentTotal();">
+                                        <div class="mt-2">
+                                            <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                            <div class="payment-methods">
+                                                <label><input type="radio" name="downpayment-payment" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                                <label><input type="radio" name="downpayment-payment" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                                <label><input type="radio" name="downpayment-payment" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h3 class="font-semibold mb-2 mt-4">分割回数選択</h3>
+                                <div class="space-y-2">
+                                    <div class="installment-detail">
+                                        <div class="radio-item">
+                                            <input type="radio" name="installment-type" value="12" id="install-12" onclick="handleRadioClick(this)" onchange="updateInstallmentType()">
+                                            <label for="install-12">12回払い</label>
+                                        </div>
+                                        <div id="install-12-amount" class="text-sm text-gray-600 ml-8 hidden">月額：<span id="amount-12">0</span>円</div>
+                                    </div>
+                                    
+                                    <div class="installment-detail">
+                                        <div class="radio-item">
+                                            <input type="radio" name="installment-type" value="24" id="install-24" onclick="handleRadioClick(this)" onchange="updateInstallmentType()">
+                                            <label for="install-24">24回払い</label>
+                                        </div>
+                                        <div id="install-24-amount" class="text-sm text-gray-600 ml-8 hidden">月額：<span id="amount-24">0</span>円</div>
+                                    </div>
+                                    
+                                    <div class="installment-detail">
+                                        <div class="radio-item">
+                                            <input type="radio" name="installment-type" value="36" id="install-36" onclick="handleRadioClick(this)" onchange="updateInstallmentType()">
+                                            <label for="install-36">36回払い</label>
+                                        </div>
+                                        <div id="install-36-amount" class="text-sm text-gray-600 ml-8 hidden">月額：<span id="amount-36">0</span>円</div>
+                                    </div>
+                                    
+                                    <div class="installment-detail">
+                                        <div class="radio-item">
+                                            <input type="radio" name="installment-type" value="kaedoki" id="install-kaedoki" onclick="handleRadioClick(this)" onchange="updateInstallmentType()">
+                                            <label for="install-kaedoki">カエドキプログラム</label>
+                                        </div>
+                                        <div id="kaedoki-details" class="hidden ml-8 mt-2 space-y-2">
+                                            <div>
+                                                <label class="block text-sm">1〜23回目の分割金（円/月）</label>
+                                                <input type="number" class="input-field" id="kaedoki-1-23" placeholder="1100" onchange="updateEstimate()">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm">24〜48回目の分割金（円/月）</label>
+                                                <input type="number" class="input-field" id="kaedoki-24-48" placeholder="1500" onchange="updateEstimate()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 初期費用 -->
+                <div class="card">
+                    <h2 class="section-title">初期費用</h2>
+                    <div class="initial-cost-section">
+                        <div class="space-y-4">
+                            <!-- 頭金（分割時のみ表示） -->
+                            <div id="downpayment-initial-cost" class="hidden">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="downpayment-fee" checked disabled>
+                                    <label for="downpayment-fee">頭金: <span id="downpayment-display">0</span>円</label>
+                                </div>
+                            </div>
+                            
+                            <!-- 事務手数料 -->
+                            <div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="admin-fee" onchange="updateInitialCosts()">
+                                    <label for="admin-fee">事務手数料（3,850円）</label>
+                                </div>
+                            </div>
+                            
+                            <!-- データ移行 -->
+                            <div>
+                                <h3 class="font-semibold mb-2">データ移行</h3>
+                                <div class="radio-item">
+                                    <input type="radio" name="data-migration" value="none" id="data-migration-none" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="data-migration-none">なし</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="data-migration" value="basic" id="data-migration-basic" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="data-migration-basic" id="data-migration-label">電話帳、写真の移行のみ（2,200円）</label>
+                                </div>
+                                <div id="data-migration-payment" class="hidden ml-8 mt-2">
+                                    <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                    <div class="payment-methods">
+                                        <label><input type="radio" name="data-migration-payment" value="same-day" onchange="updateInitialCosts()"> 当日支払い</label>
+                                        <label><input type="radio" name="data-migration-payment" value="next-month" onchange="updateInitialCosts()"> 翌月請求</label>
+                                    </div>
+                                    <div id="data-migration-same-day-payment" class="hidden mt-2">
+                                        <label class="block text-sm font-medium mb-1">支払い方法選択</label>
+                                        <div class="payment-methods">
+                                            <label><input type="radio" name="data-migration-same-day-method" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                            <label><input type="radio" name="data-migration-same-day-method" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                            <label><input type="radio" name="data-migration-same-day-method" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 店頭サポート（その他データ移行） -->
+                            <div>
+                                <h3 class="font-semibold mb-2">店頭サポート（その他データ移行）</h3>
+                                <div class="radio-item">
+                                    <input type="radio" name="shop-data-support" value="none" id="shop-support-none" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="shop-support-none">なし</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="shop-data-support" value="line" id="shop-support-line" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="shop-support-line">LINE等（30分3,300円）</label>
+                                </div>
+                                <div id="shop-data-support-payment" class="hidden ml-8 mt-2">
+                                    <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                    <div class="payment-methods">
+                                        <label><input type="radio" name="shop-data-support-payment" value="same-day" onchange="updateInitialCosts()"> 当日支払い</label>
+                                        <label><input type="radio" name="shop-data-support-payment" value="next-month" onchange="updateInitialCosts()"> 翌月請求</label>
+                                    </div>
+                                    <div id="shop-data-support-same-day-payment" class="hidden mt-2">
+                                        <label class="block text-sm font-medium mb-1">支払い方法選択</label>
+                                        <div class="payment-methods">
+                                            <label><input type="radio" name="shop-data-support-same-day-method" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                            <label><input type="radio" name="shop-data-support-same-day-method" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                            <label><input type="radio" name="shop-data-support-same-day-method" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ハルトコーティング -->
+                            <div>
+                                <h3 class="font-semibold mb-2">ハルトコーティング（即時）</h3>
+                                <div class="space-y-2">
+                                    <div class="radio-item">
+                                        <input type="radio" name="coating" value="none" id="coating-none" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                        <label for="coating-none">不要</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="coating" value="single" id="coating-single" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                        <label for="coating-single">片面（4,400円）</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="coating" value="full" id="coating-full" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                        <label for="coating-full">全面（6,600円）</label>
+                                    </div>
+                                </div>
+                                <div id="coating-payment" class="hidden mt-2">
+                                    <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                    <div class="payment-methods">
+                                        <label><input type="radio" name="coating-payment" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                        <label><input type="radio" name="coating-payment" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                        <label><input type="radio" name="coating-payment" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- ケース -->
+                            <div>
+                                <h3 class="font-semibold mb-2">ケース</h3>
+                                <div class="radio-item">
+                                    <input type="radio" name="case" value="none" id="case-none" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="case-none">不要</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="case" value="needed" id="case-needed" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="case-needed">必要</label>
+                                </div>
+                                <div id="case-details" class="hidden mt-2 space-y-2">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">金額（円）</label>
+                                        <input type="number" class="input-field" id="case-price" placeholder="2000" onchange="updateInitialCosts(); updateDailyPaymentTotal();">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                        <div class="payment-methods">
+                                            <label><input type="radio" name="case-payment" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                            <label><input type="radio" name="case-payment" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                            <label><input type="radio" name="case-payment" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                            <label><input type="radio" name="case-payment" value="installment" onchange="updateDailyPaymentTotal()"> 分割</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- フィルム -->
+                            <div>
+                                <h3 class="font-semibold mb-2">フィルム</h3>
+                                <div class="radio-item">
+                                    <input type="radio" name="film" value="none" id="film-none" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="film-none">不要</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="film" value="needed" id="film-needed" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="film-needed">必要</label>
+                                </div>
+                                <div id="film-details" class="hidden mt-2 space-y-2">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">金額（円）</label>
+                                        <input type="number" class="input-field" id="film-price" placeholder="1500" onchange="updateInitialCosts(); updateDailyPaymentTotal();">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                        <div class="payment-methods">
+                                            <label><input type="radio" name="film-payment" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                            <label><input type="radio" name="film-payment" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                            <label><input type="radio" name="film-payment" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                            <label><input type="radio" name="film-payment" value="installment" onchange="updateDailyPaymentTotal()"> 分割</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 充電器 -->
+                            <div>
+                                <h3 class="font-semibold mb-2">充電器</h3>
+                                <div class="radio-item">
+                                    <input type="radio" name="charger" value="none" id="charger-none" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="charger-none">不要</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="charger" value="needed" id="charger-needed" onclick="handleRadioClick(this)" onchange="updateInitialCosts()">
+                                    <label for="charger-needed">必要</label>
+                                </div>
+                                <div id="charger-details" class="hidden mt-2 space-y-2">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">金額（円）</label>
+                                        <input type="number" class="input-field" id="charger-price" placeholder="3000" onchange="updateInitialCosts(); updateDailyPaymentTotal();">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">支払い方法</label>
+                                        <div class="payment-methods">
+                                            <label><input type="radio" name="charger-payment" value="dpay" onchange="updateDailyPaymentTotal()"> d払い</label>
+                                            <label><input type="radio" name="charger-payment" value="credit" onchange="updateDailyPaymentTotal()"> クレカ</label>
+                                            <label><input type="radio" name="charger-payment" value="cash" onchange="updateDailyPaymentTotal()"> 現金</label>
+                                            <label><input type="radio" name="charger-payment" value="installment" onchange="updateDailyPaymentTotal()"> 分割</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 店舗名選択 -->
+                <div class="card">
+                    <h2 class="section-title">店舗名選択</h2>
+                    <div class="space-y-2">
+                        <div class="radio-item">
+                            <input type="radio" name="shop" value="kariya" id="shop-kariya" onclick="handleRadioClick(this)">
+                            <label for="shop-kariya">ドコモショップ刈谷店</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="shop" value="meisai" id="shop-meisai" onclick="handleRadioClick(this)">
+                            <label for="shop-meisai">ドコモショップイオンタウン名西店</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="shop" value="lalaport" id="shop-lalaport" onclick="handleRadioClick(this)">
+                            <label for="shop-lalaport">ドコモショップららぽーと名古屋みなとアクルス店</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="shop" value="komaki" id="shop-komaki" onclick="handleRadioClick(this)">
+                            <label for="shop-komaki">ドコモショップ小牧店</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="shop" value="hirabari" id="shop-hirabari" onclick="handleRadioClick(this)">
+                            <label for="shop-hirabari">ドコモショップ平針店</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 見積書作成ボタン -->
+                <div class="card no-print">
+                    <button class="generate-button" onclick="generateEstimate()">
+                        表形式で見積書作成
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 料金見積もり（右側固定） -->
+            <div class="estimate-container">
+                <div class="estimate-section">
+                    <h2 class="text-xl font-bold mb-4">料金見積もり</h2>
+                    <div id="estimate-content">
+                        <div class="estimate-item">
+                            <span>基本料金</span>
+                            <span id="base-price">0円</span>
+                        </div>
+                        <div class="estimate-item">
+                            <span>合計割引</span>
+                            <span id="total-discount">0円</span>
+                        </div>
+                        <div class="estimate-item">
+                            <span>通話オプション</span>
+                            <span id="call-options">0円</span>
+                        </div>
+                        <div class="estimate-item">
+                            <span>オプション・サービス</span>
+                            <span id="options-services">0円</span>
+                        </div>
+                        <div class="estimate-item">
+                            <span>機種代金（月額）</span>
+                            <span id="device-monthly">0円</span>
+                        </div>
+                        <div class="estimate-total">
+                            <div class="estimate-item">
+                                <span>月額合計料金</span>
+                                <span id="monthly-total">0円</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 当日お支払い金額合計表示 -->
+                        <div class="daily-payment-total">
+                            <div style="font-size: 14px; margin-bottom: 4px;">当日お支払い金額合計</div>
+                            <div style="font-weight: bold; font-size: 16px;" id="daily-payment-total">0円</div>
+                        </div>
+                        
+                        <div id="point-reduction" class="hidden mt-4 pt-4 border-t border-white border-opacity-30">
+                            <div class="text-center">
+                                <div class="text-sm opacity-80 mb-2">ポイント還元による実質料金</div>
+                                <div class="text-2xl font-bold" id="real-price">0円</div>
+                                <div class="text-xs opacity-70 mt-1" id="point-info"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPlan = '';
+        let currentCapacity = '';
+        let basePrice = 0;
+        let currentDeviceMonthly = 0;
+        let radioStates = {};
+        
+        // デフォルトの機種データ（管理ページが利用できない場合）
+        const defaultPhoneModels = {
+            iPhone: [
+                'iPhone 16 Pro 128GB',
+                'iPhone 16 Pro 256GB',
+                'iPhone 16 Pro 512GB',
+                'iPhone 16 Pro 1TB',
+                'iPhone 16 Pro Max 256GB',
+                'iPhone 16 Pro Max 512GB',
+                'iPhone 16 Pro Max 1TB',
+                'iPhone 16 128GB',
+                'iPhone 16 256GB',
+                'iPhone 16 512GB',
+                'iPhone 16 Plus 128GB',
+                'iPhone 16 Plus 256GB',
+                'iPhone 16 Plus 512GB',
+                'iPhone 15 Pro 128GB',
+                'iPhone 15 Pro 256GB',
+                'iPhone 15 Pro 512GB',
+                'iPhone 15 Pro 1TB',
+                'iPhone 15 Pro Max 256GB',
+                'iPhone 15 Pro Max 512GB',
+                'iPhone 15 Pro Max 1TB',
+                'iPhone 15 128GB',
+                'iPhone 15 256GB',
+                'iPhone 15 512GB',
+                'iPhone 15 Plus 128GB',
+                'iPhone 15 Plus 256GB',
+                'iPhone 15 Plus 512GB',
+                'iPhone 14 Pro 128GB',
+                'iPhone 14 Pro 256GB',
+                'iPhone 14 Pro 512GB',
+                'iPhone 14 Pro 1TB',
+                'iPhone 14 Pro Max 128GB',
+                'iPhone 14 Pro Max 256GB',
+                'iPhone 14 Pro Max 512GB',
+                'iPhone 14 Pro Max 1TB',
+                'iPhone 14 128GB',
+                'iPhone 14 256GB',
+                'iPhone 14 512GB',
+                'iPhone 14 Plus 128GB',
+                'iPhone 14 Plus 256GB',
+                'iPhone 14 Plus 512GB',
+                'iPhone SE（第3世代） 64GB',
+                'iPhone SE（第3世代） 128GB',
+                'iPhone SE（第3世代） 256GB'
+            ],
+            Android: [
+                'Xperia 1 Ⅶ SO-51F',
+                'Google Pixel 9a 128GB',
+                'Google Pixel 9a 256GB',
+                'Galaxy A25 5G SC-53F',
+                'Galaxy S25 SC-51F 256GB',
+                'Galaxy S25 Ultra SC-52F 256GB',
+                'らくらくスマートフォン F-53E',
+                'motorola razr 50d M-51E',
+                'AQUOS R9 pro SH-54E',
+                'らくらくスマートフォン Lite MR01',
+                'AQUOS sense9 SH-53E',
+                'Google Pixel 9 128GB',
+                'Google Pixel 9 Pro 256GB',
+                'Google Pixel 9 Pro Fold 256GB',
+                'arrows We2 F-52E',
+                'arrows We2 Plus F-51E',
+                'Galaxy Z Flip6 SC-54E',
+                'Galaxy Z Fold6 SC-55E 256GB',
+                'AQUOS R9 SH-51E',
+                'Xperia 10 Ⅵ SO-52E',
+                'AQUOS wish4 SH-52E',
+                'Xperia 1 VI SO-51E',
+                'Galaxy A55 5G SC-53E',
+                'Google Pixel 8a',
+                'Galaxy S24 SC-51E',
+                'Galaxy S24 Ultra SC-52E 256GB'
+            ],
+            iPad: [
+                '13インチiPad Air（M3） 128GB',
+                '13インチiPad Air（M3） 256GB',
+                '13インチiPad Air（M3） 512GB',
+                '13インチiPad Air（M3） 1TB',
+                '11インチiPad Air（M3） 128GB',
+                '11インチiPad Air（M3） 256GB',
+                '11インチiPad Air（M3） 512GB',
+                '11インチiPad Air（M3） 1TB',
+                'iPad（A16） 128GB',
+                'iPad（A16） 256GB',
+                'iPad（A16） 512GB',
+                'iPad mini（A17 Pro） 128GB',
+                'iPad mini（A17 Pro） 256GB',
+                'iPad mini（A17 Pro） 512GB',
+                '13インチiPad Pro（M4） 256GB',
+                '13インチiPad Pro（M4） 512GB',
+                '13インチiPad Pro（M4） 1TB',
+                '13インチiPad Pro（M4） 2TB',
+                '11インチiPad Pro（M4） 256GB',
+                '11インチiPad Pro（M4） 512GB',
+                '11インチiPad Pro（M4） 1TB',
+                '11インチiPad Pro（M4） 2TB'
+            ],
+            Other: [
+                'DuraForce EX KY-51D',
+                'キッズケータイ コンパクト SK-41D',
+                'DIGNO ケータイ カメラレス KY-43C',
+                'DIGNO ケータイ KY-42C',
+                'キッズケータイ KY-41C',
+                'arrows ケータイ ベーシック F-41C',
+                'らくらくホン F-01M'
+            ]
+        };
+        
+        function loadPhoneModels() {
+            try {
+                const saved = localStorage.getItem('phoneModels');
+                if (saved) {
+                    const models = JSON.parse(saved);
+                    console.log('管理ページからデータを読み込みました:', models);
+                    return models;
+                } else {
+                    console.log('管理ページデータが見つかりません。デフォルトデータを使用します。');
+                    return defaultPhoneModels;
+                }
+            } catch (e) {
+                console.log('管理ページデータの読み込みに失敗しました。デフォルトデータを使用します:', e);
+                return defaultPhoneModels;
+            }
+        }
+        
+        function updateDeviceModels() {
+            const deviceType = document.querySelector('input[name="device-type"]:checked');
+            const modelSection = document.getElementById('device-model-section');
+            const modelSelect = document.getElementById('device-model-select');
+            
+            if (!deviceType) {
+                modelSection.classList.add('hidden');
+                return;
+            }
+            
+            const phoneModels = loadPhoneModels();
+            const models = phoneModels[deviceType.value] || [];
+            
+            console.log(`${deviceType.value}の機種リスト:`, models);
+            
+            // セレクトボックスをクリア
+            modelSelect.innerHTML = '<option value="">機種を選択してください</option>';
+            
+            // 機種リストを追加
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelect.appendChild(option);
+            });
+            
+            modelSection.classList.remove('hidden');
+        }
+        
+        function updateDeviceName() {
+            const modelSelect = document.getElementById('device-model-select');
+            const deviceNameInput = document.getElementById('device-name');
+            
+            if (modelSelect.value) {
+                deviceNameInput.value = modelSelect.value;
+                updateEstimate();
+            }
+        }
+        
+        function handleRadioClick(element) {
+            const radioName = element.name;
+            const radioValue = element.value;
+            
+            // 現在の状態を確認
+            if (radioStates[radioName] === radioValue) {
+                // 既に選択されている場合は解除
+                element.checked = false;
+                delete radioStates[radioName];
+                
+                // 機種タイプの場合、機種選択も非表示に
+                if (radioName === 'device-type') {
+                    document.getElementById('device-model-section').classList.add('hidden');
+                }
+                
+                // onchangeイベントを手動で発火
+                if (element.onchange) {
+                    element.onchange();
+                }
+            } else {
+                // 新しく選択する場合
+                radioStates[radioName] = radioValue;
+            }
+        }
+        
+        function selectPlan(plan) {
+            // 全てのプランボタンの選択状態をリセット
+            document.querySelectorAll('.plan-button').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('plan-' + plan).classList.add('selected');
+            
+            // 全ての容量選択を非表示
+            document.querySelectorAll('[id^="capacity-"]').forEach(div => div.classList.add('hidden'));
+            
+            currentPlan = plan;
+            
+            // 選択したプランの容量選択を表示
+            if (plan !== 'point-max') {
+                document.getElementById('capacity-' + plan).classList.remove('hidden');
+            } else {
+                // ポイ活MAXは容量選択なしで固定料金
+                basePrice = 11748;
+                updateEstimate();
+            }
+            
+            // 割引の表示制御
+            updateDiscountVisibility();
+            
+            // ドコモメール持ち運びオプションの表示制御
+            updateDocomoMailOption();
+            
+            // データ移行料金の表示を更新
+            updateDataMigrationLabel();
+        }
+        
+        function selectCapacity(plan, capacity, price) {
+            // 選択したプラン内の容量選択をリセット
+            document.querySelectorAll(`#capacity-${plan} .capacity-option`).forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            currentCapacity = capacity;
+            basePrice = price;
+            updateEstimate();
+        }
+        
+        function updateDiscountVisibility() {
+            const minnaDiscount = document.getElementById('minna-discount');
+            const longtermDiscount = document.getElementById('longterm-discount');
+            
+            if (currentPlan === 'docomo-mini') {
+                minnaDiscount.classList.add('hidden');
+                longtermDiscount.classList.add('hidden');
+            } else {
+                minnaDiscount.classList.remove('hidden');
+                longtermDiscount.classList.remove('hidden');
+            }
+        }
+        
+        function updateDocomoMailOption() {
+            const docomoMailOption = document.getElementById('docomo-mail-option');
+            
+            if (currentPlan === 'docomo-mini') {
+                docomoMailOption.style.display = 'flex';
+            } else {
+                docomoMailOption.style.display = 'none';
+                document.getElementById('docomo-mail').checked = false;
+            }
+        }
+        
+        function updateDataMigrationLabel() {
+            const dataMigrationLabel = document.getElementById('data-migration-label');
+            if (currentPlan === 'docomo-mini') {
+                dataMigrationLabel.textContent = '電話帳、写真の移行のみ（3,300円）';
+            } else {
+                dataMigrationLabel.textContent = '電話帳、写真の移行のみ（2,200円）';
+            }
+        }
+        
+        function updatePaymentMethod() {
+            const installmentDetails = document.getElementById('installment-details');
+            const downpaymentInitialCost = document.getElementById('downpayment-initial-cost');
+            const paymentMethod = document.querySelector('input[name="payment"]:checked');
+            
+            if (paymentMethod && paymentMethod.value === 'installment') {
+                installmentDetails.classList.remove('hidden');
+                calculateInstallment();
+            } else {
+                installmentDetails.classList.add('hidden');
+                downpaymentInitialCost.classList.add('hidden');
+                currentDeviceMonthly = 0;
+                updateEstimate();
+                updateDailyPaymentTotal();
+            }
+        }
+        
+        function updateDownpaymentType() {
+            const downpaymentType = document.querySelector('input[name="downpayment-type"]:checked');
+            const downpaymentInput = document.getElementById('device-downpayment');
+            
+            if (downpaymentType) {
+                if (downpaymentType.value === 'fixed') {
+                    downpaymentInput.value = 19800;
+                    downpaymentInput.readOnly = true;
+                } else {
+                    downpaymentInput.value = '';
+                    downpaymentInput.readOnly = false;
+                }
+                calculateInstallment();
+                updateDailyPaymentTotal();
+            }
+        }
+        
+        function updateInstallmentType() {
+            const installmentType = document.querySelector('input[name="installment-type"]:checked');
+            const kaedokiDetails = document.getElementById('kaedoki-details');
+            
+            // 全ての金額表示を非表示
+            document.querySelectorAll('[id$="-amount"]').forEach(div => div.classList.add('hidden'));
+            
+            if (installmentType) {
+                if (installmentType.value === 'kaedoki') {
+                    kaedokiDetails.classList.remove('hidden');
+                    currentDeviceMonthly = parseInt(document.getElementById('kaedoki-1-23').value) || 0;
+                } else {
+                    kaedokiDetails.classList.add('hidden');
+                    document.getElementById(`install-${installmentType.value}-amount`).classList.remove('hidden');
+                    currentDeviceMonthly = parseInt(document.getElementById(`amount-${installmentType.value}`).textContent) || 0;
+                }
+                updateEstimate();
+            }
+        }
+        
+        function calculateInstallment() {
+            const total = parseInt(document.getElementById('device-total').value) || 0;
+            const downpayment = parseInt(document.getElementById('device-downpayment').value) || 0;
+            const remaining = total - downpayment;
+            
+            // 分割払い選択時のみ頭金を初期費用に表示
+            const paymentMethod = document.querySelector('input[name="payment"]:checked');
+            const downpaymentInitialCost = document.getElementById('downpayment-initial-cost');
+            
+            if (paymentMethod && paymentMethod.value === 'installment' && downpayment > 0) {
+                downpaymentInitialCost.classList.remove('hidden');
+                document.getElementById('downpayment-display').textContent = downpayment.toLocaleString();
+            } else {
+                downpaymentInitialCost.classList.add('hidden');
+            }
+            
+            if (remaining > 0) {
+                // 自動計算（12/24/36回払い）
+                document.getElementById('amount-12').textContent = Math.ceil(remaining / 12);
+                document.getElementById('amount-24').textContent = Math.ceil(remaining / 24);
+                document.getElementById('amount-36').textContent = Math.ceil(remaining / 36);
+                
+                // 現在選択されている分割方法の金額を更新
+                const installmentType = document.querySelector('input[name="installment-type"]:checked');
+                if (installmentType && installmentType.value !== 'kaedoki') {
+                    currentDeviceMonthly = parseInt(document.getElementById(`amount-${installmentType.value}`).textContent) || 0;
+                    updateEstimate();
+                }
+            }
+        }
+        
+        function updateInitialCosts() {
+            // データ移行の支払い方法表示制御
+            const dataMigration = document.querySelector('input[name="data-migration"]:checked');
+            const dataMigrationPayment = document.getElementById('data-migration-payment');
+            const dataMigrationSameDayPayment = document.getElementById('data-migration-same-day-payment');
+            
+            if (dataMigration && dataMigration.value === 'basic') {
+                dataMigrationPayment.classList.remove('hidden');
+                
+                const dataMigrationPaymentMethod = document.querySelector('input[name="data-migration-payment"]:checked');
+                if (dataMigrationPaymentMethod && dataMigrationPaymentMethod.value === 'same-day') {
+                    dataMigrationSameDayPayment.classList.remove('hidden');
+                } else {
+                    dataMigrationSameDayPayment.classList.add('hidden');
+                }
+            } else {
+                dataMigrationPayment.classList.add('hidden');
+                dataMigrationSameDayPayment.classList.add('hidden');
+            }
+            
+            // 店頭サポートの支払い方法表示制御
+            const shopDataSupport = document.querySelector('input[name="shop-data-support"]:checked');
+            const shopDataSupportPayment = document.getElementById('shop-data-support-payment');
+            const shopDataSupportSameDayPayment = document.getElementById('shop-data-support-same-day-payment');
+            
+            if (shopDataSupport && shopDataSupport.value === 'line') {
+                shopDataSupportPayment.classList.remove('hidden');
+                
+                const shopDataSupportPaymentMethod = document.querySelector('input[name="shop-data-support-payment"]:checked');
+                if (shopDataSupportPaymentMethod && shopDataSupportPaymentMethod.value === 'same-day') {
+                    shopDataSupportSameDayPayment.classList.remove('hidden');
+                } else {
+                    shopDataSupportSameDayPayment.classList.add('hidden');
+                }
+            } else {
+                shopDataSupportPayment.classList.add('hidden');
+                shopDataSupportSameDayPayment.classList.add('hidden');
+            }
+            
+            // 付属品の表示制御
+            const coating = document.querySelector('input[name="coating"]:checked');
+            const coatingPayment = document.getElementById('coating-payment');
+            if (coating && coating.value !== 'none') {
+                coatingPayment.classList.remove('hidden');
+            } else {
+                coatingPayment.classList.add('hidden');
+            }
+            
+            const caseOption = document.querySelector('input[name="case"]:checked');
+            const caseDetails = document.getElementById('case-details');
+            if (caseOption && caseOption.value === 'needed') {
+                caseDetails.classList.remove('hidden');
+            } else {
+                caseDetails.classList.add('hidden');
+            }
+            
+            const filmOption = document.querySelector('input[name="film"]:checked');
+            const filmDetails = document.getElementById('film-details');
+            if (filmOption && filmOption.value === 'needed') {
+                filmDetails.classList.remove('hidden');
+            } else {
+                filmDetails.classList.add('hidden');
+            }
+            
+            const chargerOption = document.querySelector('input[name="charger"]:checked');
+            const chargerDetails = document.getElementById('charger-details');
+            if (chargerOption && chargerOption.value === 'needed') {
+                chargerDetails.classList.remove('hidden');
+            } else {
+                chargerDetails.classList.add('hidden');
+            }
+            
+            // 当日お支払い金額合計も更新
+            updateDailyPaymentTotal();
+        }
+        
+        function updateDailyPaymentTotal() {
+            let dailyTotal = 0;
+            
+            // 頭金（分割払い時でd払い・クレカ・現金選択時）
+            const paymentMethod = document.querySelector('input[name="payment"]:checked');
+            if (paymentMethod && paymentMethod.value === 'installment') {
+                const downpayment = parseInt(document.getElementById('device-downpayment').value) || 0;
+                const downpaymentPayment = document.querySelector('input[name="downpayment-payment"]:checked');
+                if (downpayment > 0 && downpaymentPayment && ['dpay', 'credit', 'cash'].includes(downpaymentPayment.value)) {
+                    dailyTotal += downpayment;
+                }
+            }
+            
+            // データ移行（当日支払い選択時）
+            const dataMigration = document.querySelector('input[name="data-migration"]:checked');
+            if (dataMigration && dataMigration.value === 'basic') {
+                const dataMigrationPayment = document.querySelector('input[name="data-migration-payment"]:checked');
+                if (dataMigrationPayment && dataMigrationPayment.value === 'same-day') {
+                    const dataMigrationSameDayMethod = document.querySelector('input[name="data-migration-same-day-method"]:checked');
+                    if (dataMigrationSameDayMethod && ['dpay', 'credit', 'cash'].includes(dataMigrationSameDayMethod.value)) {
+                        dailyTotal += currentPlan === 'docomo-mini' ? 3300 : 2200;
+                    }
+                }
+            }
+            
+            // 店頭サポート（当日支払い選択時）
+            const shopDataSupport = document.querySelector('input[name="shop-data-support"]:checked');
+            if (shopDataSupport && shopDataSupport.value === 'line') {
+                const shopDataSupportPayment = document.querySelector('input[name="shop-data-support-payment"]:checked');
+                if (shopDataSupportPayment && shopDataSupportPayment.value === 'same-day') {
+                    const shopDataSupportSameDayMethod = document.querySelector('input[name="shop-data-support-same-day-method"]:checked');
+                    if (shopDataSupportSameDayMethod && ['dpay', 'credit', 'cash'].includes(shopDataSupportSameDayMethod.value)) {
+                        dailyTotal += 3300;
+                    }
+                }
+            }
+            
+            // ハルトコーティング（常に当日支払い）
+            const coating = document.querySelector('input[name="coating"]:checked');
+            if (coating && coating.value !== 'none') {
+                const coatingPayment = document.querySelector('input[name="coating-payment"]:checked');
+                if (coatingPayment && ['dpay', 'credit', 'cash'].includes(coatingPayment.value)) {
+                    const coatingPrice = coating.value === 'single' ? 4400 : 6600;
+                    dailyTotal += coatingPrice;
+                }
+            }
+            
+            // ケース（d払い・クレカ・現金選択時）
+            const caseOption = document.querySelector('input[name="case"]:checked');
+            if (caseOption && caseOption.value === 'needed') {
+                const casePayment = document.querySelector('input[name="case-payment"]:checked');
+                if (casePayment && ['dpay', 'credit', 'cash'].includes(casePayment.value)) {
+                    const casePrice = parseInt(document.getElementById('case-price').value) || 0;
+                    dailyTotal += casePrice;
+                }
+            }
+            
+            // フィルム（d払い・クレカ・現金選択時）
+            const filmOption = document.querySelector('input[name="film"]:checked');
+            if (filmOption && filmOption.value === 'needed') {
+                const filmPayment = document.querySelector('input[name="film-payment"]:checked');
+                if (filmPayment && ['dpay', 'credit', 'cash'].includes(filmPayment.value)) {
+                    const filmPrice = parseInt(document.getElementById('film-price').value) || 0;
+                    dailyTotal += filmPrice;
+                }
+            }
+            
+            // 充電器（d払い・クレカ・現金選択時）
+            const chargerOption = document.querySelector('input[name="charger"]:checked');
+            if (chargerOption && chargerOption.value === 'needed') {
+                const chargerPayment = document.querySelector('input[name="charger-payment"]:checked');
+                if (chargerPayment && ['dpay', 'credit', 'cash'].includes(chargerPayment.value)) {
+                    const chargerPrice = parseInt(document.getElementById('charger-price').value) || 0;
+                    dailyTotal += chargerPrice;
+                }
+            }
+            
+            document.getElementById('daily-payment-total').textContent = dailyTotal.toLocaleString() + '円';
+        }
+        
+        function updateEstimate() {
+            // 基本料金
+            document.getElementById('base-price').textContent = basePrice.toLocaleString() + '円';
+            
+            // 割引計算
+            let totalDiscount = 0;
+            
+            // dカード割引
+            const dcardDiscount = document.querySelector('input[name="dcard"]:checked');
+            if (dcardDiscount) {
+                totalDiscount += dcardDiscount.value === 'campaign' ? 550 : 220;
+            }
+            
+            // みんなドコモ割（ドコモMINI以外）
+            if (currentPlan !== 'docomo-mini') {
+                const minnaDiscount = document.querySelector('input[name="minna"]:checked');
+                if (minnaDiscount) {
+                    totalDiscount += minnaDiscount.value === '2lines' ? 550 : 1210;
+                }
+                
+                // 長期利用割
+                const longtermDiscount = document.querySelector('input[name="longterm"]:checked');
+                if (longtermDiscount) {
+                    totalDiscount += longtermDiscount.value === '10years' ? 110 : 220;
+                }
+            }
+            
+            // その他割引
+            if (document.getElementById('hikari-discount').checked) totalDiscount += 1210;
+            if (document.getElementById('denki-discount').checked) totalDiscount += 110;
+            
+            document.getElementById('total-discount').textContent = '-' + totalDiscount.toLocaleString() + '円';
+            
+            // 通話オプション
+            let callOptions = 0;
+            const callOption = document.querySelector('input[name="call-option"]:checked');
+            if (callOption) {
+                if (callOption.value === 'unlimited') callOptions += 1980;
+                if (callOption.value === '5min') callOptions += 880;
+            }
+            document.getElementById('call-options').textContent = callOptions.toLocaleString() + '円';
+            
+            // オプション・サービス
+            let optionsServices = 0;
+            
+            // コネクトα
+            const connectOption = document.querySelector('input[name="connect"]:checked');
+            if (connectOption) {
+                switch(connectOption.value) {
+                    case 'plus': optionsServices += 550; break;
+                    case 'platinum1': optionsServices += 870; break;
+                    case 'platinum2': optionsServices += 1280; break;
+                }
+            }
+            
+            // 基本オプション
+            if (document.getElementById('backup-service').checked) optionsServices += 550;
+            if (document.getElementById('ad-block').checked) optionsServices += 880;
+            if (document.getElementById('docomo-mail').checked) optionsServices += 330;
+            
+            // 店頭サポート
+            if (document.getElementById('shop-support-550').checked) optionsServices += 550;
+            if (document.getElementById('shop-support-990').checked) optionsServices += 990;
+            
+            // 手入力オプション
+            for (let i = 1; i <= 5; i++) {
+                const price = parseInt(document.getElementById(`other-option-${i}-price`).value) || 0;
+                optionsServices += price;
+            }
+            
+            // 手入力サービス
+            for (let i = 1; i <= 5; i++) {
+                const price = parseInt(document.getElementById(`other-service-${i}-price`).value) || 0;
+                optionsServices += price;
+            }
+            
+            document.getElementById('options-services').textContent = optionsServices.toLocaleString() + '円';
+            
+            // 機種代金（月額）
+            const installmentType = document.querySelector('input[name="installment-type"]:checked');
+            if (installmentType && installmentType.value === 'kaedoki') {
+                currentDeviceMonthly = parseInt(document.getElementById('kaedoki-1-23').value) || 0;
+            }
+            document.getElementById('device-monthly').textContent = currentDeviceMonthly.toLocaleString() + '円';
+            
+            // 月額合計
+            const monthlyTotal = basePrice - totalDiscount + callOptions + optionsServices + currentDeviceMonthly;
+            document.getElementById('monthly-total').textContent = monthlyTotal.toLocaleString() + '円';
+            
+            // ポイント還元実質料金（ポイ活プランのみ）
+            updatePointReduction(monthlyTotal);
+            
+            // 当日お支払い金額合計も更新
+            updateDailyPaymentTotal();
+        }
+        
+        function updatePointReduction(monthlyTotal) {
+            const pointReduction = document.getElementById('point-reduction');
+            const realPrice = document.getElementById('real-price');
+            const pointInfo = document.getElementById('point-info');
+            
+            if (currentPlan === 'point-max' || currentPlan === 'point-20') {
+                pointReduction.classList.remove('hidden');
+                
+                let pointAmount = 0;
+                let pointLimit = '';
+                
+                if (currentPlan === 'point-max') {
+                    pointAmount = 5000;
+                    pointLimit = '月5,000pt上限';
+                } else if (currentPlan === 'point-20') {
+                    pointAmount = 2500;
+                    pointLimit = '月2,500pt上限';
+                }
+                
+                // 正しい計算方法：税別→ポイント控除→税込み
+                const taxExclusive = Math.floor(monthlyTotal / 1.1);
+                const afterPointReduction = Math.max(0, taxExclusive - pointAmount);
+                const realAmount = Math.floor(afterPointReduction * 1.1);
+                
+                realPrice.textContent = realAmount.toLocaleString() + '円';
+                pointInfo.textContent = pointLimit;
+            } else {
+                pointReduction.classList.add('hidden');
+            }
+        }
+        
+        function generateEstimate() {
+            // 見積書データを収集
+            const estimateData = collectEstimateData();
+            
+            // 新しいウィンドウで表形式見積書を表示
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(generateEstimateHTML(estimateData));
+            newWindow.document.close();
+        }
+        
+        function collectEstimateData() {
+            const data = {
+                plan: '',
+                capacity: '',
+                basePrice: basePrice,
+                discounts: [],
+                callOptions: [],
+                options: [],
+                services: [],
+                device: {},
+                initialCosts: [],
+                accessories: [],
+                totals: {},
+                shop: {},
+                dailyPaymentTotal: parseInt(document.getElementById('daily-payment-total').textContent.replace(/[^\d]/g, ''))
+            };
+            
+            // プラン情報
+            const planNames = {
+                'docomo-max': 'ドコモMAX',
+                'point-max': 'ドコモポイ活MAX',
+                'point-20': 'ドコモポイ活20',
+                'docomo-mini': 'ドコモmini'
+            };
+            data.plan = planNames[currentPlan] || '';
+            
+            // 容量情報
+            if (currentPlan === 'docomo-max') {
+                const capacityNames = { '1gb': '1GB未満', '3gb': '3GB未満', 'unlimited': '無制限' };
+                data.capacity = capacityNames[currentCapacity] || '';
+            } else if (currentPlan === 'point-20') {
+                const capacityNames = { '20gb': '20GB未満', 'unlimited': '無制限' };
+                data.capacity = capacityNames[currentCapacity] || '';
+            } else if (currentPlan === 'docomo-mini') {
+                const capacityNames = { '4gb': '4GB', '10gb': '10GB' };
+                data.capacity = capacityNames[currentCapacity] || '';
+            }
+            
+            // 割引情報
+            const dcardDiscount = document.querySelector('input[name="dcard"]:checked');
+            if (dcardDiscount) {
+                const amount = dcardDiscount.value === 'campaign' ? 550 : 220;
+                const type = dcardDiscount.value === 'campaign' ? 'キャンペーン' : '通常';
+                data.discounts.push(`dカードお支払割（${type}）: -${amount}円`);
+            }
+            
+            if (currentPlan !== 'docomo-mini') {
+                const minnaDiscount = document.querySelector('input[name="minna"]:checked');
+                if (minnaDiscount) {
+                    const amount = minnaDiscount.value === '2lines' ? 550 : 1210;
+                    const type = minnaDiscount.value === '2lines' ? '2回線' : '3回線以上';
+                    data.discounts.push(`みんなドコモ割（${type}）: -${amount}円`);
+                }
+                
+                const longtermDiscount = document.querySelector('input[name="longterm"]:checked');
+                if (longtermDiscount) {
+                    const amount = longtermDiscount.value === '10years' ? 110 : 220;
+                    const type = longtermDiscount.value === '10years' ? '10年以上' : '20年以上';
+                    data.discounts.push(`長期利用割（${type}）: -${amount}円`);
+                }
+            }
+            
+            if (document.getElementById('hikari-discount').checked) {
+                data.discounts.push('ドコモ光セット割: -1,210円');
+            }
+            if (document.getElementById('denki-discount').checked) {
+                data.discounts.push('ドコモでんきセット割: -110円');
+            }
+            
+            // 通話オプション
+            const callOption = document.querySelector('input[name="call-option"]:checked');
+            if (callOption) {
+                if (callOption.value === 'unlimited') {
+                    data.callOptions.push('かけ放題オプション: 1,980円');
+                } else if (callOption.value === '5min') {
+                    data.callOptions.push('5分通話無料オプション: 880円');
+                }
+            }
+            
+            // オプション・サービス
+            const connectOption = document.querySelector('input[name="connect"]:checked');
+            if (connectOption) {
+                const connectNames = {
+                    'plus': 'コネクトαPlus: 550円',
+                    'platinum1': 'コネクトαPLATINUM: 870円',
+                    'platinum2': 'コネクトαPLATINUM: 1,280円'
+                };
+                data.options.push(connectNames[connectOption.value]);
+            }
+            
+            if (document.getElementById('backup-service').checked) {
+                data.options.push('らくらくバックアップ: 550円');
+            }
+            if (document.getElementById('ad-block').checked) {
+                data.options.push('広告ブロックプレミアム: 880円');
+            }
+            if (document.getElementById('docomo-mail').checked) {
+                data.options.push('ドコモメール持ち運びオプション: 330円');
+            }
+            
+            // 店頭サポート
+            if (document.getElementById('shop-support-550').checked) {
+                data.options.push('店頭サポート: 550円');
+            }
+            if (document.getElementById('shop-support-990').checked) {
+                data.options.push('店頭サポート: 990円');
+            }
+            
+            // 手入力オプション
+            for (let i = 1; i <= 5; i++) {
+                const name = document.getElementById(`other-option-${i}-name`).value;
+                const price = document.getElementById(`other-option-${i}-price`).value;
+                if (name && price) {
+                    data.options.push(`${name}: ${parseInt(price).toLocaleString()}円`);
+                }
+            }
+            
+            // 手入力サービス
+            for (let i = 1; i <= 5; i++) {
+                const name = document.getElementById(`other-service-${i}-name`).value;
+                const price = document.getElementById(`other-service-${i}-price`).value;
+                if (name && price) {
+                    data.services.push(`${name}: ${parseInt(price).toLocaleString()}円`);
+                }
+            }
+            
+            // 機種情報
+            data.device.name = document.getElementById('device-name').value;
+            data.device.total = document.getElementById('device-total').value;
+            data.device.downpayment = document.getElementById('device-downpayment').value;
+            
+            const paymentMethod = document.querySelector('input[name="payment"]:checked');
+            if (paymentMethod) {
+                if (paymentMethod.value === 'bulk') {
+                    data.device.paymentMethod = '一括払い';
+                    data.device.monthlyAmount = 0;
+                } else {
+                    const installmentType = document.querySelector('input[name="installment-type"]:checked');
+                    if (installmentType) {
+                        if (installmentType.value === 'kaedoki') {
+                            data.device.paymentMethod = 'カエドキプログラム（48回払い）';
+                            data.device.kaedoki1to23 = document.getElementById('kaedoki-1-23').value;
+                            data.device.kaedoki24to48 = document.getElementById('kaedoki-24-48').value;
+                            data.device.monthlyAmount = parseInt(data.device.kaedoki1to23) || 0;
+                        } else {
+                            data.device.paymentMethod = `${installmentType.value}回払い`;
+                            data.device.monthlyAmount = parseInt(document.getElementById(`amount-${installmentType.value}`).textContent) || 0;
+                        }
+                    }
+                }
+            }
+            
+            // 初期費用
+            // 頭金（分割払い時のみ）
+            const paymentMethodForDownpayment = document.querySelector('input[name="payment"]:checked');
+            if (paymentMethodForDownpayment && paymentMethodForDownpayment.value === 'installment') {
+                const downpayment = parseInt(document.getElementById('device-downpayment').value) || 0;
+                if (downpayment > 0) {
+                    const downpaymentPayment = document.querySelector('input[name="downpayment-payment"]:checked');
+                    const paymentMethodName = downpaymentPayment ? getPaymentMethodName(downpaymentPayment.value) : '';
+                    data.initialCosts.push({ item: '頭金', payment: paymentMethodName, amount: downpayment });
+                }
+            }
+            
+            if (document.getElementById('admin-fee').checked) {
+                data.initialCosts.push({ item: '事務手数料', payment: '翌月請求', amount: 3850 });
+            }
+            
+            const dataMigration = document.querySelector('input[name="data-migration"]:checked');
+            if (dataMigration && dataMigration.value === 'basic') {
+                const dataMigrationPayment = document.querySelector('input[name="data-migration-payment"]:checked');
+                let paymentMethodName = '翌月請求';
+                if (dataMigrationPayment) {
+                    if (dataMigrationPayment.value === 'same-day') {
+                        const dataMigrationSameDayMethod = document.querySelector('input[name="data-migration-same-day-method"]:checked');
+                        paymentMethodName = dataMigrationSameDayMethod ? getPaymentMethodName(dataMigrationSameDayMethod.value) : '当日支払い';
+                    } else {
+                        paymentMethodName = '翌月請求';
+                    }
+                }
+                // ドコモmini選択時は3,300円、それ以外は2,200円
+                const migrationAmount = currentPlan === 'docomo-mini' ? 3300 : 2200;
+                data.initialCosts.push({ item: 'データ移行（電話帳、写真）', payment: paymentMethodName, amount: migrationAmount });
+            }
+            
+            const shopDataSupport = document.querySelector('input[name="shop-data-support"]:checked');
+            if (shopDataSupport && shopDataSupport.value === 'line') {
+                const shopDataSupportPayment = document.querySelector('input[name="shop-data-support-payment"]:checked');
+                let paymentMethodName = '翌月請求';
+                if (shopDataSupportPayment) {
+                    if (shopDataSupportPayment.value === 'same-day') {
+                        const shopDataSupportSameDayMethod = document.querySelector('input[name="shop-data-support-same-day-method"]:checked');
+                        paymentMethodName = shopDataSupportSameDayMethod ? getPaymentMethodName(shopDataSupportSameDayMethod.value) : '当日支払い';
+                    } else {
+                        paymentMethodName = '翌月請求';
+                    }
+                }
+                data.initialCosts.push({ item: '店頭サポート（LINE等）', payment: paymentMethodName, amount: 3300 });
+            }
+            
+            // 付属品
+            const coating = document.querySelector('input[name="coating"]:checked');
+            if (coating && coating.value !== 'none') {
+                const coatingPrice = coating.value === 'single' ? 4400 : 6600;
+                const coatingType = coating.value === 'single' ? '片面' : '全面';
+                const coatingPayment = document.querySelector('input[name="coating-payment"]:checked');
+                const paymentMethod = coatingPayment ? getPaymentMethodName(coatingPayment.value) : '';
+                data.initialCosts.push({ item: `ハルトコーティング（${coatingType}）`, payment: paymentMethod, amount: coatingPrice });
+            }
+            
+            const caseOption = document.querySelector('input[name="case"]:checked');
+            if (caseOption && caseOption.value === 'needed') {
+                const casePrice = parseInt(document.getElementById('case-price').value) || 0;
+                const casePayment = document.querySelector('input[name="case-payment"]:checked');
+                const paymentMethod = casePayment ? getPaymentMethodName(casePayment.value) : '';
+                data.initialCosts.push({ item: 'ケース', payment: paymentMethod, amount: casePrice });
+            }
+            
+            const filmOption = document.querySelector('input[name="film"]:checked');
+            if (filmOption && filmOption.value === 'needed') {
+                const filmPrice = parseInt(document.getElementById('film-price').value) || 0;
+                const filmPayment = document.querySelector('input[name="film-payment"]:checked');
+                const paymentMethod = filmPayment ? getPaymentMethodName(filmPayment.value) : '';
+                data.initialCosts.push({ item: 'フィルム', payment: paymentMethod, amount: filmPrice });
+            }
+            
+            const chargerOption = document.querySelector('input[name="charger"]:checked');
+            if (chargerOption && chargerOption.value === 'needed') {
+                const chargerPrice = parseInt(document.getElementById('charger-price').value) || 0;
+                const chargerPayment = document.querySelector('input[name="charger-payment"]:checked');
+                const paymentMethod = chargerPayment ? getPaymentMethodName(chargerPayment.value) : '';
+                data.initialCosts.push({ item: '充電器', payment: paymentMethod, amount: chargerPrice });
+            }
+            
+            // 店舗情報
+            const shopSelected = document.querySelector('input[name="shop"]:checked');
+            if (shopSelected) {
+                const shopData = {
+                    'kariya': { name: 'ドコモショップ刈谷店', tel: '0566-23-9911' },
+                    'meisai': { name: 'ドコモショップイオンタウン名西店', tel: '052-521-6911' },
+                    'lalaport': { name: 'ドコモショップららぽーと名古屋みなとアクルス店', tel: '052-653-6311' },
+                    'komaki': { name: 'ドコモショップ小牧店', tel: '0568-76-9911' },
+                    'hirabari': { name: 'ドコモショップ平針店', tel: '052-807-3511' }
+                };
+                data.shop = shopData[shopSelected.value] || {};
+            }
+            
+            // 合計情報
+            const monthlyTotal = parseInt(document.getElementById('monthly-total').textContent.replace(/[^\d]/g, ''));
+            data.totals.monthly = monthlyTotal;
+            
+            if (currentPlan === 'point-max' || currentPlan === 'point-20') {
+                const realPrice = parseInt(document.getElementById('real-price').textContent.replace(/[^\d]/g, ''));
+                data.totals.real = realPrice;
+                data.totals.pointAmount = currentPlan === 'point-max' ? 5000 : 2500;
+            }
+            
+            return data;
+        }
+        
+        function getPaymentMethodName(value) {
+            const names = {
+                'dpay': 'd払い',
+                'credit': 'クレジットカード',
+                'cash': '現金',
+                'installment': '分割'
+            };
+            return names[value] || value;
+        }
+        
+        function generateEstimateHTML(data) {
+            return `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡易見積書</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            color: #000;
+            margin-bottom: 8px;
+        }
+        
+        .header .date {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .note {
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+            margin-top: 4px;
+        }
+        
+        .shop-info {
+            position: absolute;
+            bottom: 8px;
+            right: 0;
+            font-size: 11px;
+            color: #333;
+            text-align: right;
+        }
+        
+        .section {
+            margin-bottom: 8px;
+        }
+        
+        .section-title {
+            background: #333;
+            color: white;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+        
+        .info-table th,
+        .info-table td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .info-table th {
+            background: #f5f5f5;
+            font-weight: bold;
+            width: 65%;
+        }
+        
+        .info-table td {
+            text-align: right;
+            width: 35%;
+            font-weight: bold;
+        }
+        
+        .initial-costs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+        
+        .initial-costs-table th,
+        .initial-costs-table td {
+            border: 1px solid #333;
+            padding: 5px;
+            text-align: left;
+            font-size: 12px;
+        }
+        
+        .initial-costs-table th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+        
+        .initial-costs-table td:nth-child(1) {
+            width: 50%;
+        }
+        
+        .initial-costs-table td:nth-child(2) {
+            text-align: left;
+            width: 25%;
+        }
+        
+        .initial-costs-table td:nth-child(3) {
+            text-align: right;
+            width: 25%;
+            font-weight: bold;
+        }
+        
+        .total-section {
+            background: #f8f8f8;
+            border: 2px solid #333;
+            border-radius: 6px;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #999;
+            font-size: 18px;
+        }
+        
+        .total-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 28px;
+            color: #000;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 2px solid #333;
+        }
+        
+        .daily-payment-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 8px;
+            margin: 8px 0;
+            text-align: center;
+        }
+        
+        .daily-payment-highlight .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #856404;
+        }
+        
+        .daily-payment-small {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 3px;
+            margin: 2px 0;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        .real-price {
+            background: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .real-price .amount {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .device-details {
+            background: #f8f8f8;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .initial-costs {
+            background: #f8f8f8;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .notes {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+            padding: 6px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        
+        .compact-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .pdf-button {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .pdf-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media print {
+            body {
+                margin: 2mm;
+                padding: 2mm;
+                font-size: 14px;
+            }
+            
+            @page {
+                margin: 2mm;
+                size: A4;
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            .pdf-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center mb-4">
+        <button class="pdf-button" onclick="window.print()">PDFで印刷</button>
+    </div>
+    
+    <div class="header">
+        <h1>簡易見積書</h1>
+        <div class="date">作成日：${new Date().toLocaleDateString('ja-JP')}</div>
+        <div class="note">※本見積書は本日時点の情報です。</div>
+        ${data.shop.name ? `
+        <div class="shop-info">
+            ${data.shop.name}<br>
+            TEL：${data.shop.tel}
+        </div>
+        ` : ''}
+    </div>
+    
+    ${data.device.name ? `
+    <div class="section">
+        <div class="section-title">機種情報</div>
+        <div class="device-details">
+            <strong>機種名：</strong>${data.device.name}<br>
+            ${data.device.total ? `<strong>機種代金総額：</strong>${parseInt(data.device.total).toLocaleString()}円<br>` : ''}
+            ${data.device.downpayment ? `<strong>頭金：</strong>${parseInt(data.device.downpayment).toLocaleString()}円<br>` : ''}
+            ${data.device.paymentMethod ? `<strong>支払い方法：</strong>${data.device.paymentMethod}<br>` : ''}
+            ${data.device.kaedoki1to23 ? `<strong>1〜23回目：</strong>${parseInt(data.device.kaedoki1to23).toLocaleString()}円/月<br>` : ''}
+            ${data.device.kaedoki24to48 ? `<strong>24〜48回目：</strong>${parseInt(data.device.kaedoki24to48).toLocaleString()}円/月<br>` : ''}
+            ${data.device.monthlyAmount && !data.device.kaedoki1to23 ? `<strong>月額分割金：</strong>${data.device.monthlyAmount.toLocaleString()}円/月<br>` : ''}
+        </div>
+    </div>
+    ` : ''}
+    
+    <div class="compact-section">
+        <div class="section">
+            <div class="section-title">料金プラン</div>
+            <table class="info-table">
+                <tr>
+                    <th>${data.plan}${data.capacity ? `（${data.capacity}）` : ''}</th>
+                    <td>${data.basePrice.toLocaleString()}円</td>
+                </tr>
+                ${data.callOptions.map(option => `
+                <tr>
+                    <th>${option.split(':')[0]}</th>
+                    <td>${option.split(':')[1].trim()}</td>
+                </tr>
+                `).join('')}
+            </table>
+        </div>
+        
+        ${data.discounts.length > 0 ? `
+        <div class="section">
+            <div class="section-title">適用割引</div>
+            <table class="info-table">
+                ${data.discounts.map(discount => `
+                <tr>
+                    <th>${discount.split(':')[0]}</th>
+                    <td>${discount.split(':')[1].trim()}</td>
+                </tr>
+                `).join('')}
+            </table>
+        </div>
+        ` : ''}
+    </div>
+    
+    ${(data.options.length > 0 || data.services.length > 0) ? `
+    <div class="section">
+        <div class="section-title">オプション・サービス</div>
+        <table class="info-table">
+            ${data.options.map(option => `
+            <tr>
+                <th>${option.split(':')[0]}</th>
+                <td>${option.split(':')[1].trim()}</td>
+            </tr>
+            `).join('')}
+            ${data.services.map(service => `
+            <tr>
+                <th>${service.split(':')[0]}</th>
+                <td>${service.split(':')[1].trim()}</td>
+            </tr>
+            `).join('')}
+        </table>
+    </div>
+    ` : ''}
+    
+    ${data.initialCosts.length > 0 ? `
+    <div class="section">
+        <div class="section-title">初期費用</div>
+        <div class="initial-costs">
+            <table class="initial-costs-table">
+                <thead>
+                    <tr>
+                        <th>項目名</th>
+                        <th>支払い方法</th>
+                        <th>金額</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.initialCosts.map(cost => `
+                    <tr>
+                        <td>${cost.item}</td>
+                        <td>${cost.payment || ''}</td>
+                        <td style="text-align: right;">${cost.amount.toLocaleString()}円</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            ${data.dailyPaymentTotal > 0 ? `
+            <div class="daily-payment-small">
+                当日お支払い金額合計: ${data.dailyPaymentTotal.toLocaleString()}円
+            </div>
+            ` : ''}
+        </div>
+    </div>
+    ` : ''}
+    
+    <div class="total-section">
+        <div class="total-row">
+            <span>月額料金合計</span>
+            <span>${(data.totals.monthly - (data.device.monthlyAmount || 0)).toLocaleString()}円</span>
+        </div>
+        ${data.device.monthlyAmount ? `
+        <div class="total-row">
+            <span>機種代金（${data.device.kaedoki1to23 ? '1〜23回目' : '月額'}）</span>
+            <span>${data.device.monthlyAmount.toLocaleString()}円</span>
+        </div>
+        ` : ''}
+        <div class="total-row">
+            <span>月額総合計</span>
+            <span>${data.totals.monthly.toLocaleString()}円</span>
+        </div>
+        
+        ${data.totals.real !== undefined ? `
+        <div class="real-price">
+            <div>ポイント還元による実質料金</div>
+            <div class="amount">${data.totals.real.toLocaleString()}円</div>
+            <div style="font-size: 12px; margin-top: 4px;">月${data.totals.pointAmount.toLocaleString()}pt還元</div>
+        </div>
+        ` : ''}
+    </div>
+    
+    ${data.device.kaedoki1to23 ? `
+    <div class="notes">
+        ※カエドキプログラム選択時は1〜23回目の料金で計算しています。24回目以降は${parseInt(data.device.kaedoki24to48).toLocaleString()}円/月となります。
+    </div>
+    ` : ''}
+    
+    <div class="notes">
+        ※この見積書は参考価格です。実際の料金は契約時にご確認ください。<br>
+        ${(data.plan && data.plan.includes('ポイ活')) ? '※ポイント還元は期間限定ポイントとして付与されます（有効期限約3ヶ月）。<br>' : ''}
+        ※手数料、付属品の料金は１度のみ発生します。（但し付属品を分割払いしている場合、利用料金と併せて請求されます。）
+    </div>
+    <div class="mt-8" style="text-align:right;">
+        <label for="creator-name" style="font-weight:bold;">見積作成者：</label>
+        <input type="text" id="creator-name" name="creator-name" style="border:1px solid #ccc; border-radius:4px; padding:4px 8px; font-size:14px;">
+    </div>
+</body>
+</html>
+            `;
+        }
+        
+        // 初期化
+        updateEstimate();
+        updateInitialCosts();
+        updateDailyPaymentTotal();
+        
+        // ページ読み込み時に管理ページのデータを確認（強制リロード）
+        setTimeout(() => {
+            console.log('機種データロード状況:', loadPhoneModels());
+            // 機種タイプが既に選択されている場合は機種リストを更新
+            const selectedDeviceType = document.querySelector('input[name="device-type"]:checked');
+            if (selectedDeviceType) {
+                updateDeviceModels();
+            }
+        }, 500);
+    </script>
+</body>
+</html>
