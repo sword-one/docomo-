@@ -30,3 +30,9 @@
 - 入力：`script.txt`（Claudeが書く60秒台本）
 - 処理：TTS（VOICEVOX等のローカルTTS）→ 字幕付き縦動画（ffmpeg）→ キリンのアバター画像を口パク風に揺らす簡易アニメ
 - 要件：人物の顔・実名・会社名は一切含めない。1本の生成が10分以内。手動作業は `script.txt` の承認だけ。
+
+## Task 5: キリン課長の1ページサイト（GitHub Pages・目安2時間）
+- 出力：`product/site/index.html`（単一HTML・外部依存なし・スマホ優先）
+- 構成：①キリン課長のアイコンと3行紹介 ②本（Kindle）③note ④テンプレ（BOOTH）⑤ココナラ の5リンク ⑥メール登録フォーム（Googleフォーム埋め込み）
+- 要件：会社名・実名・業種は出さない。リンク先URLは `product/site/links.json` から読む。Lighthouse モバイル90点以上。
+- 公開：リポジトリ設定の GitHub Pages で `product/site/` を公開。独自ドメインは後回し。
