@@ -46,6 +46,22 @@ table.kv { width:100%; border-collapse:collapse; font-size:14px; }
 table.kv td { padding:4px 6px; border-bottom:1px solid #eef1f6; }
 table.kv td.r { text-align:right; white-space:nowrap; }
 #print { display:none; }
+/* 割引の欄 */
+.drow { display:grid; grid-template-columns:150px 1fr 110px; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid #eef1f6; }
+.drow .dt { font-weight:700; font-size:14px; }
+.drow .ds { font-size:12px; color:#666; margin-top:4px; line-height:1.4; }
+.drow .da { text-align:right; } .drow .da small { display:block; font-size:11px; color:#666; }
+.dv { font-size:16px; color:var(--red); } .dv.off { color:#aaa; font-weight:400; font-size:14px; }
+.seg { display:inline-flex; flex-wrap:wrap; border:1.5px solid var(--line); border-radius:10px; overflow:hidden; background:#fff; vertical-align:middle; }
+.seg button { border:none; border-right:1px solid var(--line); background:#fff; padding:8px 14px; font-size:15px; min-height:42px; cursor:pointer; touch-action:manipulation; color:#222; }
+.seg button:last-child { border-right:none; }
+.seg button.on { background:var(--navy); color:#fff; font-weight:700; }
+.seg button:disabled { color:#bbb; background:#f6f6f6; cursor:not-allowed; } .seg button.on:disabled { background:#9aa7bd; color:#fff; }
+.step { display:inline-flex; align-items:center; gap:6px; margin-left:10px; font-size:13px; color:#444; vertical-align:middle; }
+.step button { width:40px; height:40px; border:1.5px solid var(--line); border-radius:8px; background:#fff; font-size:18px; cursor:pointer; touch-action:manipulation; }
+.step b { min-width:20px; text-align:center; font-size:16px; }
+.dtot { text-align:right; padding:10px 0 2px; font-size:14px; } .dtot b { font-size:18px; color:var(--red); } .dtot small { display:block; color:#666; }
+@media (max-width:700px) { .drow { grid-template-columns:1fr auto; } .drow .dc { grid-column:1 / -1; grid-row:2; } }
 /* 料金プラン選び */
 .sec-t { font-size:13px; font-weight:700; color:#555; margin:10px 0 6px; }
 .pgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; }
@@ -297,30 +313,13 @@ function render() {
     ${p.note ? `<p class="note">※${p.note}</p>` : ""}
   </div>
 
-  <div class="grid2">
   <div class="card"><h2>② 通話オプション</h2><div class="row">${voices}</div>
-    ${p.senior60Kakeho ? `<p class="note">※60歳以上はかけ放題が${yen(SENIOR60_KAKEHO)}（③割引で「60歳以上」を選ぶと反映）</p>` : ""}
+    ${p.senior60Kakeho ? `<p class="note">※60歳以上はかけ放題が${yen(SENIOR60_KAKEHO)}（③割引で年齢「60歳以上」を選ぶと反映）</p>` : ""}
     ${l.hearty && HEARTY.plans[p.id] != null && p.voice === "std" ? `<p class="note">※ハーティ割引：5分通話無料は0円、かけ放題は${yen(HEARTY.voice.kakeho)}</p>` : ""}
   </div>
 
-  <div class="card"><h2>③ 割引</h2>
-    <div class="row" style="padding:4px 0">ご利用者の年齢：${AGE_GROUPS.map(a => `<div class="chip ${l.age === a.id ? "on" : ""}" onclick="set('age','${a.id}')">${a.name}</div>`).join("")}</div>
-    ${(() => { const ag = AGE_DISCOUNTS[l.age]; if (!ag) return l.age === "s60" ? "" : ""; const a = ag.plans[p.id];
-      return a ? `<p class="note" style="margin:2px 0 6px">✔ ${ag.name} ▲${yen(a[Math.min(l.tier, a.length - 1)])}（最大${ag.months}か月）　${ag.note}</p>`
-               : `<p class="note" style="margin:2px 0 6px">${ag.name}は「${Object.keys(ag.plans).map(id => PLANS.find(x => x.id === id).name).join("・")}」が対象です${l.age === "s60" && p.senior60Kakeho ? "（このプランは60歳以上でかけ放題が" + yen(SENIOR60_KAKEHO) + "）" : ""}</p>`; })()}
-    <label class="ck"><input type="checkbox" ${l.hearty ? "checked" : ""} onchange="set('hearty',this.checked)">ハーティ割引（障がい者手帳など）<span class="p">${HEARTY.plans[p.id] != null ? "▲" + yen(HEARTY.plans[p.id]) : HEARTY.check[p.id] ? '<span class="warn">要確認</span>' : "このプランは対象外"}</span></label>
-    ${l.hearty && HEARTY.check[p.id] ? `<p class="warn" style="margin:2px 0 6px">${HEARTY.check[p.id]}（見積には入れていません）</p>` : ""}
-    ${l.hearty && HEARTY.planNote[p.id] ? `<p class="note" style="margin:2px 0 6px">※${HEARTY.planNote[p.id]}</p>` : ""}
-    ${l.hearty && HEARTY.plans[p.id] != null ? `<p class="note" style="margin:2px 0 6px">※ハーティ割引はみんなドコモ割・dカードお支払割・オプションパック割引と併用できません（自動で外しています）。留守電・キャッチ等は60%引き。契約事務手数料（ハーティ割引と同時申込の場合）・初期設定サポートは無料。${AGE_DISCOUNTS[l.age] && AGE_DISCOUNTS[l.age].plans[p.id] ? "年齢の割引と同時の場合、実際の割引額が少し変わることがあります。" : ""}</p>` : ""}
-    ${p.count ? `<label class="ck"><input type="checkbox" ${l.family ? "checked" : ""} onchange="set('family',this.checked)">ファミリー割引グループに入る（みんなドコモ割の回線数に数える）<span class="p">${p.family ? (familyCount() >= 2 ? "▲" + yen(familyCount() >= 3 ? p.family[1] : p.family[0]) : "（2回線以上で適用）") : "割引なし（回線数には数える）"}</span></label>` : `<p class="note">このプランはみんなドコモ割の回線数に数えません</p>`}
-    <div class="row" style="padding:6px 0">見積り以外のご家族のドコモ回線数：<input class="yen" type="number" min="0" value="${S.extra || ""}" placeholder="0" onchange="S.extra=this.value;render()" style="width:70px">回線　<span class="note">現在のカウント：${familyCount()}回線</span></div>
-    ${p.dcard ? `<div class="row" style="padding:6px 0">dカードお支払割：
-      ${[["none", "なし"], ["gold", "GOLD・PLATINUM ▲" + p.dcard[0]], ["general", "dカード ▲" + p.dcard[1]]].map(([k, n]) => `<div class="chip ${l.dcard === k ? "on" : ""}" onclick="set('dcard','${k}')">${n}</div>`).join("")}</div>` : ""}
-    ${p.hikari ? `<label class="ck"><input type="checkbox" ${l.hikari ? "checked" : ""} onchange="set('hikari',this.checked)">ドコモ光／home 5G セット割<span class="p">▲${yen(p.hikari)}</span></label>` : ""}
-    ${p.denki ? `<label class="ck"><input type="checkbox" ${l.denki ? "checked" : ""} onchange="set('denki',this.checked)">ドコモでんき セット割<span class="p">▲${yen(p.denki)}</span></label>` : ""}
-    ${p.choki ? `<div class="row" style="padding:6px 0">長期利用割：${[["none", "なし"], ["10", "10年以上 ▲110"], ["20", "20年以上 ▲220"]].map(([k, n]) => `<div class="chip ${l.choki === k ? "on" : ""}" onclick="set('choki','${k}')">${n}</div>`).join("")}</div>` : ""}
-    ${p.oyako ? `<label class="ck"><input type="checkbox" ${l.oyako ? "checked" : ""} onchange="set('oyako',this.checked)">ドコモ親子割（最大12か月）<span class="p">▲${yen(p.oyako[Math.min(l.tier, 1)])}</span></label>` : ""}
-  </div>
+  <div class="card"><h2>③ 割引 <span class="note">（あてはまるものを押してください）</span></h2>
+    ${discRows(l, p, r)}
   </div>
 
   <div class="card"><h2>④ オプション <span class="note">（${p.name}で申し込めるものだけ表示）</span></h2>
@@ -370,6 +369,49 @@ function render() {
     <tr><td>初期費用</td><td class="r">${yen(r.initTotal)}</td></tr>
   </table></div>`;
   renderSum();
+}
+function seg(key, cur, items, dis) {   // 横並びの切り替えボタン
+  return `<div class="seg">${items.map(([v, label]) => `<button class="${String(cur) === String(v) ? "on" : ""}" ${dis ? "disabled" : ""} onclick="set('${key}',${typeof v === "string" ? `'${v}'` : v})">${label}</button>`).join("")}</div>`;
+}
+function discRows(l, p, r) {
+  const amt = re => { const d = r.disc.find(x => re.test(x[0])) || r.late.find(x => re.test(x[0])); return d ? `<b class="dv">▲${yen(d[1])}</b>${r.late.includes(d) ? `<small>${d[2] + 1}か月目から</small>` : ""}` : `<span class="dv off">—</span>`; };
+  const row = (title, ctrl, right, sub) => `<div class="drow"><div class="dt">${title}</div><div class="dc">${ctrl}${sub ? `<div class="ds">${sub}</div>` : ""}</div><div class="da">${right}</div></div>`;
+  const hearty = heartyOn(l, p), ng = "ハーティ割引と一緒には使えません";
+  const out = [];
+  // 1. 年齢
+  const ag = AGE_DISCOUNTS[l.age], agA = ag && ag.plans[p.id];
+  let agSub = "";
+  if (ag && agA) agSub = `${ag.name}（最大${ag.months}か月）。${ag.note}`;
+  else if (ag) agSub = `${ag.name}は${Object.keys(ag.plans).map(id => PLANS.find(x => x.id === id).name).join("・")}だけが対象`;
+  if (l.age === "s60" && p.senior60Kakeho) agSub = `60歳以上はかけ放題が${yen(SENIOR60_KAKEHO)}（②でかけ放題を選ぶと反映）`;
+  out.push(row("ご利用者の年齢", seg("age", l.age, AGE_GROUPS.map(a => [a.id, a.name])), ag && agA ? amt(new RegExp(ag.name)) : `<span class="dv off">—</span>`, agSub));
+  // 2. ハーティ
+  const hRight = HEARTY.plans[p.id] != null ? (hearty ? amt(/ハーティ/) : `<span class="dv off">—</span>`) : HEARTY.check[p.id] ? `<span class="warn">要確認</span>` : `<span class="dv off">対象外</span>`;
+  let hSub = "障がい者手帳などをお持ちの方";
+  if (l.hearty && HEARTY.check[p.id]) hSub = `<span class="warn">${HEARTY.check[p.id]}（見積には入れていません）</span>`;
+  else if (hearty) hSub = "みんなドコモ割・dカードお支払割・オプションパックは外れます。留守電・キャッチ等は60%引き、事務手数料・初期設定サポートは無料" + (HEARTY.planNote[p.id] ? "。" + HEARTY.planNote[p.id] : "");
+  if (HEARTY.plans[p.id] != null || HEARTY.check[p.id]) out.push(row("ハーティ割引", seg("hearty", l.hearty, [[false, "なし"], [true, "あり"]]), hRight, hSub));
+  // 3. みんなドコモ割（家族の回線数）
+  const fc = familyCount();
+  const stepper = `<div class="step"><span>見積以外のご家族</span><button onclick="S.extra=Math.max(0,Number(S.extra||0)-1);render()">－</button><b>${Number(S.extra || 0)}</b><button onclick="S.extra=Number(S.extra||0)+1;render()">＋</button><span>回線</span></div>`;
+  if (p.count) {
+    const fRight = !p.family ? `<span class="dv off">割引なし</span>` : hearty ? `<span class="dv off">—</span>` : fc >= 2 && l.family ? amt(/みんなドコモ割/) : `<span class="dv off">—</span>`;
+    const fSub = hearty && p.family ? ng : !p.family ? `${p.name}は割引なし（家族の回線数には数える）` : `ご家族の音声回線 合計<b>${fc}回線</b>（2回線で▲${yen(p.family[0])}、3回線以上で▲${yen(p.family[1])}）`;
+    out.push(row("みんなドコモ割", seg("family", l.family, [[true, "家族グループに入る"], [false, "入らない"]], hearty && p.family) + stepper, fRight, fSub));
+  }
+  // 4. dカード
+  if (p.dcard) out.push(row("dカードお支払割", seg("dcard", l.dcard, [["none", "なし"], ["general", "dカード"], ["gold", "GOLD・PLATINUM"]], hearty), hearty ? `<span class="dv off">—</span>` : amt(/dカード/), hearty ? ng : `dカード ▲${yen(p.dcard[1])}／GOLD・GOLD U・PLATINUM ▲${yen(p.dcard[0])}`));
+  // 5. 光・でんき
+  if (p.hikari) out.push(row("ドコモ光・home 5G", seg("hikari", l.hikari, [[false, "なし"], [true, "あり"]]), amt(/光／home/), `セット割 ▲${yen(p.hikari)}`));
+  if (p.denki) out.push(row("ドコモでんき", seg("denki", l.denki, [[false, "なし"], [true, "あり"]]), amt(/でんき/), `セット割 ▲${yen(p.denki)}` + (agA ? "（年齢の割引の期間中は止まり、終わってから適用）" : "")));
+  // 6. 長期利用割
+  if (p.choki) out.push(row("ドコモの利用期間", seg("choki", l.choki, [["none", "10年未満"], ["10", "10年以上"], ["20", "20年以上"]]), amt(/長期利用割/), "長期利用割 10年以上▲110／20年以上▲220" + (agA ? "（年齢の割引の期間中は止まり、終わってから適用）" : "")));
+  // 7. 親子割
+  if (p.oyako) out.push(row("ドコモ親子割", seg("oyako", l.oyako, [[false, "なし"], [true, "あり"]]), amt(/親子割/), "最大12か月。同じファミリー割引にMAX・ポイ活MAX・ahamoの回線がある場合"));
+  if (out.length <= 1 && !p.count) out.push(`<p class="note">このプランで使える割引はありません</p>`);
+  const tot = r.disc.reduce((a, b) => a + b[1], 0);
+  out.push(`<div class="dtot">この回線の割引 合計 <b>▲${yen(tot)}</b>／月${r.late.length ? `<small>（${r.late[0][2] + 1}か月目から さらに▲${yen(r.late.reduce((a, b) => a + b[1], 0))}）</small>` : ""}</div>`);
+  return out.join("");
 }
 function optRow(l, o, p) {
   const on = !!l.opts[o.id];
