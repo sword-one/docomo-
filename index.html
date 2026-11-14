@@ -118,7 +118,7 @@ label.ck { min-height:44px; }
 </style>
 <script>
 // 毎日更新されるデータを、iPadに古いまま残さず必ず最新で読み込む
-(function () { const v = Date.now(); ["data.js", "devices.js", "updates.js"].forEach(f => document.write('<script src="' + f + '?v=' + v + '"><\/script>')); })();
+(function () { const v = Date.now(); ["data.js", "devices.js", "hosho.js", "updates.js"].forEach(f => document.write('<script src="' + f + '?v=' + v + '"><\/script>')); })();
 </script>
 </head>
 <body>
@@ -163,7 +163,7 @@ function renderNews() {
 }
 
 function newLine(n) {
-  return { label: "回線" + n, contract: "mnp", plan: "max", tier: 2, voice: "none", age: "none", hearty: false,
+  return { label: "回線" + n, contract: "mnp", plan: "max", tier: 2, voice: "none", age: "none", hearty: false, curCat: "", curModel: "",
     family: true, dcard: "none", hikari: false, denki: false, choki: "none", oyako: false,
     opts: {}, optAmt: {}, freeOpts: [{ name: "", price: 0 }],
     device: { use: true, cat: "", model: "", pay: "kaedoki", manualPrice: null, atama: null, shitadori: 0, point: 0 },
@@ -248,8 +248,33 @@ function optEff(l, o, p) {
   return r;
 }
 function heartyOn(l, p) { return l.hearty && HEARTY.plans[p.id] != null; }
-function optOK(o, p, l) { if (l && heartyOn(l, p) && HEARTY.noOptions.includes(o.id)) return false; return !o.plans || o.plans.includes(p.id); }
-function optAmt(l, o) { return o.input ? Number(l.optAmt[o.id] || 0) : (o.choices ? Number(l.optAmt[o.id] ?? o.choices[0].p) : o.price); }
+function optOK(o, p, l) {
+  if (l && heartyOn(l, p) && HEARTY.noOptions.includes(o.id)) return false;
+  if (l && HOSHO_OPT[o.id]) { const t = hoshoTarget(l); if (t && t.h && t.h.type !== HOSHO_OPT[o.id].type) return false; }
+  return !o.plans || o.plans.includes(p.id);
+}
+// ---- 機種ごとの補償の金額（ドコモ公式の月額料金検索から毎朝取得） ----
+const HS = (typeof HOSHO !== "undefined") ? HOSHO : [];
+const hNorm = s => String(s || "").replace("（店頭のみ）", "").replace(/[（(]\s*\d+\s*(GB|TB)\s*[)）]/g, "").replace(/Nano-textureガラス/gi, "")
+  .replace(/（/g, "(").replace(/）/g, ")").replace(/\s+/g, "").toLowerCase();
+function hoshoOf(name) {
+  if (!name) return null; const k = hNorm(name);
+  let h = HS.find(x => hNorm(x.name) === k);
+  if (!h) { const m = String(name).match(/[A-Z]{1,2}-\d{2}[A-Z]/); if (m) h = HS.find(x => x.name.includes(m[0])); }
+  return h || null;
+}
+// 補償の対象になる機種：端末を買うならその機種、買わないなら今お使いの機種
+function hoshoTarget(l) {
+  const buy = l.contract !== "plan" && l.device.use && l.device.model;
+  const name = buy ? l.device.model : l.curModel;
+  return name ? { name, buy: !!buy, h: hoshoOf(name) } : null;
+}
+const HOSHO_OPT = { hosho: { type: "smart", add: 0 }, smartpack: { type: "smart", add: 462 }, keitaihosho: { type: "keitai", add: 0 }, anshinmobile: { type: "keitai", add: 462 } };   // パック＝補償＋セキュリティ220＋遠隔660−418
+function hoshoAuto(l, o) { const c = HOSHO_OPT[o.id], t = hoshoTarget(l); if (!c || !t || !t.h || t.h.type !== c.type) return null; return t.h.price + c.add; }
+function optAmt(l, o) {
+  if (o.input) { const man = l.optAmt[o.id]; if (man !== undefined && man !== null && man !== "") return Number(man); const a = hoshoAuto(l, o); return a ?? 0; }
+  return o.choices ? Number(l.optAmt[o.id] ?? o.choices[0].p) : o.price;
+}
 function devFind(l) { return DEV.find(d => d.name === l.device.model); }
 function devPrice(d, contract) {
   if (!d) return null; const k = contract === "plan" ? "kihen" : contract; const pr = (d.prices || {})[k] || {};
@@ -299,6 +324,11 @@ function render() {
     <span class="sp" style="flex:1"></span>
     ${S.lines.length > 1 ? `<button class="btn danger" onclick="delLine(this)">この回線を削除</button>` : ""}
     <button class="btn" onclick="copyLine()">この回線を複製</button>
+  </div>
+  <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #e3e7ee"><b style="font-size:14px">今お使いの機種</b>
+    ${HS.length ? [...new Set(HS.map(x => x.cat))].map(c => `<div class="chip ${l.curCat === c ? "on" : ""}" style="padding:6px 10px" onclick="S.lines[S.cur].curCat='${c}';S.lines[S.cur].curModel='';render()">${c}</div>`).join("") : ""}
+    ${l.curCat ? `<select onchange="S.lines[S.cur].curModel=this.value;render()" style="min-width:260px"><option value="">機種を選択</option>${HS.filter(x => x.cat === l.curCat).map(x => `<option ${x.name === l.curModel ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>` : `<span class="note">（選ぶと補償の金額が自動で入ります）</span>`}
+    ${l.curModel ? (() => { const h = hoshoOf(l.curModel); return h ? `<span class="note">${h.type === "smart" ? "smartあんしん補償" : "ケータイ補償サービス"} ${yen(h.price)}</span>` : ""; })() : ""}
   </div></div>
 
   <div class="card"><h2>① 料金プラン</h2>
@@ -428,12 +458,19 @@ function optRow(l, o, p) {
   const on = !!l.opts[o.id];
   let right;
   const e = optEff(l, o, p);
-  if (o.input && on && !Number(l.optAmt[o.id] || 0)) o._warn = true; else o._warn = false;
-  if (o.input) right = `<input class="yen" type="number" value="${l.optAmt[o.id] || ""}" placeholder="円" onchange="S.lines[S.cur].optAmt['${o.id}']=this.value;S.lines[S.cur].opts['${o.id}']=true;render()">`;
+  const auto = hoshoAuto(l, o), man = l.optAmt[o.id] !== undefined && l.optAmt[o.id] !== null && l.optAmt[o.id] !== "";
+  o._warn = o.input && on && !optAmt(l, o);
+  if (o.input) right = `<input class="yen" type="number" value="${man ? l.optAmt[o.id] : auto ?? ""}" placeholder="円" onchange="S.lines[S.cur].optAmt['${o.id}']=this.value;S.lines[S.cur].opts['${o.id}']=true;render()">`
+    + (auto != null && !man ? `<br><span class="note">機種から自動</span>` : man && auto != null ? `<br><span class="note" style="cursor:pointer;text-decoration:underline" onclick="delete S.lines[S.cur].optAmt['${o.id}'];render();event.preventDefault()">自動（${yen(auto)}）に戻す</span>` : "");
   else if (o.choices) right = o.choices.map(c => `<span class="chip ${on && Number(l.optAmt[o.id] ?? o.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 8px" onclick="S.lines[S.cur].opts['${o.id}']=true;S.lines[S.cur].optAmt['${o.id}']=${c.p};render();event.preventDefault()">${c.l ? c.l + " " : ""}${yen(c.p)}</span>`).join(" ");
   else right = e.amt !== e.base ? `<s style="color:#999;font-weight:400">${yen(e.base)}</s> <span style="color:var(--red)">${yen(e.amt)}</span>` : yen(e.amt);
   const tips = [];
-  if (o.input && o.hint) tips.push("目安 " + o.hint + "（機種で変わる）");
+  if (HOSHO_OPT[o.id]) { const t = hoshoTarget(l);
+    if (t && t.h) tips.push(`${esc(t.name)}${t.buy ? "（購入する機種）" : "（今お使いの機種）"}の金額`);
+    else if (t) tips.push(`<span class="warn">${esc(t.name)} の補償の金額が見つかりません。手入力してください</span>`);
+    else tips.push("目安 " + o.hint + "（機種を選ぶと自動で入ります）");
+    if (t && !t.buy) tips.push("補償は機種を買う時にしか新しく入れません（加入中の方の月額として表示）"); }
+  else if (o.input && o.hint) tips.push("目安 " + o.hint + "（機種で変わる）");
   if (o.need) tips.push(o.need);
   if (o.pnote && o.pnote[p.id]) tips.push(o.pnote[p.id]);
   if (e.why) tips.push(e.why);
@@ -490,7 +527,7 @@ function doPrint() {
       ${r.opts.map(x => `<tr><td>${esc(x[0])}</td><td class="r">${x[1] < 0 ? "▲" + yen(-x[1]) : yen(x[1])}</td></tr>`).join("")}
       <tr><td><b>基本料金 小計</b></td><td class="r"><b>${yen(r.monthlyCharge)}</b></td></tr></table>`;
     const dv = r.dev;
-    const right = `${dv ? `<table class="pt"><tr><th colspan="2">端末について</th></tr>
+    const right = `${l.curModel ? `<table class="pt"><tr><th colspan="2">今お使いの機種</th></tr><tr><td colspan="2">${esc(l.curModel)}</td></tr></table>` : ""}${dv ? `<table class="pt"><tr><th colspan="2">端末について</th></tr>
       <tr><td>機種</td><td class="r" style="width:auto">${esc(dv.name)}</td></tr>
       <tr><td>購入方法</td><td class="r" style="width:auto">${dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括" }[dv.pay]}</td></tr>
       <tr><td>端末代金（店頭）</td><td class="r">${dv.total !== null ? yen(dv.total) : "—"}</td></tr>

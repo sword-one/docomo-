@@ -264,6 +264,23 @@ def main():
             if base not in snap:
                 news.append({"date": TODAY, "kind": "plan", "text": "料金プランの終了：%s %s" % (r["tab_name"], r["name"])})
     save_json("plans_prev.json", snap)
+    # 機種ごとの補償の金額（smartあんしん補償／ケータイ補償サービス）
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import hosho
+        res = hosho.build()
+        if res and len(res[0]) > 200:
+            hprev = load_json("hosho_prev.json", None)
+            if hprev:
+                pm = {(x["name"], x["type"]): x["price"] for x in hprev}
+                ch = ["%s %s→%s" % (x["name"], yen(pm[(x["name"], x["type"])]), yen(x["price"])) for x in res[0] if (x["name"], x["type"]) in pm and pm[(x["name"], x["type"])] != x["price"]]
+                if ch: news.append({"date": TODAY, "kind": "hosho", "text": "補償の月額の変更：" + "／".join(ch[:10])})
+            save_json("hosho_prev.json", res[0])
+            hosho.write(res[0], NOW.strftime("%Y-%m-%d %H:%M") + " 時点")
+        else:
+            log("補償の金額を取得できなかったため前回のまま")
+    except Exception as e:   # noqa
+        log("補償の金額の取得でエラー", e)
     st = {"news": news, "auto_plans": auto_plans, "plan_overrides": overrides}
     write_updates(st, news, status)
     return 0
