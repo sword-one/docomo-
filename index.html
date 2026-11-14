@@ -220,7 +220,8 @@ function calc(l) {
   if (hearty && p.voice === "std" && HEARTY.voice[l.voice] != null) { r.voice = HEARTY.voice[l.voice]; r.voiceName += "（ハーティ割引）"; }
   OPTIONS.forEach(o => { if (!l.opts[o.id] || !optOK(o, p, l)) return;
     const e = optEff(l, o, p);
-    r.opts.push([o.name + (e.why ? "（" + e.why + "）" : ""), e.amt]);
+    const ht = HOSHO_OPT[o.id] ? hoshoTarget(l) : null;   // 補償はどの機種の金額かを書く
+    r.opts.push([o.name + (ht && ht.h ? "（" + ht.name.replace("（店頭のみ）", "") + "）" : "") + (e.why ? "（" + e.why + "）" : ""), e.amt]);
     if (e.promo) { r.opts.push([e.promo.name, -e.promo.amt]); r.promos.push(e.promo); } });
   l.freeOpts.forEach(f => { if (f.name || f.price) r.opts.push([f.name || "その他", Number(f.price || 0)]); });
   const discSum = r.disc.reduce((a, b) => a + b[1], 0);
@@ -263,7 +264,7 @@ function optEff(l, o, p) {
     else if (!l.opts[o.id] || !free.has(o.id)) r.why = "選べる特典は2つまで";
   }
   if (heartyOn(l, p) && HEARTY.service[o.id] != null && !o.input && !o.choices) { r.amt = HEARTY.service[o.id]; r.why = "ハーティ割引で60%引き"; }
-  if (o.freeWithVoice && p.voice === "std" && l.voice !== "none" && !(o.noVoiceFree || []).includes(p.id)) { r.amt = 0; r.why = "通話オプション加入で割引"; }
+  if (o.freeWithVoice && p.voice === "std" && l.voice !== "none" && !(o.noVoiceFree || []).includes(p.id)) { r.amt = 0; r.why = "かけ放題・5分通話無料の加入で0円"; }
   if (o.packWithVoice != null && p.voice === "std" && l.voice !== "none") { r.amt = o.packWithVoice; r.why = "通話オプション加入中はパック割引の代わりに留守電・キャッチが無料。残るのはメロディコール110円"; }
   if (o.promo && o.promo[p.id]) { const pm = o.promo[p.id]; r.promo = { name: o.name + (o.id === "disney" ? "セット割" : "特典") + "（最大" + pm + "か月）", amt: Math.min(o.promoAmt, base), months: pm }; }
   return r;
