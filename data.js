@@ -87,7 +87,7 @@ const OPTIONS = [
   { id: "dazn", group: "動画・サブスク", name: "DAZN for docomo", price: 4200, plans: P_ALL, tokuten: true },
   { id: "dvalue", group: "動画・サブスク", name: "dバリューパス", price: 550, plans: P_ALL },
   { id: "dvaluepack", group: "動画・サブスク", name: "dバリューパスパック", price: 682, plans: P_ALL },
-  { id: "amazon", group: "動画・サブスク", name: "Amazonプライム", price: 600, plans: P_ALL, hint2: "MAX・ポイ活MAXは最大6か月、mini2は3か月 600円引きの特典あり" },
+  { id: "amazon", group: "動画・サブスク", name: "Amazonプライム", price: 600, plans: P_ALL, promo: { max: 6, poimax: 6, mini2: 3 }, promoAmt: 600 },
   { id: "disney", group: "動画・サブスク", name: "Disney+", plans: P_ALL, choices: [{ l: "スタンダード", p: 1250 }, { l: "プレミアム", p: 1670 }] },
   { id: "netflix", group: "動画・サブスク", name: "Netflix", plans: P_ALL, choices: [{ l: "広告つき", p: 890 }, { l: "スタンダード", p: 1590 }, { l: "プレミアム", p: 2290 }] },
   // ahamo

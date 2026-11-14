@@ -161,7 +161,7 @@ function familyCount() { return S.lines.filter(l => { const p = plan(l); return 
 // ---------- 計算 ----------
 function calc(l) {
   const p = plan(l), t = p.tiers[Math.min(l.tier, p.tiers.length - 1)];
-  const r = { base: t.price, disc: [], voice: 0, opts: [], dev: null };
+  const r = { base: t.price, disc: [], voice: 0, opts: [], promos: [], dev: null };
   const fc = familyCount();
   const hearty = l.hearty && HEARTY.plans[p.id] != null;
   if (hearty) r.disc.push(["ハーティ割引", HEARTY.plans[p.id]]);
@@ -177,12 +177,10 @@ function calc(l) {
   r.voiceName = v.name; r.voice = v.price;
   if (p.senior60Kakeho && l.voice === "kakeho" && l.age === "s60") { r.voice = SENIOR60_KAKEHO; r.voiceName = "かけ放題（60歳以上）"; }
   if (hearty && p.voice === "std" && HEARTY.voice[l.voice] != null) { r.voice = HEARTY.voice[l.voice]; r.voiceName += "（ハーティ割引）"; }
-  let tk = 0;
   OPTIONS.forEach(o => { if (!l.opts[o.id] || !optOK(o, p)) return;
-    let amt = optAmt(l, o), nm = o.name;
-    if (o.tokuten && p.tokuten && tk < p.tokuten) { tk++; amt = 0; nm += "（選べる特典で0円）"; }
-    else if (o.freeWithVoice && p.voice === "std" && l.voice !== "none") { amt = 0; nm += "（通話オプション加入で割引）"; }
-    r.opts.push([nm, amt]); });
+    const e = optEff(l, o, p);
+    r.opts.push([o.name + (e.why ? "（" + e.why + "）" : ""), e.amt]);
+    if (e.promo) { r.opts.push([e.promo.name, -e.promo.amt]); r.promos.push(e.promo); } });
   l.freeOpts.forEach(f => { if (f.name || f.price) r.opts.push([f.name || "その他", Number(f.price || 0)]); });
   const discSum = r.disc.reduce((a, b) => a + b[1], 0);
   r.planNet = Math.max(0, r.base - discSum);
@@ -191,8 +189,10 @@ function calc(l) {
   r.dev = devCalc(l);
   r.monthly = r.monthlyCharge + (r.dev ? r.dev.monthly : 0);
   // 期間限定の割引が終わった後の月額
-  const ends = [...new Set(r.disc.filter(d => d[2]).map(d => d[2]))].sort((a, b) => a - b);
-  r.steps = ends.map(m => { const ds = r.disc.filter(d => !d[2] || d[2] > m).reduce((a, b) => a + b[1], 0); return { from: m + 1, monthly: r.monthly - r.planNet + Math.max(0, r.base - ds) }; });
+  const ends = [...new Set(r.disc.filter(d => d[2]).map(d => d[2]).concat(r.promos.map(x => x.months)))].sort((a, b) => a - b);
+  r.steps = ends.map(m => { const ds = r.disc.filter(d => !d[2] || d[2] > m).reduce((a, b) => a + b[1], 0);
+    const pr = r.promos.filter(x => x.months <= m).reduce((a, b) => a + b.amt, 0);
+    return { from: m + 1, monthly: r.monthly - r.planNet + Math.max(0, r.base - ds) + pr }; });
   // 初期費用
   r.init = [];
   if (l.contract !== "plan" && l.init.jimu && p.id !== "ahamo") r.init.push(hearty ? ["契約事務手数料（ハーティ割引で無料）", 0] : ["契約事務手数料（翌月請求）", 4950]);
@@ -208,6 +208,23 @@ let planOpen = false;   // プラン一覧を開いているか（選んだら�
 const MAIN_PLANS = ["max", "poimax", "poi20", "mini2", "ahamo"];
 const PLAN_TAG = { max: "使った分だけ・無制限まで", poimax: "無制限＋dポイント還元", poi20: "20GBまで＋dポイント還元", mini2: "少しだけ使う人・〜12GB",
   ahamo: "オンライン手続き・〜120GB", u15: "5〜15歳のお子さま", keitai2: "ケータイ（ガラケー）", kids3: "キッズケータイ", dataplus: "タブレット等の2台目" };
+// オプションの実際の月額（割引・特典を反映）。画面の表示と合計の計算の両方でこれを使う
+function tokutenFree(l, p) {   // 選べる特典で0円になるオプション（p.tokuten 個まで）
+  if (!p.tokuten) return new Set();
+  return new Set(OPTIONS.filter(o => o.tokuten && l.opts[o.id] && optOK(o, p)).sort((a, b) => optAmt(l, b) - optAmt(l, a)).slice(0, p.tokuten).map(o => o.id));   // 高い方から2つを0円に（お客様に一番おトク）
+}
+function optEff(l, o, p) {
+  const base = optAmt(l, o);
+  const r = { amt: base, base, why: "", promo: null };
+  if (o.tokuten && p.tokuten) {
+    const free = tokutenFree(l, p);
+    if (l.opts[o.id] ? free.has(o.id) : free.size < p.tokuten) { r.amt = 0; r.why = "選べる特典で0円"; }
+    else if (!l.opts[o.id] || !free.has(o.id)) r.why = "選べる特典は2つまで";
+  }
+  if (o.freeWithVoice && p.voice === "std" && l.voice !== "none") { r.amt = 0; r.why = "通話オプション加入で割引"; }
+  if (o.promo && o.promo[p.id]) { const pm = o.promo[p.id]; r.promo = { name: o.name + "特典（最大" + pm + "か月）", amt: Math.min(o.promoAmt, base), months: pm }; }
+  return r;
+}
 function optOK(o, p) { return !o.plans || o.plans.includes(p.id); }
 function optAmt(l, o) { return o.input ? Number(l.optAmt[o.id] || 0) : (o.choices ? Number(l.optAmt[o.id] ?? o.choices[0].p) : o.price); }
 function devFind(l) { return DEV.find(d => d.name === l.device.model); }
@@ -336,7 +353,7 @@ function render() {
     <tr><td>基本料金（${p.name} ${p.tiers[l.tier].label}）</td><td class="r">${yen(r.base)}</td></tr>
     ${r.disc.map(x => `<tr><td>　${x[0]}</td><td class="r">▲${yen(x[1])}</td></tr>`).join("")}
     <tr><td>通話（${r.voiceName}）</td><td class="r">${yen(r.voice)}</td></tr>
-    ${r.opts.map(x => `<tr><td>${esc(x[0])}</td><td class="r">${yen(x[1])}</td></tr>`).join("")}
+    ${r.opts.map(x => `<tr><td>${esc(x[0])}</td><td class="r">${x[1] < 0 ? "▲" + yen(-x[1]) : yen(x[1])}</td></tr>`).join("")}
     <tr><td>端末の月々</td><td class="r">${yen(r.dev ? r.dev.monthly : 0)}</td></tr>
     <tr><td><b>月額合計</b></td><td class="r"><b>${yen(r.monthly)}</b></td></tr>
     ${r.steps.map(x => `<tr><td>　${x.from}か月目からの月額（期間限定の割引が終わった後）</td><td class="r">${yen(x.monthly)}</td></tr>`).join("")}
@@ -347,10 +364,21 @@ function render() {
 function optRow(l, o, p) {
   const on = !!l.opts[o.id];
   let right;
-  if (o.input) right = `<input class="yen" type="number" value="${l.optAmt[o.id] || ""}" placeholder="${o.hint || "円"}" onchange="S.lines[S.cur].optAmt['${o.id}']=this.value;S.lines[S.cur].opts['${o.id}']=true;render()">`;
+  const e = optEff(l, o, p);
+  if (o.input) right = `<input class="yen" type="number" value="${l.optAmt[o.id] || ""}" placeholder="円" onchange="S.lines[S.cur].optAmt['${o.id}']=this.value;S.lines[S.cur].opts['${o.id}']=true;render()">`;
   else if (o.choices) right = o.choices.map(c => `<span class="chip ${on && Number(l.optAmt[o.id] ?? o.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 8px" onclick="S.lines[S.cur].opts['${o.id}']=true;S.lines[S.cur].optAmt['${o.id}']=${c.p};render();event.preventDefault()">${c.l ? c.l + " " : ""}${yen(c.p)}</span>`).join(" ");
-  else right = yen(o.price);
-  const sub = [o.need, o.hint2, o.tokuten && p.tokuten ? "選べる特典の対象（2つまで0円）" : "", o.freeWithVoice && p.voice === "std" ? "5分通話無料かかけ放題に入ると割引で0円" : ""].filter(Boolean).join("／");
+  else right = e.amt !== e.base ? `<s style="color:#999;font-weight:400">${yen(e.base)}</s> <span style="color:var(--red)">${yen(e.amt)}</span>` : yen(e.amt);
+  const tips = [];
+  if (o.input && o.hint) tips.push("目安 " + o.hint + "（機種で変わる）");
+  if (o.need) tips.push(o.need);
+  if (e.why) tips.push(e.why);
+  else if (o.freeWithVoice && p.voice === "std") tips.push("5分通話無料かかけ放題に入ると0円");
+  if (o.tokuten && p.tokuten && !e.why) tips.push("選べる特典の対象（2つまで0円）");
+  if (o.promo && o.promo[p.id]) tips.push(`${p.name}は最大${o.promo[p.id]}か月 ${yen(o.promoAmt)}引き（期間後は${yen(e.base)}）`);
+  else if (o.hint2) tips.push(o.hint2);
+  if (o.id === "optpack" && p.voice === "std" && l.voice !== "none") tips.push("通話オプション加入中は留守電・キャッチを単品で入れる方が安い（単品は0円）");
+  if (o.id === "optpack" && l.opts.optpack && (l.opts.rusuden || l.opts.catch)) tips.push("⚠ 留守電・キャッチとパックが重複しています");
+  const sub = tips.join("／");
   return `<label class="ck"><input type="checkbox" ${on ? "checked" : ""} onchange="S.lines[S.cur].opts['${o.id}']=this.checked;render()"><span>${o.name}${sub ? `<br><span class="note">${sub}</span>` : ""}</span><span class="p">${right}</span></label>`;
 }
 function renderSum() {
@@ -391,7 +419,7 @@ function doPrint() {
       <tr><td>${p.name}（${p.tiers[l.tier].label}）</td><td class="r">${yen(r.base)}</td></tr>
       ${r.disc.map(x => `<tr><td>　${x[0]}</td><td class="r">▲${yen(x[1])}</td></tr>`).join("")}
       <tr><td>通話：${r.voiceName}</td><td class="r">${yen(r.voice)}</td></tr>
-      ${r.opts.map(x => `<tr><td>${esc(x[0])}</td><td class="r">${yen(x[1])}</td></tr>`).join("")}
+      ${r.opts.map(x => `<tr><td>${esc(x[0])}</td><td class="r">${x[1] < 0 ? "▲" + yen(-x[1]) : yen(x[1])}</td></tr>`).join("")}
       <tr><td><b>基本料金 小計</b></td><td class="r"><b>${yen(r.monthlyCharge)}</b></td></tr></table>`;
     const dv = r.dev;
     const right = `${dv ? `<table class="pt"><tr><th colspan="2">端末について</th></tr>
