@@ -45,10 +45,18 @@ const AGE_DISCOUNTS = {
 // mini2 は60歳以上でかけ放題が990円（AGE s60 で自動）
 const SENIOR60_KAKEHO = 990;
 
-// ハーティ割引（障がい者割引）。plans: 基本料からの割引額。みんなドコモ割・dカードお支払割とは併用できない。
-// 出典：https://www.docomo.ne.jp/charge/discount/hearty/about/ （mini2・ahamo は記載なし＝対象外として扱う）
+// ハーティ割引（障がい者割引）。plans: 基本料からの割引額。みんなドコモ割・dカードお支払割・オプションパック割引とは併用できない。
+// 出典：https://www.docomo.ne.jp/charge/discount/hearty/about/ ・提供条件書 hearty.pdf・charge_plan2.pdf（ahamo は対象外と明記）
 const HEARTY = {
-  plans: { max: 1980, poimax: 1980, poi20: 1980, u15: 770 },
+  plans: { max: 1980, poimax: 1980, poi20: 1980, u15: 770, keitai2: 407 },
+  check: {   // 対象かもしれないが金額が確定できないもの（計算に入れず「要確認」と表示）
+    mini2: "mini2がハーティ割引の対象かは公式に記載なし。店頭で確認",
+    dataplus: "5Gデータプラスは対象だが、公式資料で割引額が食い違う（22円／220円）ため店頭で確認",
+  },
+  planNote: { keitai2: "ケータイプラン2の407円は12/1改定前の額（改定後の額は未発表）" },
+  service: { rusuden: 132, catch: 88, melody: 44, imadoko: 132, dvaluepack: 616 },   // サービス料金60%引きの後の額
+  noOptions: ["optpack"],          // オプションパック割引は併用不可
+  initFree: ["support"],           // 初期設定サポート無料
   voice: { "5min": 0, kakeho: 1100 },   // 通話オプションの割引後の金額
   jimuFree: true,                       // 契約事務手数料が無料
 };
@@ -60,39 +68,54 @@ const VOICE = {
 };
 
 // 月額オプション。plans＝申し込めるプラン（ここに無いプランを選ぶと画面に出ない）
-// 出典：ドコモ公式の各サービスページ・ahamo.com/services/（2026/11/14確認）
+// 2026/11/14 公式（docomo.ne.jp 各サービスページ・各プランの提供条件書・ahamo.com）で項目ごとに検証済み。
+// pnote＝プラン別の注意（画面のオプション名の下に出る）。公式に明記が無く推定のものは「公式未記載」と書く。
 const P_ALL = ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "keitai2"];
-const P_DOCOMO = ["max", "poimax", "poi20", "mini2", "u15", "keitai2"];
 const P_SMART = ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "dataplus"];
+const KEITAI_VIDEO = "ケータイ（ガラケー）で視聴できるかは公式に記載なし。要確認";
 const OPTION_GROUPS = ["メール・通話", "補償・あんしん", "動画・サブスク", "ahamo", "みんスマ"];
 const OPTIONS = [
-  // メール・通話
-  { id: "mailopt", group: "メール・通話", name: "ドコモメールオプション", price: 330, plans: ["mini2"], need: "mini2でドコモメールを使うなら必要（プラン変更と同時に申込まないとアドレスが消える）" },
-  { id: "mailmotihakobi", group: "メール・通話", name: "ドコモメール持ち運び", price: 330, plans: ["ahamo"], need: "ahamoでドコモメールを使うなら必要（ahamoへの変更と同時のみ申込可）" },
-  { id: "rusuden", group: "メール・通話", name: "留守番電話", price: 330, plans: P_ALL, freeWithVoice: true },
-  { id: "catch", group: "メール・通話", name: "キャッチホン", price: 220, plans: P_ALL, freeWithVoice: true },
+  // ---- メール・通話 ----
+  { id: "mailopt", group: "メール・通話", name: "ドコモメールオプション", price: 330, plans: ["mini2"],
+    need: "mini2でドコモメールを使うなら必要（プラン変更と同時に申し込まないとアドレスが消える）" },
+  { id: "mailmotihakobi", group: "メール・通話", name: "ドコモメール持ち運び", price: 330, plans: ["ahamo"],
+    need: "ahamoでドコモメールを使うなら必要。ドコモからahamoへ変える時は、変更と同時にしか申し込めない" },
+  { id: "rusuden", group: "メール・通話", name: "留守番電話", price: 330, plans: P_ALL, freeWithVoice: true,
+    pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2"] },
+  { id: "catch", group: "メール・通話", name: "キャッチホン", price: 220, plans: P_ALL, freeWithVoice: true,
+    pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2"] },
   { id: "melody", group: "メール・通話", name: "メロディコール", price: 110, plans: ["max", "poimax", "poi20", "u15", "keitai2"] },
-  { id: "optpack", group: "メール・通話", name: "オプションパック（留守電・キャッチ・メロディ・転送）", price: 440, plans: ["max", "poimax", "poi20", "u15", "keitai2"] },
-  // 補償・あんしん
-  { id: "smartpack", group: "補償・あんしん", name: "smartあんしんパック", input: true, hint: "792〜3,342円", plans: P_DOCOMO },
-  { id: "hosho", group: "補償・あんしん", name: "smartあんしん補償", input: true, hint: "330〜2,880円", plans: P_ALL },
-  { id: "keitaihosho", group: "補償・あんしん", name: "ケータイ補償サービス（2022/8以前の機種）", input: true, hint: "363〜1,100円", plans: P_ALL },
-  { id: "anshinmobile", group: "補償・あんしん", name: "あんしんパック モバイル", input: true, hint: "825〜1,562円", plans: P_ALL },
-  { id: "security", group: "補償・あんしん", name: "あんしんセキュリティ", price: 220, plans: P_ALL },
-  { id: "enkaku", group: "補償・あんしん", name: "あんしん遠隔サポート", price: 660, plans: P_ALL },
-  { id: "imadoko", group: "補償・あんしん", name: "イマドコサーチ（見守る側）", price: 330, plans: P_ALL },
-  // 動画・サブスク（tokuten＝MAX・ポイ活MAXの「選べる特典」対象。2つまで0円）
-  { id: "lemino", group: "動画・サブスク", name: "Lemino プレミアム", price: 1540, plans: P_ALL, tokuten: true },
-  { id: "danime", group: "動画・サブスク", name: "dアニメストア", price: 660, plans: P_ALL, tokuten: true },
-  { id: "dazn", group: "動画・サブスク", name: "DAZN for docomo", price: 4200, plans: P_ALL, tokuten: true },
+  { id: "optpack", group: "メール・通話", name: "オプションパック（留守電・キャッチ・メロディ・転送）", price: 440, plans: ["max", "poimax", "poi20", "u15", "keitai2"], packWithVoice: 110 },
+  // ---- 補償・あんしん ----
+  { id: "smartpack", group: "補償・あんしん", name: "smartあんしんパック", input: true, hint: "792〜3,342円", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "dataplus"],
+    need: "2022/9/15以降発売の機種。補償＋セキュリティ＋遠隔サポートのセット", pnote: { ahamo: "ahamoはWeb（オンライン）手続きのみ" } },
+  { id: "hosho", group: "補償・あんしん", name: "smartあんしん補償", input: true, hint: "330〜2,880円", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "keitai2", "kids3", "dataplus"],
+    need: "2022/9/15以降発売の機種。店頭では機種購入当日のみ申込可（14日以内なら補償センターへ電話）", pnote: { kids3: "キッズケータイは機種により補償の種類・料金が違う（公式の月額料金検索で確認）" } },
+  { id: "keitaihosho", group: "補償・あんしん", name: "ケータイ補償サービス", input: true, hint: "363〜1,100円", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "keitai2", "kids3", "dataplus"],
+    need: "2022/8/31以前に発売された機種を買う時だけ入れる", pnote: { kids3: "キッズケータイは機種により補償の種類・料金が違う（公式の月額料金検索で確認）" } },
+  { id: "anshinmobile", group: "補償・あんしん", name: "あんしんパック モバイル", input: true, hint: "825〜1,562円", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "dataplus"],
+    need: "ケータイ補償サービスに入る人だけ（2022/8/31以前発売の機種）" },
+  { id: "security", group: "補償・あんしん", name: "あんしんセキュリティ", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "keitai2"],
+    choices: [{ l: "", p: 220 }, { l: "スタンダード", p: 550 }, { l: "詐欺対策プラス", p: 999 }, { l: "トータル詐欺対策プラス", p: 1815 }],
+    pnote: { ahamo: "迷惑メール対策を使うにはドコモメール持ち運びが必要", keitai2: "ケータイは迷惑電話・迷惑メール対策のみ。補償に入っていると110円" } },
+  { id: "enkaku", group: "補償・あんしん", name: "あんしん遠隔サポート", price: 660, plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15"] },
+  { id: "imadoko", group: "補償・あんしん", name: "イマドコサーチ（見守る側が払う）", price: 330, plans: P_ALL, need: "見守る側の回線で申し込む。初回31日間無料" },
+  // ---- 動画・サブスク（tokuten＝MAX・ポイ活MAXの「選べる特典」。月額の高い2つが0円） ----
+  { id: "lemino", group: "動画・サブスク", name: "Lemino プレミアム", price: 1540, plans: P_ALL, tokuten: true, pnote: { keitai2: KEITAI_VIDEO } },
+  { id: "danime", group: "動画・サブスク", name: "dアニメストア", price: 660, plans: P_ALL, tokuten: true, pnote: { keitai2: KEITAI_VIDEO } },
+  { id: "dazn", group: "動画・サブスク", name: "DAZN for docomo", price: 4200, plans: P_ALL, tokuten: true, pnote: { keitai2: KEITAI_VIDEO } },
+  { id: "nba", group: "動画・サブスク", name: "NBA docomo", price: 2728, plans: P_ALL, tokuten: true, pnote: { keitai2: KEITAI_VIDEO } },
   { id: "dvalue", group: "動画・サブスク", name: "dバリューパス", price: 550, plans: P_ALL },
-  { id: "dvaluepack", group: "動画・サブスク", name: "dバリューパスパック", price: 682, plans: P_ALL },
-  { id: "amazon", group: "動画・サブスク", name: "Amazonプライム", price: 600, plans: P_ALL, promo: { max: 6, poimax: 6, mini2: 3 }, promoAmt: 600 },
-  { id: "disney", group: "動画・サブスク", name: "Disney+", plans: P_ALL, choices: [{ l: "スタンダード", p: 1250 }, { l: "プレミアム", p: 1670 }] },
-  { id: "netflix", group: "動画・サブスク", name: "Netflix", plans: P_ALL, choices: [{ l: "広告つき", p: 890 }, { l: "スタンダード", p: 1590 }, { l: "プレミアム", p: 2290 }] },
-  // ahamo
-  { id: "ahamopoi", group: "ahamo", name: "ahamo ポイ活オプション", price: 2200, plans: ["ahamo"] },
-  // みんスマ商材
+  { id: "dvaluepack", group: "動画・サブスク", name: "dバリューパスパック", price: 682, plans: P_ALL, hint2: "CHARGESPOT使い放題は2026/12/31まで（2027/1/5から毎月1,000円クーポン2枚）" },
+  { id: "amazon", group: "動画・サブスク", name: "Amazonプライム", price: 600, plans: P_ALL,
+    promo: { max: 6, poimax: 6, poi20: 6, mini2: 3, ahamo: 3, u15: 3 }, promoAmt: 600, pnote: { keitai2: "ケータイでの特典の対象かは公式に記載なし。要確認" },
+    promoNote: "ドコモから初めて登録する場合。割引が終わった後は登録中毎月120pt" },
+  { id: "disney", group: "動画・サブスク", name: "Disney+", plans: P_ALL, choices: [{ l: "スタンダード", p: 1250 }, { l: "プレミアム", p: 1670 }],
+    promo: { max: 3, poimax: 3, poi20: 3, ahamo: 3 }, promoAmt: 1250, promoNote: "セット割はエントリーが必要", pnote: { keitai2: KEITAI_VIDEO } },
+  { id: "netflix", group: "動画・サブスク", name: "Netflix", plans: P_ALL, choices: [{ l: "広告つき", p: 890 }, { l: "スタンダード", p: 1590 }, { l: "プレミアム", p: 2290 }], pnote: { keitai2: KEITAI_VIDEO } },
+  // ---- ahamo ----
+  { id: "ahamopoi", group: "ahamo", name: "ahamo ポイ活オプション", price: 2200, plans: ["ahamo"], need: "12/1から大盛りオプションへの加入は不要。最大4,000pt還元" },
+  // ---- みんスマ商材 ----
   { id: "connect", group: "みんスマ", name: "コネクトα", plans: P_SMART, choices: [{ l: "Plus", p: 550 }, { l: "PLATINUM", p: 870 }, { l: "PLATINUM", p: 1280 }] },
   { id: "rakuraku", group: "みんスマ", name: "らくらくバックアップ", plans: P_SMART, choices: [{ l: "", p: 550 }, { l: "Premium", p: 880 }] },
   { id: "adblock", group: "みんスマ", name: "広告ブロック", plans: P_SMART, choices: [{ l: "", p: 330 }, { l: "Pro", p: 550 }, { l: "Premium", p: 880 }] },
@@ -101,15 +124,15 @@ const OPTIONS = [
 
 // プランに最初から含まれているもの（オプション欄の上に表示）
 const PLAN_INCLUDES = {
-  max: "ドコモメール・spモード込み。選べる特典（Lemino・dアニメストア・DAZN・NBAから毎月2つ0円）",
-  poimax: "ドコモメール・spモード込み。選べる特典（Lemino・dアニメストア・DAZN・NBAから毎月2つ0円）",
+  max: "ドコモメール・spモード込み。選べる特典（Lemino・dアニメストア・DAZN・NBAのうち月額の高い2つが0円。各サービスの申込は必要）",
+  poimax: "ドコモメール・spモード込み。選べる特典（Lemino・dアニメストア・DAZN・NBAのうち月額の高い2つが0円。各サービスの申込は必要）",
   poi20: "ドコモメール・spモード込み",
-  mini2: "ドコモメールは「ドコモメールオプション（330円）」が必要",
-  ahamo: "5分以内の国内通話無料込み。ドコモメールは「ドコモメール持ち運び（330円）」が必要。転送でんわ・メロディコールは使えない",
+  mini2: "ドコモメールは「ドコモメールオプション（330円）」が必要。メロディコール・オプションパックは使えない",
+  ahamo: "5分以内の国内通話無料込み。ドコモメールは「ドコモメール持ち運び（330円）」が必要。留守電・キャッチは有料で可、転送でんわ・メロディコール・オプションパックは使えない",
   u15: "ドコモメール・spモード込み",
   keitai2: "spモード込み",
-  kids3: "家族間通話無料。ドコモメール・ブラウザは使えない",
-  dataplus: "ペア回線（同じ名義）が必要。音声通話は使えない",
+  kids3: "家族間通話無料。通話オプション・ドコモメール・ブラウザは使えない",
+  dataplus: "同じ名義のペア回線（ドコモ MAX・ポイ活 MAX・ポイ活 20・ahamo）が必要。mini2・U15・ケータイプラン2とはペアにできない。音声通話・通話オプションは使えない",
 };
 
 // 初期費用（店頭）
