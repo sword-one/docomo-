@@ -84,7 +84,7 @@ const OPTIONS = [
     pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2"] },
   { id: "catch", group: "メール・通話", name: "キャッチホン", price: 220, plans: P_ALL, freeWithVoice: true,
     pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2"] },
-  { id: "melody", group: "メール・通話", name: "メロディコール", price: 110, plans: ["max", "poimax", "poi20", "u15", "keitai2"] },
+  { id: "melody", group: "メール・通話", name: "メロディコール", price: 110, plans: ["max", "poimax", "poi20", "u15", "keitai2"], need: "通話オプションに入っても割引なし（割引は留守電・キャッチだけ）。初回31日間無料。曲ごとの音源利用料は別" },
   { id: "optpack", group: "メール・通話", name: "オプションパック（留守電・キャッチ・メロディ・転送）", price: 440, plans: ["max", "poimax", "poi20", "u15", "keitai2"], packWithVoice: 110 },
   // ---- 補償・あんしん ----
   { id: "smartpack", group: "補償・あんしん", name: "smartあんしんパック", input: true, hint: "792〜3,342円", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "dataplus"],
