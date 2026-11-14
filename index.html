@@ -286,7 +286,8 @@ function render() {
   const tierBtns = p.tiers.map((t, i) => `<div class="tcard ${l.tier === i ? "on" : ""}" onclick="set('tier',${i})"><div class="lb">${t.label === "-" ? "定額" : t.label}</div><div class="yen">${yen(t.price)}</div></div>`).join("");
   const planCard = x => { const lo = Math.min(...x.tiers.map(t => t.price));
     return `<div class="pcard ${l.plan === x.id ? "on" : ""}" onclick="setPlan('${x.id}')"><div class="nm">${x.name}${x.auto ? '<span class="badge">新プラン</span>' : x.changed ? '<span class="badge">料金変更</span>' : ""}</div><div class="pr">月 ${yen(lo)}${x.tiers.length > 1 ? "〜" : ""}</div><div class="tg">${PLAN_TAG[x.id] || ""}</div></div>`; };
-  const voices = (VOICE[p.voice] || VOICE.none).map(v => `<div class="chip ${l.voice === v.id ? "on" : ""}" onclick="set('voice','${v.id}')">${v.name}<small>${v.price ? yen(v.price) : ""}</small></div>`).join("");
+  const vEff = v => { if (p.senior60Kakeho && l.age === "s60" && v.id === "kakeho") return SENIOR60_KAKEHO; if (heartyOn(l, p) && p.voice === "std" && HEARTY.voice[v.id] != null) return HEARTY.voice[v.id]; return v.price; };
+  const voices = (VOICE[p.voice] || VOICE.none).map(v => { const e = vEff(v); return `<div class="chip ${l.voice === v.id ? "on" : ""}" onclick="set('voice','${v.id}')">${v.name}<small>${e !== v.price ? `<s>${yen(v.price)}</s> ${yen(e)}` : v.price ? yen(v.price) : ""}</small></div>`; }).join("");
   const cats = [...new Set(DEV.map(d => d.cat))];
   const models = DEV.filter(d => d.cat === l.device.cat);
   const d = devFind(l), pr = devPrice(d, l.contract) || {};
@@ -353,7 +354,7 @@ function render() {
 
   <div class="card"><h2>⑥ 初期費用</h2>
     ${l.contract !== "plan" && p.id !== "ahamo" ? `<label class="ck"><input type="checkbox" ${l.init.jimu ? "checked" : ""} onchange="S.lines[S.cur].init.jimu=this.checked;render()">契約事務手数料（翌月請求）<span class="p">4,950円</span></label>` : ""}
-    ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name}${i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
+    ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
     ${l.freeInit.map((f, i) => `<div class="row" style="padding:6px 0"><input type="text" placeholder="その他" value="${esc(f.name)}" onchange="S.lines[S.cur].freeInit[${i}].name=this.value;render()"><input class="yen" type="number" value="${f.price || ""}" placeholder="円" onchange="S.lines[S.cur].freeInit[${i}].price=this.value;render()"></div>`).join("")}
   </div>
 
@@ -379,12 +380,18 @@ function discRows(l, p, r) {
   const hearty = heartyOn(l, p), ng = "ハーティ割引と一緒には使えません";
   const out = [];
   // 1. 年齢
+  const ageOK = a => a.id === "none" || (AGE_DISCOUNTS[a.id] && AGE_DISCOUNTS[a.id].plans[p.id]) || (a.id === "s60" && p.senior60Kakeho);
+  const ageList = AGE_GROUPS.filter(ageOK);
   const ag = AGE_DISCOUNTS[l.age], agA = ag && ag.plans[p.id];
   let agSub = "";
   if (ag && agA) agSub = `${ag.name}（最大${ag.months}か月）。${ag.note}`;
   else if (ag) agSub = `${ag.name}は${Object.keys(ag.plans).map(id => PLANS.find(x => x.id === id).name).join("・")}だけが対象`;
-  if (l.age === "s60" && p.senior60Kakeho) agSub = `60歳以上はかけ放題が${yen(SENIOR60_KAKEHO)}（②でかけ放題を選ぶと反映）`;
-  out.push(row("ご利用者の年齢", seg("age", l.age, AGE_GROUPS.map(a => [a.id, a.name])), ag && agA ? amt(new RegExp(ag.name)) : `<span class="dv off">—</span>`, agSub));
+
+  if (ageList.length > 1) {
+    if (l.age === "s60" && p.senior60Kakeho) agSub = l.voice === "kakeho" ? `60歳以上はかけ放題が${yen(SENIOR60_KAKEHO)}（②通話オプションに反映済み）` : `60歳以上はかけ放題が${yen(SENIOR60_KAKEHO)}になります（②でかけ放題を選ぶと反映）`;
+    const right = ag && agA ? amt(new RegExp(ag.name)) : l.age === "s60" && p.senior60Kakeho && l.voice === "kakeho" ? `<b class="dv">▲${yen(1980 - SENIOR60_KAKEHO)}</b><small>かけ放題</small>` : `<span class="dv off">—</span>`;
+    out.push(row(p.senior60Kakeho ? "60歳以上" : "ご利用者の年齢", seg("age", ageOK({ id: l.age }) ? l.age : "none", ageList.map(a => [a.id, a.name])), right, agSub));
+  }
   // 2. ハーティ
   const hRight = HEARTY.plans[p.id] != null ? (hearty ? amt(/ハーティ/) : `<span class="dv off">—</span>`) : HEARTY.check[p.id] ? `<span class="warn">要確認</span>` : `<span class="dv off">対象外</span>`;
   let hSub = "障がい者手帳などをお持ちの方";
@@ -397,7 +404,9 @@ function discRows(l, p, r) {
   if (p.count) {
     const fRight = !p.family ? `<span class="dv off">割引なし</span>` : hearty ? `<span class="dv off">—</span>` : fc >= 2 && l.family ? amt(/みんなドコモ割/) : `<span class="dv off">—</span>`;
     const fSub = hearty && p.family ? ng : !p.family ? `${p.name}は割引なし（家族の回線数には数える）` : `ご家族の音声回線 合計<b>${fc}回線</b>（2回線で▲${yen(p.family[0])}、3回線以上で▲${yen(p.family[1])}）`;
-    out.push(row("みんなドコモ割", seg("family", l.family, [[true, "家族グループに入る"], [false, "入らない"]], hearty && p.family) + stepper, fRight, fSub));
+    if (!p.family) out.push(row("みんなドコモ割", `<span class="note">${p.name}は割引の対象外です（ご家族の割引の回線数には数えます）</span>`, `<span class="dv off">対象外</span>`, ""));
+    else if (hearty) out.push(row("みんなドコモ割", `<span class="note">ハーティ割引と一緒には使えません</span>`, `<span class="dv off">—</span>`, ""));
+    else out.push(row("みんなドコモ割", seg("family", l.family, [[true, "家族グループに入る"], [false, "入らない"]]) + (l.family ? stepper : ""), fRight, l.family ? fSub + (fc < 2 ? "　<b>※2回線以上で割引になります</b>" : "") : "グループに入らないと割引なし"));
   }
   // 4. dカード
   if (p.dcard) out.push(row("dカードお支払割", seg("dcard", l.dcard, [["none", "なし"], ["general", "dカード"], ["gold", "GOLD・PLATINUM"]], hearty), hearty ? `<span class="dv off">—</span>` : amt(/dカード/), hearty ? ng : `dカード ▲${yen(p.dcard[1])}／GOLD・GOLD U・PLATINUM ▲${yen(p.dcard[0])}`));
@@ -417,6 +426,7 @@ function optRow(l, o, p) {
   const on = !!l.opts[o.id];
   let right;
   const e = optEff(l, o, p);
+  if (o.input && on && !Number(l.optAmt[o.id] || 0)) o._warn = true; else o._warn = false;
   if (o.input) right = `<input class="yen" type="number" value="${l.optAmt[o.id] || ""}" placeholder="円" onchange="S.lines[S.cur].optAmt['${o.id}']=this.value;S.lines[S.cur].opts['${o.id}']=true;render()">`;
   else if (o.choices) right = o.choices.map(c => `<span class="chip ${on && Number(l.optAmt[o.id] ?? o.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 8px" onclick="S.lines[S.cur].opts['${o.id}']=true;S.lines[S.cur].optAmt['${o.id}']=${c.p};render();event.preventDefault()">${c.l ? c.l + " " : ""}${yen(c.p)}</span>`).join(" ");
   else right = e.amt !== e.base ? `<s style="color:#999;font-weight:400">${yen(e.base)}</s> <span style="color:var(--red)">${yen(e.amt)}</span>` : yen(e.amt);
@@ -432,6 +442,7 @@ function optRow(l, o, p) {
   else if (o.hint2) tips.push(o.hint2);
 
   if (o.id === "optpack" && l.opts.optpack && (l.opts.rusuden || l.opts.catch)) tips.push("⚠ 留守電・キャッチとパックが重複しています");
+  if (o._warn) tips.unshift('<span class="warn">金額を入力してください（機種によって変わります）</span>');
   const sub = tips.join("／");
   return `<label class="ck"><input type="checkbox" ${on ? "checked" : ""} onchange="S.lines[S.cur].opts['${o.id}']=this.checked;render()"><span>${o.name}${sub ? `<br><span class="note">${sub}</span>` : ""}</span><span class="p">${right}</span></label>`;
 }
