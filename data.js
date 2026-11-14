@@ -144,8 +144,11 @@ const INITIAL = [
   { id: "film", name: "フィルム", input: true },
   { id: "case", name: "ケース", input: true },
   { id: "charger", name: "充電器", input: true },
-  { id: "coat", name: "コーティング", input: true },
+  { id: "coat", name: "ハルトコーティング", choices: [{ l: "片面", p: 5500 }, { l: "両面", p: 6600 }] },
 ];
+
+// 頭金（店頭）のよく使う金額。ボタンで選べて、手入力もできる
+const ATAMA_CHOICES = [0, 19800, 22000];
 
 const STORES = ["ドコモショップ平針店", "ドコモショップ刈谷店", "ドコモショップららぽーと名古屋みなとアクルス店", "ドコモショップイオンタウン名西店", "ドコモショップMEGAドン・キホーテUNY小牧店"];
 

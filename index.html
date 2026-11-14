@@ -216,7 +216,7 @@ function calc(l) {
   // 初期費用
   r.init = [];
   if (l.contract !== "plan" && l.init.jimu && p.id !== "ahamo") r.init.push(hearty ? ["契約事務手数料（ハーティ割引で無料）", 0] : ["契約事務手数料（翌月請求）", 4950]);
-  INITIAL.filter(i => !i.auto && l.init[i.id]).forEach(i => r.init.push(hearty && HEARTY.initFree.includes(i.id) ? [i.name + "（ハーティ割引で無料）", 0] : [i.name, i.input ? Number(l.initAmt[i.id] || 0) : i.price]));
+  INITIAL.filter(i => !i.auto && l.init[i.id]).forEach(i => r.init.push(hearty && HEARTY.initFree.includes(i.id) ? [i.name + "（ハーティ割引で無料）", 0] : i.choices ? [i.name + "（" + (i.choices.find(c => c.p === Number(l.initAmt[i.id] ?? i.choices[0].p)) || i.choices[0]).l + "）", Number(l.initAmt[i.id] ?? i.choices[0].p)] : [i.name, i.input ? Number(l.initAmt[i.id] || 0) : i.price]));
   l.freeInit.forEach(f => { if (f.name || f.price) r.init.push([f.name || "その他", Number(f.price || 0)]); });
   if (r.dev && r.dev.atama !== null) r.init.push(["頭金", r.dev.atama]);
   if (r.dev && r.dev.pay === "ikkatsu" && r.dev.total !== null) r.init.push(["端末代金（一括）", r.dev.total - (r.dev.atama || 0)]);
@@ -340,7 +340,9 @@ function render() {
     <table class="kv" style="margin-top:8px">
       <tr><td>オンラインショップ価格（${CONTRACTS.find(c => c.id === l.contract).name}）</td><td class="r">${pr.ikkatsu != null ? yen(pr.ikkatsu) + (pr.discount ? `<br><span class="note">本体${yen(pr.hontai)}から割引 ▲${yen(pr.discount)} 適用後</span>` : "") : "—"}</td></tr>
       <tr><td>金額を手入力（オンライン価格がない時）</td><td class="r"><input class="yen" type="number" value="${l.device.manualPrice ?? ""}" onchange="setDev('manualPrice',this.value===''?null:this.value)"></td></tr>
-      <tr><td><b>頭金（店頭）</b> <span class="note">入力すると店頭の端末総額が出ます</span></td><td class="r"><input class="yen" type="number" value="${l.device.atama ?? ""}" placeholder="例 3300" onchange="setDev('atama',this.value===''?null:this.value)"></td></tr>
+      <tr><td colspan="2"><b>頭金（店頭）</b> <span class="note">選ぶと店頭の端末総額が出ます</span>
+        <div class="row" style="margin-top:6px">${ATAMA_CHOICES.map(v => `<div class="chip ${l.device.atama !== null && l.device.atama !== "" && Number(l.device.atama) === v ? "on" : ""}" onclick="setDev('atama',${v})">${yen(v)}</div>`).join("")}
+        <span class="note">その他</span><input class="yen" type="number" value="${l.device.atama !== null && l.device.atama !== "" && !ATAMA_CHOICES.includes(Number(l.device.atama)) ? l.device.atama : ""}" placeholder="手入力" onchange="setDev('atama',this.value===''?null:this.value)"></div></td></tr>
       <tr><td>店頭での端末総額（オンライン価格＋頭金）</td><td class="r">${dv && dv.total !== null ? `<b>${yen(dv.total)}</b>` : `<span class="warn">頭金を入力してください</span>`}</td></tr>
       <tr><td>下取り（円）</td><td class="r"><input class="yen" type="number" value="${l.device.shitadori || ""}" onchange="setDev('shitadori',this.value)"></td></tr>
       <tr><td>ポイント利用（pt）</td><td class="r"><input class="yen" type="number" value="${l.device.point || ""}" onchange="setDev('point',this.value)"></td></tr>
@@ -354,7 +356,7 @@ function render() {
 
   <div class="card"><h2>⑥ 初期費用</h2>
     ${l.contract !== "plan" && p.id !== "ahamo" ? `<label class="ck"><input type="checkbox" ${l.init.jimu ? "checked" : ""} onchange="S.lines[S.cur].init.jimu=this.checked;render()">契約事務手数料（翌月請求）<span class="p">4,950円</span></label>` : ""}
-    ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
+    ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.choices ? `<span class="p">${i.choices.map(c => `<span class="chip ${l.init[i.id] && Number(l.initAmt[i.id] ?? i.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 10px" onclick="S.lines[S.cur].init['${i.id}']=true;S.lines[S.cur].initAmt['${i.id}']=${c.p};render();event.preventDefault()">${c.l} ${yen(c.p)}</span>`).join(" ")}</span>` : i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
     ${l.freeInit.map((f, i) => `<div class="row" style="padding:6px 0"><input type="text" placeholder="その他" value="${esc(f.name)}" onchange="S.lines[S.cur].freeInit[${i}].name=this.value;render()"><input class="yen" type="number" value="${f.price || ""}" placeholder="円" onchange="S.lines[S.cur].freeInit[${i}].price=this.value;render()"></div>`).join("")}
   </div>
 
