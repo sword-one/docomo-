@@ -1,0 +1,326 @@
+{
+"docomomax_5g_plan_unlimited": {
+"tab": "docomomax_5g_plan",
+"tab_name": "ドコモ MAX",
+"name": "データ量無制限",
+"gb": 0,
+"m0": 8448,
+"m2": 7898,
+"m3": 7348
+},
+"docomomax_5g_plan_3": {
+"tab": "docomomax_5g_plan",
+"tab_name": "ドコモ MAX",
+"name": "～3GBまで",
+"gb": 3,
+"m0": 6798,
+"m2": 6248,
+"m3": 5698
+},
+"docomomax_5g_plan_1": {
+"tab": "docomomax_5g_plan",
+"tab_name": "ドコモ MAX",
+"name": "～1GBまで",
+"gb": 1,
+"m0": 5698,
+"m2": 5148,
+"m3": 4598
+},
+"poikatsu_docomomax_5g_plan_unlimited": {
+"tab": "poikatsu_docomo_5g_plan",
+"tab_name": "ドコモ ポイ活 MAX・ドコモ ポイ活 20",
+"name": "ドコモ ポイ活 MAX データ量無制限",
+"gb": 0,
+"m0": 11748,
+"m2": 11198,
+"m3": 10648
+},
+"poikatsu_docomo20_5g_plan_unlimited": {
+"tab": "poikatsu_docomo_5g_plan",
+"tab_name": "ドコモ ポイ活 MAX・ドコモ ポイ活 20",
+"name": "ドコモ ポイ活 20 ～20GBまで",
+"gb": 20,
+"m0": 7898,
+"m2": 0,
+"m3": 0
+},
+"poikatsu_docomo20_5g_plan_20": {
+"tab": "poikatsu_docomo_5g_plan",
+"tab_name": "ドコモ ポイ活 MAX・ドコモ ポイ活 20",
+"name": "ドコモ ポイ活 20 データ量無制限",
+"gb": 0,
+"m0": 9570,
+"m2": 0,
+"m3": 0
+},
+"docomomini_5g_plan_4": {
+"tab": "docomomini_5g_plan",
+"tab_name": "ドコモ mini",
+"name": "4GB",
+"gb": 4,
+"m0": 2750,
+"m2": 0,
+"m3": 0
+},
+"docomomini_5g_plan_10": {
+"tab": "docomomini_5g_plan",
+"tab_name": "ドコモ mini",
+"name": "10GB",
+"gb": 10,
+"m0": 3850,
+"m2": 0,
+"m3": 0
+},
+"hajimete_5g_plan": {
+"tab": "hajimete_5g",
+"tab_name": "はじめてスマホプラン",
+"name": "1GB",
+"gb": 1,
+"m0": 1815,
+"m2": 0,
+"m3": 0
+},
+"hajimete_sim_free_5g_plan": {
+"tab": "hajimete_5g",
+"tab_name": "はじめてスマホプラン",
+"name": "1GB",
+"gb": 1,
+"m0": 1815,
+"m2": 0,
+"m3": 0
+},
+"u15_hajimete_5g_plan": {
+"tab": "u15_hajimete_5g",
+"tab_name": "ドコモ スマホデビュープラン U15",
+"name": "～5GBまで",
+"gb": 5,
+"m0": 2508,
+"m2": 0,
+"m3": 0
+},
+"u15_hajimete_5g_10_plan": {
+"tab": "u15_hajimete_5g",
+"tab_name": "ドコモ スマホデビュープラン U15",
+"name": "～20GBまで",
+"gb": 20,
+"m0": 3278,
+"m2": 0,
+"m3": 0
+},
+"u15_hajimete_sim_free_5g_plan": {
+"tab": "u15_hajimete_5g",
+"tab_name": "ドコモ スマホデビュープラン U15",
+"name": "～5GBまで",
+"gb": 5,
+"m0": 2508,
+"m2": 0,
+"m3": 0
+},
+"u15_hajimete_sim_free_5g_10_plan": {
+"tab": "u15_hajimete_5g",
+"tab_name": "ドコモ スマホデビュープラン U15",
+"name": "～20GBまで",
+"gb": 20,
+"m0": 3278,
+"m2": 0,
+"m3": 0
+},
+"ahamo_5g_plan_change": {
+"tab": "ahamo",
+"tab_name": "ahamo",
+"name": "30GB",
+"gb": 30,
+"m0": 2970,
+"m2": 0,
+"m3": 0
+},
+"ahamo_5g_100_plan_change": {
+"tab": "ahamo",
+"tab_name": "ahamo",
+"name": "110GB",
+"gb": 30,
+"m0": 4950,
+"m2": 0,
+"m3": 0
+},
+"ahamo_5g_poikatsu_plan_change": {
+"tab": "ahamo",
+"tab_name": "ahamo",
+"name": "110GB",
+"gb": 30,
+"m0": 7150,
+"m2": 0,
+"m3": 0
+},
+"dataplus_5g": {
+"tab": "dataplus_5g",
+"tab_name": "5Gデータプラス",
+"name": "5Gデータプラス",
+"gb": 0,
+"m0": 1100,
+"m2": 0,
+"m3": 0
+},
+"docomomax_plan_unlimited": {
+"tab": "docomomax_plan",
+"tab_name": "ドコモ MAX",
+"name": "データ量無制限",
+"gb": 0,
+"m0": 8448,
+"m2": 7898,
+"m3": 7348
+},
+"docomomax_plan_3": {
+"tab": "docomomax_plan",
+"tab_name": "ドコモ MAX",
+"name": "～3GBまで",
+"gb": 3,
+"m0": 6798,
+"m2": 6248,
+"m3": 5698
+},
+"docomomax_plan_1": {
+"tab": "docomomax_plan",
+"tab_name": "ドコモ MAX",
+"name": "～1GBまで",
+"gb": 1,
+"m0": 5698,
+"m2": 5148,
+"m3": 4598
+},
+"poikatsu_docomomax_plan_unlimited": {
+"tab": "poikatsu_docomo_plan",
+"tab_name": "ドコモ ポイ活 MAX・ドコモ ポイ活 20",
+"name": "ドコモ ポイ活 MAX データ量無制限",
+"gb": 0,
+"m0": 11748,
+"m2": 11198,
+"m3": 10648
+},
+"poikatsu_docomo20_plan_unlimited": {
+"tab": "poikatsu_docomo_plan",
+"tab_name": "ドコモ ポイ活 MAX・ドコモ ポイ活 20",
+"name": "ドコモ ポイ活 20 ～20GBまで",
+"gb": 20,
+"m0": 7898,
+"m2": 0,
+"m3": 0
+},
+"poikatsu_docomo20_plan_20": {
+"tab": "poikatsu_docomo_plan",
+"tab_name": "ドコモ ポイ活 MAX・ドコモ ポイ活 20",
+"name": "ドコモ ポイ活 20 データ量無制限",
+"gb": 0,
+"m0": 9570,
+"m2": 0,
+"m3": 0
+},
+"docomomini_plan_4": {
+"tab": "docomomini_plan",
+"tab_name": "ドコモ mini",
+"name": "4GB",
+"gb": 4,
+"m0": 2750,
+"m2": 0,
+"m3": 0
+},
+"docomomini_plan_10": {
+"tab": "docomomini_plan",
+"tab_name": "ドコモ mini",
+"name": "10GB",
+"gb": 10,
+"m0": 3850,
+"m2": 0,
+"m3": 0
+},
+"hajimete_plan": {
+"tab": "hajimete_plan",
+"tab_name": "はじめてスマホプラン",
+"name": "1GB",
+"gb": 1,
+"m0": 1815,
+"m2": 0,
+"m3": 0
+},
+"hajimete_sim_free_plan": {
+"tab": "hajimete_plan",
+"tab_name": "はじめてスマホプラン",
+"name": "1GB",
+"gb": 1,
+"m0": 1815,
+"m2": 0,
+"m3": 0
+},
+"u15_hajimete_sim_free_plan": {
+"tab": "u15_hajimete_plan",
+"tab_name": "U15はじめてスマホプラン",
+"name": "5GB",
+"gb": 5,
+"m0": 1815,
+"m2": 0,
+"m3": 0
+},
+"u15_hajimete_sim_free_10_plan": {
+"tab": "u15_hajimete_plan",
+"tab_name": "U15はじめてスマホプラン",
+"name": "10GB",
+"gb": 10,
+"m0": 2695,
+"m2": 0,
+"m3": 0
+},
+"kids_keitai_plan_3": {
+"tab": "kids_keitai_plan",
+"tab_name": "キッズケータイプラン",
+"name": "キッズケータイプラン",
+"gb": 0,
+"m0": 550,
+"m2": 0,
+"m3": 0
+},
+"dataplus": {
+"tab": "dataplus",
+"tab_name": "データプラス",
+"name": "データプラス",
+"gb": 0,
+"m0": 1100,
+"m2": 0,
+"m3": 0
+},
+"keitai_plan": {
+"tab": "keitai_plan",
+"tab_name": "ケータイプラン",
+"name": "ケータイプラン",
+"gb": 100,
+"m0": 1507,
+"m2": 0,
+"m3": 0
+},
+"ahamo": {
+"tab": "ahamo",
+"tab_name": "ahamo",
+"name": "30GB",
+"gb": 30,
+"m0": 2970,
+"m2": 0,
+"m3": 0
+},
+"ahamo_100": {
+"tab": "ahamo",
+"tab_name": "ahamo",
+"name": "110GB",
+"gb": 30,
+"m0": 4950,
+"m2": 0,
+"m3": 0
+},
+"ahamo_poikatsu_plan": {
+"tab": "ahamo",
+"tab_name": "ahamo",
+"name": "110GB",
+"gb": 30,
+"m0": 7150,
+"m2": 0,
+"m3": 0
+}
+}
