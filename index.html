@@ -45,7 +45,7 @@ input.yen { width:110px; text-align:right; }
 table.kv { width:100%; border-collapse:collapse; font-size:14px; }
 table.kv td { padding:4px 6px; border-bottom:1px solid #eef1f6; }
 table.kv td.r { text-align:right; white-space:nowrap; }
-#print { display:none; }
+/* #print は #pv（プレビュー）の中に表示 */
 /* 割引の欄 */
 .drow { display:grid; grid-template-columns:150px 1fr 110px; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid #eef1f6; }
 .drow .dt { font-weight:700; font-size:14px; }
@@ -95,25 +95,36 @@ label.ck { min-height:44px; }
 
 /* ===== 印刷（A4縦） ===== */
 @page { size:A4 portrait; margin:10mm 10mm 10mm; }
+/* 見積書の中身（プレビュー・印刷で共通） */
+#print { font-size:10pt; color:#000; }
+#print .pg { page-break-after:always; } #print .pg:last-child { page-break-after:auto; }
+#print .ph { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:2mm; margin-bottom:3mm; }
+#print .ph h1 { font-size:18pt; margin:0; letter-spacing:.3em; }
+#print .ph .meta { font-size:9pt; text-align:right; line-height:1.5; }
+#print table.pt { width:100%; border-collapse:collapse; margin-bottom:3mm; }
+#print table.pt th, #print table.pt td { border:0.3mm solid #555; padding:1.2mm 2mm; font-size:9.5pt; }
+#print table.pt th { background:#e8e8e8; text-align:left; }
+#print table.pt td.r { text-align:right; white-space:nowrap; width:28mm; }
+#print .cols { display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+#print .tot { border:0.6mm solid #000; padding:2mm 3mm; margin-top:2mm; }
+#print .tot .big { font-size:16pt; font-weight:800; }
+#print .pn { font-size:8pt; color:#333; margin-top:2mm; line-height:1.5; }
+#print .line-block { break-inside:avoid; margin-bottom:4mm; }
+#print .lh { background:#000; color:#fff; padding:1mm 3mm; font-weight:700; font-size:11pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+/* 画面の印刷プレビュー */
+#pv { display:none; position:fixed; inset:0; z-index:50; background:#5f6670; overflow:auto; -webkit-overflow-scrolling:touch; }
+#pv.open { display:block; }
+.pvbar { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--navy); color:#fff; padding:10px 16px; }
+.pvbar b { font-size:17px; margin-right:auto; }
+.pvbar .btn { background:#fff; }
+.pvbar .hint { width:100%; font-size:12px; color:#dde4f0; }
+.sheet { width:210mm; max-width:calc(100% - 24px); min-height:297mm; margin:16px auto 40px; background:#fff; padding:10mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:border-box; }
+body.pvopen { overflow:hidden; }
 @media print {
-  body { background:#fff; font-size:10pt; }
-  header.bar, main, .sum { display:none !important; }
-  #print { display:block; }
-  .pg { page-break-after:always; }
-  .pg:last-child { page-break-after:auto; }
-  .ph { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:2mm; margin-bottom:3mm; }
-  .ph h1 { font-size:18pt; margin:0; letter-spacing:.3em; }
-  .ph .meta { font-size:9pt; text-align:right; line-height:1.5; }
-  table.pt { width:100%; border-collapse:collapse; margin-bottom:3mm; }
-  table.pt th, table.pt td { border:0.3mm solid #555; padding:1.2mm 2mm; font-size:9.5pt; }
-  table.pt th { background:#e8e8e8; text-align:left; }
-  table.pt td.r { text-align:right; white-space:nowrap; width:28mm; }
-  .cols { display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
-  .tot { border:0.6mm solid #000; padding:2mm 3mm; margin-top:2mm; }
-  .tot .big { font-size:16pt; font-weight:800; }
-  .pn { font-size:8pt; color:#333; margin-top:2mm; line-height:1.5; }
-  .line-block { break-inside:avoid; margin-bottom:4mm; }
-  .lh { background:#000; color:#fff; padding:1mm 3mm; font-weight:700; font-size:11pt; }
+  body { background:#fff; }
+  header.bar, main, .sum, .pvbar { display:none !important; }
+  #pv { display:block !important; position:static; background:none; overflow:visible; }
+  .sheet { width:auto; max-width:none; min-height:0; margin:0; padding:0; box-shadow:none; }
 }
 </style>
 <script>
@@ -129,7 +140,7 @@ label.ck { min-height:44px; }
   <input id="staff" type="text" placeholder="担当者" style="width:110px">
   <span class="sp"></span>
   <button class="btn" onclick="resetAll(this)">クリア</button>
-  <button class="btn main" onclick="doPrint()">🖨 印刷（A4縦）</button>
+  <button class="btn main" onclick="doPrint()">🖨 印刷プレビュー</button>
 </header>
 
 <main>
@@ -140,7 +151,13 @@ label.ck { min-height:44px; }
 </main>
 
 <div class="sum" id="sumbar"></div>
-<div id="print"></div>
+<div id="pv">
+  <div class="pvbar"><b>印刷プレビュー（A4縦）</b>
+    <button class="btn" onclick="window.print()">🖨 印刷する</button>
+    <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button>
+    <span class="hint">「印刷する」で印刷画面が開かない時は、iPadのSafariなら画面上の共有ボタン（□↑）→「プリント」で印刷できます。</span></div>
+  <div class="sheet"><div id="print"></div></div>
+</div>
 
 <script>
 const yen = n => (Math.round(n)||0).toLocaleString("ja-JP") + "円";
@@ -513,6 +530,7 @@ function resetAll(btn) { if (!twoTap(btn, "reset", "もう一度押すと全部�
 
 
 // ---------- 印刷 ----------
+function closePv() { $("pv").classList.remove("open"); document.body.classList.remove("pvopen"); }
 function doPrint() {
   const rs = S.lines.map(calc);
   const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
@@ -549,7 +567,7 @@ function doPrint() {
     <div class="pn">${S.lines.map((l, k) => esc(l.label) + "：" + yen(rs[k].monthly)).join("　")}</div></div>` : "";
   const notes = `<div class="pn">※金額はすべて税込です。${DATA_AS_OF}。端末代金はドコモオンラインショップ価格に店頭の頭金を加えた金額です。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
   $("print").innerHTML = `<div class="pg">${head}${fam}${blocks.join("")}${notes}</div>`;
-  setTimeout(() => window.print(), 50);
+  $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
 }
 
 $("store").innerHTML = STORES.map(s => `<option>${s}</option>`).join("");
