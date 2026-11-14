@@ -373,6 +373,7 @@ function optRow(l, o, p) {
   if (o.need) tips.push(o.need);
   if (e.why) tips.push(e.why);
   else if (o.freeWithVoice && p.voice === "std") tips.push("5分通話無料かかけ放題に入ると0円");
+  if (o.freeWithVoice && p.id === "ahamo") tips.push("ahamoでも使える（2026/2/25から）。かけ放題に入っても割引なし");
   if (o.tokuten && p.tokuten && !e.why) tips.push("選べる特典の対象（2つまで0円）");
   if (o.promo && o.promo[p.id]) tips.push(`${p.name}は最大${o.promo[p.id]}か月 ${yen(o.promoAmt)}引き（期間後は${yen(e.base)}）`);
   else if (o.hint2) tips.push(o.hint2);
