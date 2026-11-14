@@ -57,6 +57,8 @@ table.kv td.r { text-align:right; white-space:nowrap; }
 .pgrid.sub .pcard { padding:8px 10px; } .pgrid.sub .pcard .nm { font-size:14px; }
 .pcard.on { background:var(--navy); border-color:var(--navy); color:#fff; }
 .pcard.on .pr, .pcard.on .tg { color:#dde4f0; }
+.selplan { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#eef2f9; border:1.5px solid var(--navy); border-radius:10px; padding:10px 12px; }
+.selplan .nm { font-size:18px; font-weight:800; color:var(--navy); } .selplan .tg { font-size:13px; color:#555; }
 .tgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
 .tcard { border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:10px; cursor:pointer; text-align:center; min-height:44px; touch-action:manipulation; }
 .tcard .lb { font-size:14px; } .tcard .yen { font-size:20px; font-weight:800; color:var(--navy); margin-top:2px; }
@@ -202,6 +204,7 @@ function calc(l) {
   return r;
 }
 
+let planOpen = false;   // プラン一覧を開いているか（選んだら閉じて、データ量だけ見せる）
 const MAIN_PLANS = ["max", "poimax", "poi20", "mini2", "ahamo"];
 const PLAN_TAG = { max: "使った分だけ・無制限まで", poimax: "無制限＋dポイント還元", poi20: "20GBまで＋dポイント還元", mini2: "少しだけ使う人・〜12GB",
   ahamo: "オンライン手続き・〜120GB", u15: "5〜15歳のお子さま", keitai2: "ケータイ（ガラケー）", kids3: "キッズケータイ", dataplus: "タブレット等の2台目" };
@@ -258,10 +261,14 @@ function render() {
   </div></div>
 
   <div class="card"><h2>① 料金プラン</h2>
+    ${planOpen ? `
     <div class="sec-t">スマホのプラン</div>
     <div class="pgrid">${PLANS.filter(x => MAIN_PLANS.includes(x.id)).map(planCard).join("")}</div>
     <div class="sec-t">お子さま・ケータイ・タブレット${PLANS.some(x => x.auto) ? "・新プラン" : ""}</div>
     <div class="pgrid sub">${PLANS.filter(x => !MAIN_PLANS.includes(x.id)).map(planCard).join("")}</div>
+    <div style="text-align:right;margin-top:8px"><button class="btn" onclick="planOpen=false;render()">閉じる</button></div>` : `
+    <div class="selplan"><div><div class="nm">${p.name}${p.auto ? '<span class="badge">新プラン</span>' : p.changed ? '<span class="badge">料金変更</span>' : ""}</div><div class="tg">${PLAN_TAG[p.id] || ""}</div></div>
+      <button class="btn" onclick="planOpen=true;render()">プランを変える</button></div>`}
     ${p.tiers.length > 1 ? `<div class="sec-t">ひと月に使うデータ量（${p.name}）</div><div class="tgrid">${tierBtns}</div>` : `<div class="sec-t">月額（${p.name}）</div><div class="tgrid">${tierBtns}</div>`}
     ${p.note ? `<p class="note">※${p.note}</p>` : ""}
   </div>
@@ -355,7 +362,7 @@ function renderSum() {
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function set(k, v) { S.lines[S.cur][k] = v; render(); }
 function setDev(k, v) { S.lines[S.cur].device[k] = v; render(); }
-function setPlan(id) { const l = S.lines[S.cur]; l.plan = id; const p = plan(l);
+function setPlan(id) { planOpen = false; const l = S.lines[S.cur]; l.plan = id; const p = plan(l);
   const drop = OPTIONS.filter(o => l.opts[o.id] && !optOK(o, p)); drop.forEach(o => delete l.opts[o.id]);
   l.removedMsg = drop.length ? `${p.name}では使えないため外しました：${drop.map(o => o.name).join("、")}` : ""; l.tier = p.tiers.length - 1; l.voice = (VOICE[p.voice] || VOICE.none)[0].id; render(); }
 function addLine() { S.lines.push(newLine(S.lines.length + 1)); S.cur = S.lines.length - 1; render(); }
