@@ -16,6 +16,8 @@ header.bar { background:var(--navy); color:#fff; padding:10px 16px; display:flex
 header.bar h1 { font-size:18px; margin:0 12px 0 0; }
 header.bar select, header.bar input { font-size:15px; padding:6px 8px; border-radius:6px; border:none; }
 header.bar .sp { flex:1; }
+header.bar #store { max-width:250px; } header.bar #customer { width:150px !important; } header.bar #staff { width:100px !important; }
+.card { scroll-margin-top:70px; }
 .btn { border:1px solid var(--navy); background:#fff; color:var(--navy); border-radius:8px; padding:8px 12px; font-size:15px; cursor:pointer; font-weight:700; }
 .btn.main { background:#fff; color:var(--navy); border-color:#fff; }
 .btn.danger { color:var(--red); border-color:var(--red); }
@@ -44,6 +46,21 @@ table.kv { width:100%; border-collapse:collapse; font-size:14px; }
 table.kv td { padding:4px 6px; border-bottom:1px solid #eef1f6; }
 table.kv td.r { text-align:right; white-space:nowrap; }
 #print { display:none; }
+/* 料金プラン選び */
+.sec-t { font-size:13px; font-weight:700; color:#555; margin:10px 0 6px; }
+.pgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; }
+.pgrid.sub { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+.pcard { border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:10px 12px; cursor:pointer; text-align:left; line-height:1.35; min-height:44px; touch-action:manipulation; }
+.pcard .nm { font-weight:700; font-size:15px; }
+.pcard .pr { font-size:13px; color:var(--navy); font-weight:700; margin-top:2px; }
+.pcard .tg { font-size:12px; color:#666; margin-top:2px; }
+.pgrid.sub .pcard { padding:8px 10px; } .pgrid.sub .pcard .nm { font-size:14px; }
+.pcard.on { background:var(--navy); border-color:var(--navy); color:#fff; }
+.pcard.on .pr, .pcard.on .tg { color:#dde4f0; }
+.tgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
+.tcard { border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:10px; cursor:pointer; text-align:center; min-height:44px; touch-action:manipulation; }
+.tcard .lb { font-size:14px; } .tcard .yen { font-size:20px; font-weight:800; color:var(--navy); margin-top:2px; }
+.tcard.on { background:var(--navy); border-color:var(--navy); color:#fff; } .tcard.on .yen { color:#fff; }
 .news { background:#fff; border:1px solid var(--line); border-left:5px solid var(--navy); border-radius:8px; padding:8px 12px; margin-bottom:10px; font-size:14px; }
 .news.bad { border-left-color:var(--red); }
 .news summary { cursor:pointer; font-weight:700; color:var(--navy); }
@@ -185,6 +202,9 @@ function calc(l) {
   return r;
 }
 
+const MAIN_PLANS = ["max", "poimax", "poi20", "mini2", "ahamo"];
+const PLAN_TAG = { max: "使った分だけ・無制限まで", poimax: "無制限＋dポイント還元", poi20: "20GBまで＋dポイント還元", mini2: "少しだけ使う人・〜12GB",
+  ahamo: "オンライン手続き・〜120GB", u15: "5〜15歳のお子さま", keitai2: "ケータイ（ガラケー）", kids3: "キッズケータイ", dataplus: "タブレット等の2台目" };
 function optOK(o, p) { return !o.plans || o.plans.includes(p.id); }
 function optAmt(l, o) { return o.input ? Number(l.optAmt[o.id] || 0) : (o.choices ? Number(l.optAmt[o.id] ?? o.choices[0].p) : o.price); }
 function devFind(l) { return DEV.find(d => d.name === l.device.model); }
@@ -220,7 +240,9 @@ function render() {
   $("tabs").innerHTML = S.lines.map((l, i) => `<button class="tab ${i === S.cur ? "on" : ""}" onclick="S.cur=${i};render()">${l.label || "回線" + (i + 1)}</button>`).join("")
     + `<button class="tab" onclick="addLine()">＋ 回線を追加</button>`;
   const l = S.lines[S.cur], p = plan(l), r = calc(l);
-  const tierBtns = p.tiers.map((t, i) => `<div class="chip ${l.tier === i ? "on" : ""}" onclick="set('tier',${i})">${t.label}<small>${yen(t.price)}</small></div>`).join("");
+  const tierBtns = p.tiers.map((t, i) => `<div class="tcard ${l.tier === i ? "on" : ""}" onclick="set('tier',${i})"><div class="lb">${t.label === "-" ? "定額" : t.label}</div><div class="yen">${yen(t.price)}</div></div>`).join("");
+  const planCard = x => { const lo = Math.min(...x.tiers.map(t => t.price));
+    return `<div class="pcard ${l.plan === x.id ? "on" : ""}" onclick="setPlan('${x.id}')"><div class="nm">${x.name}${x.auto ? '<span class="badge">新プラン</span>' : x.changed ? '<span class="badge">料金変更</span>' : ""}</div><div class="pr">月 ${yen(lo)}${x.tiers.length > 1 ? "〜" : ""}</div><div class="tg">${PLAN_TAG[x.id] || ""}</div></div>`; };
   const voices = (VOICE[p.voice] || VOICE.none).map(v => `<div class="chip ${l.voice === v.id ? "on" : ""}" onclick="set('voice','${v.id}')">${v.name}<small>${v.price ? yen(v.price) : ""}</small></div>`).join("");
   const cats = [...new Set(DEV.map(d => d.cat))];
   const models = DEV.filter(d => d.cat === l.device.cat);
@@ -236,8 +258,11 @@ function render() {
   </div></div>
 
   <div class="card"><h2>① 料金プラン</h2>
-    <div class="row">${PLANS.map(x => `<div class="chip ${l.plan === x.id ? "on" : ""}" onclick="setPlan('${x.id}')">${x.name}${x.auto ? '<span class="badge">新プラン</span>' : x.changed ? '<span class="badge">料金変更</span>' : ""}</div>`).join("")}</div>
-    <div class="row" style="margin-top:8px">${tierBtns}</div>
+    <div class="sec-t">スマホのプラン</div>
+    <div class="pgrid">${PLANS.filter(x => MAIN_PLANS.includes(x.id)).map(planCard).join("")}</div>
+    <div class="sec-t">お子さま・ケータイ・タブレット${PLANS.some(x => x.auto) ? "・新プラン" : ""}</div>
+    <div class="pgrid sub">${PLANS.filter(x => !MAIN_PLANS.includes(x.id)).map(planCard).join("")}</div>
+    ${p.tiers.length > 1 ? `<div class="sec-t">ひと月に使うデータ量（${p.name}）</div><div class="tgrid">${tierBtns}</div>` : `<div class="sec-t">月額（${p.name}）</div><div class="tgrid">${tierBtns}</div>`}
     ${p.note ? `<p class="note">※${p.note}</p>` : ""}
   </div>
 
