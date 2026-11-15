@@ -126,7 +126,7 @@ label.ck { min-height:44px; }
 #print .hs > div { border:0.5mm solid #000; border-radius:3mm; padding:2.5mm 4.5mm; display:flex; flex-direction:column; justify-content:center; }
 #print .hs > div.td { background:#000; color:#fff; }
 #print .hs span { font-size:10.5pt; font-weight:800; }
-#print .hs b { font-size:21pt; font-weight:800; line-height:1.2; }
+#print .hs b { font-size:26pt; font-weight:800; line-height:1.25; }
 #print .hs small { font-size:8pt; }
 #print .psteps { background:#ebebeb; border-radius:2mm; padding:2mm 4mm; margin-bottom:4mm; font-size:10.5pt; }
 #print .psteps b { font-size:12.5pt; }
@@ -492,7 +492,7 @@ function render() {
     <tr><td><b>月額合計</b></td><td class="r"><b>${yen(r.monthly)}</b></td></tr>
     ${r.steps.map(x => `<tr><td>　${x.from}か月目からの月額（期間限定の割引が終わった後）</td><td class="r">${yen(x.monthly)}</td></tr>`).join("")}
     <tr><td>当日のお支払い</td><td class="r"><b>${yen(r.today)}</b></td></tr>
-    <tr><td>翌月のご請求（初期費用分）</td><td class="r">${yen(r.nextInit)}</td></tr>
+    <tr><td>事務手数料など（翌月の請求に1回だけ加算）</td><td class="r">${yen(r.nextInit)}</td></tr>
   </table></div>`;
   renderSum();
 }
@@ -631,7 +631,7 @@ function doPrint(mode) {
   const notes = `<div class="pn">※金額はすべて税込です（${DATA_AS_OF}）。端末代金はドコモオンラインショップ価格に店頭の頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
   const hero = (label, monthly, todayAmt, nextAmt, formula) => `<div class="hero">
     <div class="hm"><div class="lb">${label}</div><div class="big"><em>約</em>${(Math.round(monthly) || 0).toLocaleString("ja-JP")}<small>円／月</small></div>${formula || ""}</div>
-    <div class="hs"><div class="td"><span>当日のお支払い</span><b>${yen(todayAmt)}</b></div><div><span>翌月のご請求<small>（初期費用分）</small></span><b>${yen(nextAmt)}</b></div></div></div>`;
+    <div class="hs"><div class="td"><span>当日のお支払い</span><b>${yen(todayAmt)}</b><small>頭金・アクセサリーなど、今日お店でお支払いいただく金額</small></div></div></div>`;
   const stepsBox = r => r.steps.length ? `<div class="psteps">${r.steps.map(x => `▶ <b>${x.from}か月目から</b>は 約 <b>${yen(x.monthly)}</b>／月`).join("　")}<span style="font-size:9pt">（期間限定の割引が終わるため）</span></div>` : "";
 
   // 内訳の部品（1回線ずつのページ・まとめて1枚の両方で使う）
@@ -662,7 +662,7 @@ function doPrint(mode) {
       ${l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
     const sec4 = `<div class="sec"><h3>④ 初期費用</h3>
       <h4>当日のお支払い</h4>${initRows(r, "today")}${rw("当日のお支払い 合計", yen(r.today), "st")}
-      <h4>翌月のご請求</h4>${initRows(r, "next")}${rw("翌月のご請求 合計", yen(r.nextInit), "st")}</div>`;
+      <h4>毎月のお支払いとは別に、翌月の請求に1回だけ加わるもの</h4>${initRows(r, "next")}</div>`;
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
       ${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula)}${stepsBox(r)}
       <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}</div></div>${notes}</div>`;
@@ -672,7 +672,7 @@ function doPrint(mode) {
   // --- 家族のまとめページ ---
   const famPage = () => `<div class="pg">${head(`${N}回線のまとめ`, "")}
       ${hero(`毎月のお支払い（${N}回線の合計・目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit))}
-      <table class="fam"><tr><th>回線</th><th>料金プラン／ご購入の端末</th><th class="r">毎月</th><th class="r">当日</th><th class="r">翌月（初期）</th></tr>
+      <table class="fam"><tr><th>回線</th><th>料金プラン／ご購入の端末</th><th class="r">毎月</th><th class="r">当日</th><th class="r">事務手数料など<br><small style="font-weight:400">（翌月に1回だけ加算）</small></th></tr>
       ${S.lines.map((l, k) => { const r = rs[k], p = plan(l); return `<tr><td class="nm">${nm(k)}<small>${CONTRACTS.find(x => x.id === l.contract).name}</small></td><td>${p.name}（${p.tiers[l.tier].label}）<small>${r.dev ? "端末：" + esc(r.dev.name) : "端末のご購入なし"}</small></td><td class="r"><b>${yen(r.monthly)}</b></td><td class="r">${yen(r.today)}</td><td class="r">${yen(r.nextInit)}</td></tr>`; }).join("")}
       <tr class="tsum"><td colspan="2">合計</td><td class="r">${yen(sumAll(r => r.monthly))}</td><td class="r">${yen(sumAll(r => r.today))}</td><td class="r">${yen(sumAll(r => r.nextInit))}</td></tr></table>
       <p class="pn">※回線ごとの詳しい内訳は、次のページから1回線ずつ載せています。</p>${notes}</div>`;
@@ -685,7 +685,7 @@ function doPrint(mode) {
         <div class="cb"><div><h5>① 料金プラン</h5>${planRows(l, r, p)}${rw("小計", yen(r.planNet + r.voice), "st")}</div>
         <div><h5>② オプション</h5>${optRows(r)}${rw("小計", yen(optSum), "st")}</div>
         <div><h5>③ 端末・④ 初期費用</h5>${dv ? `<div class="dn">${esc(dv.name)}</div>` + rw(payName(dv), dv.monthly ? yen(dv.monthly) + "×" + dv.months + "回" : (dv.total !== null ? yen(dv.total) : "—")) : `<div class="none" style="padding:1mm 0">端末のご購入なし</div>`}
-          ${rw("当日のお支払い", yen(r.today), "st")}${rw("翌月のご請求（初期費用）", yen(r.nextInit))}</div></div></div>`;
+          ${rw("当日のお支払い", yen(r.today), "st")}${r.nextInit ? rw("事務手数料など（翌月に1回だけ加算）", yen(r.nextInit)) : ""}</div></div></div>`;
     });
     return `<div class="pg">${head(N > 1 ? `${N}回線のお見積り` : CONTRACTS.find(x => x.id === S.lines[0].contract).name, "")}
       ${hero(`毎月のお支払い（${N > 1 ? N + "回線の合計・" : ""}目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit))}${cards.join("")}${notes}</div>`;
