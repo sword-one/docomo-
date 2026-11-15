@@ -168,7 +168,7 @@ label.ck { min-height:44px; }
 #print .card1 { border:0.5mm solid #000; border-radius:3mm; margin-bottom:4mm; overflow:hidden; break-inside:avoid; }
 #print .card1 .ch { display:flex; justify-content:space-between; align-items:baseline; background:#000; color:#fff; padding:1.5mm 4mm; font-weight:800; font-size:12pt; }
 #print .card1 .ch b { font-size:14pt; }
-#print .card1 .cb { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:5mm; padding:2.5mm 4mm 3mm; }
+#print .card1 .cb { display:grid; grid-template-columns:1.2fr 1fr; gap:5mm; padding:2.5mm 4mm 3mm; }
 #print .card1 h5 { font-size:9.5pt; margin:0 0 0.5mm; padding-bottom:0.8mm; border-bottom:0.4mm solid #000; }
 #print .card1 .rw { font-size:9pt; padding:0.9mm 0; }
 #print .card1 .rw.st { font-size:10pt; }
@@ -670,15 +670,15 @@ function doPrint(mode) {
   const linePage = (l, k) => {
     const r = rs[k], p = plan(l), dv = r.dev, c = CONTRACTS.find(x => x.id === l.contract).name;
     const planSum = r.planNet + r.voice, optSum = r.opts.reduce((a, b) => a + b[1], 0), devM = dv ? dv.monthly : 0;
-    const formula = `<div class="fm"><div><span>① 料金プラン</span><b>${yen(planSum)}</b></div><i>＋</i><div><span>② オプション</span><b>${yen(optSum)}</b></div>${devM ? `<i>＋</i><div><span>③ 端末の分割</span><b>${yen(devM)}</b></div>` : ""}</div>`;
-    const sec1 = `<div class="sec"><h3>① 料金プラン</h3>${planRows(l, r, p)}${rw("① 小計", yen(planSum), "st")}</div>`;
-    const sec2 = `<div class="sec"><h3>② オプション</h3>${optRows(r)}${rw("② 小計", yen(optSum), "st")}</div>`;
+    const formula = devM ? `<div class="fm"><div><span>① 料金プラン・オプション</span><b>${yen(planSum + optSum)}</b></div><i>＋</i><div><span>② 端末の分割</span><b>${yen(devM)}</b></div></div>` : "";
+    const sec1 = `<div class="sec"><h3>① 料金プラン・オプション</h3>${planRows(l, r, p)}${r.opts.length ? optRows(r) : ""}${rw("① 小計", yen(planSum + optSum), "st")}</div>`;
+    const sec2 = "";
     const pc = r.cards.filter(c => c.pts > 0);
     const cardSec = pc.length ? `<div class="sec cardsec"><h3>dカードでたまるポイント <small>目安</small></h3>
       ${pc.map(c => `<div class="rw"><span>${c.name}${c.sel ? "<em>ご利用予定</em>" : ""}</span><b>毎月 ${c.pts.toLocaleString()}pt／年間 ${(c.pts * 12).toLocaleString()}pt</b></div>`).join("")}
       <div class="pn" style="margin-top:1mm">※ドコモの料金をカードでお支払いの場合。割引後の基本料・通話料（税抜1,000円ごと）が対象です。${pc.some(c => c.id === "platinum") ? "PLATINUMは入会初年度（20%）の場合で、2年目以降はカードのご利用額により10〜20%です。" : ""}</div></div>` : "";
     const poiBox = r.poikatsu ? `<div class="psteps">▶ <b>ポイ活の還元</b>を上限（${r.poikatsu.cap.toLocaleString()}pt）まで貯めた場合、<b>実質 約 ${yen(r.poikatsu.jisshitsu)}</b>／月<span style="font-size:9pt">（年間で最大 ${(r.poikatsu.cap * 12).toLocaleString()}pt。d払い・dカードのお買い物の${r.poikatsu.rate}%を還元。月 約${yen(r.poikatsu.need)}のお買い物で上限。期間・用途限定ポイント）</span></div>` : "";
-    const sec3 = `<div class="sec"><h3>③ 端末</h3>
+    const sec3 = `<div class="sec"><h3>② 端末</h3>
       ${dv ? `<div class="dn">${esc(dv.name)}</div>`
         + rw("買い方", payName(dv))
         + rw("端末代金（頭金込み）", dv.total !== null ? yen(dv.total) : "—")
@@ -687,10 +687,10 @@ function doPrint(mode) {
         + (Number(l.device.point) ? rw("ポイント利用", "▲" + Number(l.device.point).toLocaleString() + "pt", "dc") : "")
         + (dv.zanka ? rw("24回目のお支払い（残価）", yen(dv.zanka)) : "")
         + (dv.return23 != null ? rw("23か月目に返却した場合のご負担", yen(dv.return23), "sub") : "")
-        + (dv.monthly ? rw("③ 毎月の分割（" + dv.months + "回）", yen(dv.monthly), "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
+        + (dv.monthly ? rw("② 毎月の分割（" + dv.months + "回）", yen(dv.monthly), "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
         : `<div class="none">端末のご購入なし</div>`}
       ${l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
-    const sec4 = `<div class="sec"><h3>④ 初期費用</h3>
+    const sec4 = `<div class="sec"><h3>③ 初期費用</h3>
       ${r.init.some(x => x[2] === "today") ? `<h4>当日のお支払い</h4>${initRows(r, "today")}${rw("当日のお支払い 合計", yen(r.today), "st")}` : ""}
       ${r.init.some(x => x[2] === "next") ? `<h4>毎月のお支払いとは別に、翌月の請求に1回だけ加わるもの</h4>${initRows(r, "next")}` : ""}
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
@@ -713,9 +713,8 @@ function doPrint(mode) {
     const cards = S.lines.map((l, k) => {
       const r = rs[k], p = plan(l), dv = r.dev, optSum = r.opts.reduce((a, b) => a + b[1], 0);
       return `<div class="card1"><div class="ch"><span>${N > 1 ? nm(k) + "　" : ""}${CONTRACTS.find(x => x.id === l.contract).name}</span><span>毎月 <b>約 ${yen(r.monthly)}</b></span></div>
-        <div class="cb"><div><h5>① 料金プラン</h5>${planRows(l, r, p)}${rw("小計", yen(r.planNet + r.voice), "st")}</div>
-        <div><h5>② オプション</h5>${optRows(r)}${rw("小計", yen(optSum), "st")}</div>
-        <div><h5>③ 端末・④ 初期費用</h5>${dv ? `<div class="dn">${esc(dv.name)}</div>` + rw(payName(dv), dv.monthly ? yen(dv.monthly) + "×" + dv.months + "回" : (dv.total !== null ? yen(dv.total) : "—")) : `<div class="none" style="padding:1mm 0">端末のご購入なし</div>`}
+        <div class="cb"><div><h5>① 料金プラン・オプション</h5>${planRows(l, r, p)}${r.opts.length ? optRows(r) : ""}${rw("小計", yen(r.planNet + r.voice + optSum), "st")}</div>
+        <div><h5>② 端末・③ 初期費用</h5>${dv ? `<div class="dn">${esc(dv.name)}</div>` + rw(payName(dv), dv.monthly ? yen(dv.monthly) + "×" + dv.months + "回" : (dv.total !== null ? yen(dv.total) : "—")) : `<div class="none" style="padding:1mm 0">端末のご購入なし</div>`}
           ${r.today ? rw("当日のお支払い", yen(r.today), "st") : ""}${r.nextInit ? rw("事務手数料など（翌月に1回だけ加算）", yen(r.nextInit)) : ""}</div></div></div>`;
     });
     return `<div class="pg">${head(N > 1 ? `${N}回線のお見積り` : CONTRACTS.find(x => x.id === S.lines[0].contract).name, "")}
