@@ -318,8 +318,10 @@ function devCalc(l) {
     r.monthly = credit ? Math.max(0, Math.ceil((fin - k.zanka) / k.months)) : k.monthly;
     r.return23 = credit ? null : k.return23; r.return12 = credit ? null : k.return12;
   } else if (dv.pay === "b36" && pr.b36 && !credit) { r.months = 36; r.monthly = pr.b36;
-  } else if (dv.pay === "b24" || dv.pay === "b36" || dv.pay === "kaedoki") {
-    r.months = dv.pay === "b36" ? 36 : 24; r.monthly = Math.ceil(fin / r.months);
+  } else if (dv.pay === "b12" || dv.pay === "b24" || dv.pay === "b36" || dv.pay === "kaedoki") {
+    // ドコモの分割（12・24・36回、手数料無料）。割り切れない分は1回目に上乗せ（公式）
+    r.months = { b12: 12, b36: 36 }[dv.pay] || 24; r.monthly = Math.floor(fin / r.months);
+    const first = fin - r.monthly * (r.months - 1); if (first !== r.monthly) r.first = first;
     if (dv.pay === "kaedoki") r.note = "この機種はカエドキの対象外のため24回分割で計算しています";
   } else { r.monthly = 0; }
   return r;
@@ -400,9 +402,9 @@ function render() {
       <tr><td>ポイント利用（pt）</td><td class="r"><input class="yen" type="number" value="${l.device.point || ""}" onchange="setDev('point',this.value)"></td></tr>
     </table>
     <div class="row" style="margin-top:8px">購入方法：
-      ${[["kaedoki", pr.kaedoki ? pr.kaedoki.program : "いつでもカエドキ"], ["b24", "24回分割"], ["b36", "36回分割"], ["ikkatsu", "一括"]].filter(([k]) => k !== "kaedoki" || pr.kaedoki || !d).map(([k, n]) => `<div class="chip ${l.device.pay === k ? "on" : ""}" onclick="setDev('pay','${k}')">${n}</div>`).join("")}
+      ${[["kaedoki", pr.kaedoki ? pr.kaedoki.program : "いつでもカエドキ"], ["b12", "12回分割"], ["b24", "24回分割"], ["b36", "36回分割"], ["ikkatsu", "一括"]].filter(([k]) => k !== "kaedoki" || pr.kaedoki || !d).map(([k, n]) => `<div class="chip ${l.device.pay === k ? "on" : ""}" onclick="setDev('pay','${k}')">${n}</div>`).join("")}
     </div>
-    ${dv && dv.online !== null ? `<p>端末の月々：<b>${dv.monthly ? yen(dv.monthly) + " × " + dv.months + "回" : "なし（一括）"}</b>${dv.zanka ? `　24回目（残価）${yen(dv.zanka)}` : ""}${dv.return23 != null ? `<br><span class="note">23か月目に返却した場合の負担額 ${yen(dv.return23)}（プログラム利用料22,000円は別。買替えおトク割で免除あり）</span>` : ""}${dv.note ? `<br><span class="note">${dv.note}</span>` : ""}</p>` : ""}
+    ${dv && dv.online !== null ? `<p>端末の月々：<b>${dv.monthly ? yen(dv.monthly) + " × " + dv.months + "回" : "なし（一括）"}</b>${dv.zanka ? `　24回目（残価）${yen(dv.zanka)}` : ""}${dv.return23 != null ? `<br><span class="note">23か月目に返却した場合の負担額 ${yen(dv.return23)}（プログラム利用料22,000円は別。買替えおトク割で免除あり）</span>` : ""}${dv.first ? `<br><span class="note">1回目のみ ${yen(dv.first)}（割り切れない分を1回目に上乗せ）</span>` : ""}${dv.note ? `<br><span class="note">${dv.note}</span>` : ""}</p>` : ""}
     ` : ""}
   </div>`}
 
@@ -560,9 +562,9 @@ function doPrint() {
       ${r.late.map(x => tr("　" + x[0] + "（" + (x[2] + 1) + "か月目〜）", "▲" + yen(x[1]))).join("")}
       ${tr("通話：" + r.voiceName, yen(r.voice))}
       ${r.opts.map(x => tr(esc(x[0]), x[1] < 0 ? "▲" + yen(-x[1]) : yen(x[1]))).join("")}
-      ${dv && dv.monthly ? tr("端末の月々（" + dv.months + "回）", yen(dv.monthly)) : ""}
+      ${dv && dv.monthly ? tr("端末の月々（" + dv.months + "回）" + (dv.first ? "<br><small>1回目のみ" + yen(dv.first) + "</small>" : ""), yen(dv.monthly)) : ""}
       ${tr("<b>月額 合計</b>", "<b>" + yen(r.monthly) + "</b>", "tsum")}</table>`;
-    const payName = dv ? (dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括" }[dv.pay]) : "";
+    const payName = dv ? (dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括" }[dv.pay]) : "";
     const dev = (l.curModel || dv) ? `<table class="pt"><tr><th colspan="2">端末</th></tr>
       ${l.curModel ? tr("今お使い", esc(l.curModel), "nm") : ""}
       ${dv ? tr("機種", esc(dv.name), "nm") + tr("購入方法", payName, "nm")
