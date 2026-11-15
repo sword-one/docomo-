@@ -150,7 +150,7 @@ label.ck { min-height:44px; }
 #print .rw.sub { font-size:9pt; color:#333; border-bottom:none; padding-top:0.5mm; }
 #print .cardsec .cd { border:0.3mm solid #999; border-radius:2mm; padding:1mm 2.5mm 0.5mm; margin-top:1.5mm; } #print .cardsec .cd.sel { border:0.6mm solid #000; }
 #print .cardsec .cn { font-weight:800; font-size:11pt; padding-top:0.5mm; } #print .cardsec .cn em { font-style:normal; font-size:8pt; font-weight:700; border:0.25mm solid #000; border-radius:1mm; padding:0 1.2mm; margin-left:2mm; }
-#print .cardsec .rw { font-size:9.5pt; padding:1mm 0.5mm; } #print .cardsec .rw.st { font-size:10.5pt; }
+#print .cardsec .rw { font-size:9.5pt; padding:1mm 0.5mm; } #print .cardsec .rw.st { font-size:10.5pt; } #print .cardsec .rw.yr { border-top:0.2mm solid #c8c8c8; font-size:11.5pt; }
 #print .psteps + .psteps { margin-top:-2mm; }
 #print .dn { font-size:13.5pt; font-weight:800; padding:1.5mm 1mm 1mm; }
 #print .none { padding:2mm 1mm; color:#444; }
@@ -562,10 +562,10 @@ function discRows(l, p, r) {
   }
   // 4. dカード
   if (p.dcard) {
-    const cs = r.cards.map(c => `<div class="cardb ${c.sel ? "on" : ""}"><b>${c.name}</b>${c.sel ? "（選択中）" : "にすると"}　割引 ▲${yen(c.off)} ＋ ポイント ${c.pts.toLocaleString()}pt ＝ <b>毎月 約${yen(c.total)}相当おトク</b><small>年会費 ${c.fee ? yen(c.fee) : "無料"}${DCARD[c.id].feeNote ? "（" + DCARD[c.id].feeNote + "）" : ""}${DCARD[c.id].rateNote ? "／" + DCARD[c.id].rateNote : ""}</small></div>`).join("");
+    const cs = r.cards.map(c => `<div class="cardb ${c.sel ? "on" : ""}"><b>${c.name}</b>${c.sel ? "（選択中）" : "にすると"}　割引 ▲${yen(c.off)} ＋ ポイント ${c.pts.toLocaleString()}pt ＝ <b>毎月 約${yen(c.total)}相当／年間 約${yen(c.total * 12)}相当おトク</b><small>年会費 ${c.fee ? yen(c.fee) : "無料"}${DCARD[c.id].feeNote ? "（" + DCARD[c.id].feeNote + "）" : ""}${DCARD[c.id].rateNote ? "／" + DCARD[c.id].rateNote : ""}</small></div>`).join("");
     out.push(row("dカード", seg("dcard", l.dcard, [["none", "なし"], ["general", "dカード"], ["goldu", "GOLD U"], ["gold", "GOLD"], ["platinum", "PLATINUM"]]), hearty ? `<span class="dv off">—</span>` : amt(/dカード/),
       (hearty ? "ハーティ割引中はdカードお支払割は使えません（ポイント還元は対象）。" : `お支払割：dカード ▲${yen(p.dcard[1])}／GOLD U・GOLD・PLATINUM ▲${yen(p.dcard[0])}。`) + (DCARD_NO_POINT.includes(p.id) ? `${p.name}の料金はポイント還元の対象外。` : "ポイントは割引後の基本料・通話料（税抜1,000円ごと）が対象。端末代・事務手数料は対象外。") + cs));
-    if (r.poikatsu) out.push(row("ポイ活の還元", `<span class="note">d払い・dカードのお買い物の ${r.poikatsu.rate}%（上限 ${r.poikatsu.cap.toLocaleString()}pt／月）。上限まで貯めるには月 約${yen(r.poikatsu.need)}のお買い物</span>`, `<b class="dv">実質 ${yen(r.poikatsu.jisshitsu)}</b><small>上限まで貯めた場合</small>`, ""));
+    if (r.poikatsu) out.push(row("ポイ活の還元", `<span class="note">d払い・dカードのお買い物の ${r.poikatsu.rate}%（上限 ${r.poikatsu.cap.toLocaleString()}pt／月）。上限まで貯めるには月 約${yen(r.poikatsu.need)}のお買い物</span>`, `<b class="dv">実質 ${yen(r.poikatsu.jisshitsu)}</b><small>上限まで貯めた場合／年間 最大${(r.poikatsu.cap * 12).toLocaleString()}pt</small>`, ""));
   }
   // 5. 光・でんき
   if (p.hikari) out.push(row("ドコモ光・home 5G", seg("hikari", l.hikari, [[false, "なし"], [true, "あり"]]), amt(/光／home/), `セット割 ▲${yen(p.hikari)}`));
@@ -672,12 +672,13 @@ function doPrint(mode) {
     const formula = `<div class="fm"><div><span>① 料金プラン</span><b>${yen(planSum)}</b></div><i>＋</i><div><span>② オプション</span><b>${yen(optSum)}</b></div>${devM ? `<i>＋</i><div><span>③ 端末の分割</span><b>${yen(devM)}</b></div>` : ""}</div>`;
     const sec1 = `<div class="sec"><h3>① 料金プラン</h3>${planRows(l, r, p)}${rw("① 小計", yen(planSum), "st")}</div>`;
     const sec2 = `<div class="sec"><h3>② オプション</h3>${optRows(r)}${rw("② 小計", yen(optSum), "st")}</div>`;
-    const cardSec = r.cards.length ? `<div class="sec cardsec"><h3>dカードでおトクになる分 <small>毎月の目安</small></h3>
+    const cardSec = r.cards.length ? `<div class="sec cardsec"><h3>dカードでおトクになる分 <small>毎月・年間の目安</small></h3>
       ${r.cards.map(c => `<div class="cd ${c.sel ? "sel" : ""}"><div class="cn">${c.name}${c.sel ? "<em>ご利用予定</em>" : "<em>お持ちの場合</em>"}</div>
         ${rw("料金の割引（dカードお支払割）", yen(c.off))}${rw("料金でたまるdポイント（" + Math.round(DCARD[c.id].rate * 100) + "%）", c.pts.toLocaleString() + "pt")}
-        ${rw("あわせて 毎月", "約 " + yen(c.total) + " 相当", "st")}${rw("年間では 約 " + yen(c.total * 12) + " 相当", "年会費 " + (c.fee ? yen(c.fee) : "無料"), "sub")}</div>`).join("")}
-      <div class="pn" style="margin-top:1mm">※ポイントは割引後の基本料・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。${r.cards.some(c => c.id === "platinum") ? "PLATINUMの20%は入会初年度の率で、2年目以降はカードのご利用額により10〜20%です。" : ""}${r.cards.some(c => c.sel) ? "" : "割引はカードで料金をお支払いの場合で、上の合計には入っていません。"}</div></div>` : "";
-    const poiBox = r.poikatsu ? `<div class="psteps">▶ <b>ポイ活の還元</b>を上限（${r.poikatsu.cap.toLocaleString()}pt）まで貯めた場合、<b>実質 約 ${yen(r.poikatsu.jisshitsu)}</b>／月<span style="font-size:9pt">（d払い・dカードのお買い物の${r.poikatsu.rate}%を還元。月 約${yen(r.poikatsu.need)}のお買い物で上限。期間・用途限定ポイント）</span></div>` : "";
+        ${rw("あわせて 毎月", "約 " + yen(c.total) + " 相当", "st")}
+        ${rw("年間（12か月）", "約 " + yen(c.total * 12) + " 相当", "st yr")}${rw("年会費", c.fee ? yen(c.fee) : "無料")}${c.fee ? rw("年会費を引いた年間の差し引き", (c.total * 12 - c.fee >= 0 ? "＋" : "−") + yen(Math.abs(c.total * 12 - c.fee)), "sub") : ""}</div>`).join("")}
+      <div class="pn" style="margin-top:1mm">※ポイントは割引後の基本料・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。カードの年間ご利用額に応じた特典（GOLD：年会費相当／PLATINUM：最大4万円）は含めていません。${r.cards.some(c => c.id === "platinum") ? "PLATINUMの20%は入会初年度の率で、2年目以降はカードのご利用額により10〜20%です。" : ""}${r.cards.some(c => c.sel) ? "" : "割引はカードで料金をお支払いの場合で、上の合計には入っていません。"}</div></div>` : "";
+    const poiBox = r.poikatsu ? `<div class="psteps">▶ <b>ポイ活の還元</b>を上限（${r.poikatsu.cap.toLocaleString()}pt）まで貯めた場合、<b>実質 約 ${yen(r.poikatsu.jisshitsu)}</b>／月<span style="font-size:9pt">（年間で最大 ${(r.poikatsu.cap * 12).toLocaleString()}pt。d払い・dカードのお買い物の${r.poikatsu.rate}%を還元。月 約${yen(r.poikatsu.need)}のお買い物で上限。期間・用途限定ポイント）</span></div>` : "";
     const sec3 = `<div class="sec"><h3>③ 端末</h3>
       ${dv ? `<div class="dn">${esc(dv.name)}</div>`
         + rw("買い方", payName(dv))
