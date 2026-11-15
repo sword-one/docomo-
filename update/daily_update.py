@@ -222,6 +222,30 @@ def main():
             if gone: news.append({"date": TODAY, "kind": "gone", "text": "シミュレーションから消えた機種（販売終了など）：" + "、".join(gone)})
             if changed:
                 news.append({"date": TODAY, "kind": "price", "text": "機種代金の変更 %d件：" % len(changed) + "／".join(changed[:12]) + (" ほか" if len(changed) > 12 else "")})
+        # 店頭（ドコモショップ）の割引を付ける。取れなかった日は前回の割引を引き継ぐ
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import store_discount
+            rows, conds = store_discount.fetch()
+            un = store_discount.attach(devices, rows, conds)
+            log("店頭割引", len(rows), "行／販売中リストに無い機種", len(set(m for c, m in un)))
+            if prev:
+                pm = {d["key"]: d.get("store") or {} for d in prev}
+                ch = []
+                for d in devices:
+                    if d["key"] not in pm: continue
+                    for ck, lab in (("mnp", "のりかえ"), ("shinki", "新規"), ("kihen", "機種変更")):
+                        a, b = (pm[d["key"]].get(ck) or {}).get("amt"), ((d.get("store") or {}).get(ck) or {}).get("amt")
+                        if a != b: ch.append("%s（%s）%s→%s" % (d["name"], lab, yen(a) if a else "なし", yen(b) if b else "なし"))
+                if ch and any(x.get("store") for x in prev):
+                    news.append({"date": TODAY, "kind": "store", "text": "店頭の割引の変更 %d件：" % len(ch) + "／".join(ch[:12]) + (" ほか" if len(ch) > 12 else "")})
+        except Exception as e:   # noqa
+            log("店頭割引の取得でエラー（前回の値を引き継ぎ）", e)
+            if prev:
+                pm = {d["key"]: d.get("store") for d in prev}
+                for d in devices:
+                    if pm.get(d["key"]): d["store"] = pm[d["key"]]
+            status = {"ok": False, "message": "店頭の割引を取得できなかったため、割引は前回の値のまま表示しています。"}
         save_json("devices_prev.json", devices)
         out = [{k: v for k, v in d.items() if k != "key"} for d in devices]
         js = "// 機種代金（ドコモ公式「おてがる料金シミュレーション」＝ドコモオンラインショップの販売価格）毎朝自動更新\n"

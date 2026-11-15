@@ -247,7 +247,7 @@ function newLine(n) {
   return { label: "回線" + n, contract: "mnp", plan: "max", tier: 2, voice: "none", age: "none", hearty: false, kosodate: false, curCat: "", curModel: "",
     family: true, dcard: "none", hikari: false, denki: false, choki: "none", oyako: false,
     opts: {}, optAmt: {}, freeOpts: [{ name: "", price: 0 }],
-    device: { use: true, cat: "", model: "", pay: "kaedoki", manualPrice: null, atama: null, shitadori: 0, point: 0 },
+    device: { use: true, cat: "", model: "", pay: "kaedoki", storeOn: false, manualPrice: null, atama: null, shitadori: 0, point: 0 },
     init: { jimu: true }, initAmt: {}, initWhen: {}, freeInit: [{ name: "", price: 0 }] };
 }
 let S = { lines: [newLine(1)], cur: 0, extra: 0 };
@@ -382,27 +382,43 @@ function devPrice(d, contract) {
   if (!d) return null; const k = contract === "plan" ? "kihen" : contract; const pr = (d.prices || {})[k] || {};
   return pr;
 }
+// 店頭（ドコモショップ）の割引。条件つきの割引は、担当者が「適用する」を押した時だけ引く
+function devStore(l) {
+  const d = devFind(l); if (!d || l.contract === "plan") return null;
+  const st = (d.store || {})[l.contract]; if (!st) return null;
+  return { ...st, on: !st.cond || !!l.device.storeOn };
+}
 function devCalc(l) {
   const dv = l.device; if (!dv.use || l.contract === "plan") return null;
-  if (!dv.model && (dv.manualPrice === null || dv.manualPrice === "")) return null;
-  const d = devFind(l), pr = devPrice(d, l.contract) || {};
-  const online = dv.manualPrice !== null && dv.manualPrice !== "" ? Number(dv.manualPrice) : (pr.ikkatsu ?? null);
+  const manual = dv.manualPrice !== null && dv.manualPrice !== "";
+  if (!dv.model && !manual) return null;
+  const d = devFind(l), pr = devPrice(d, l.contract) || {}, st = devStore(l);
+  // 店頭価格＝本体価格 − 店頭の割引（オンラインショップの割引額とは違う機種がある）
+  const storePrice = pr.hontai != null ? pr.hontai - (st && st.on ? st.amt : 0) : null;
+  const online = manual ? Number(dv.manualPrice) : storePrice;
   const atama = dv.atama === null || dv.atama === "" ? null : Number(dv.atama);
-  const r = { name: dv.model || "（機種未選択）", pay: dv.pay, online, atama, monthly: 0, months: 0, zanka: null, total: null, discount: pr.discount || 0 };
+  const r = { name: dv.model || "（機種未選択）", pay: dv.pay, online, atama, monthly: 0, months: 0, zanka: null, total: null,
+    hontai: pr.hontai ?? null, store: st, discount: !manual && st && st.on ? st.amt : 0, onlineShop: pr.ikkatsu ?? null };
   const credit = Number(dv.shitadori || 0) + Number(dv.point || 0);
   if (online === null) return r;
   if (atama !== null) r.total = online + atama;   // 店頭での端末総額は頭金を入れてから出す
-  const fin = online - credit;
+  const fin = Math.max(0, online - credit);
+  const same = !manual && !credit && online === pr.ikkatsu;   // オンラインショップと同じ価格なら、公式の月額をそのまま使う
   if (dv.pay === "kaedoki" && pr.kaedoki) {
-    const k = pr.kaedoki; r.months = k.months; r.zanka = k.zanka; r.program = k.program;
-    r.monthly = credit ? Math.max(0, Math.ceil((fin - k.zanka) / k.months)) : k.monthly;
-    r.return23 = credit ? null : k.return23; r.return12 = credit ? null : k.return12;
-  } else if (dv.pay === "b36" && pr.b36 && !credit) { r.months = 36; r.monthly = pr.b36;
+    const k = pr.kaedoki; r.months = k.months; r.program = k.program;
+    if (same) { r.zanka = k.zanka; r.monthly = k.monthly; r.return23 = k.return23; r.return12 = k.return12; }
+    else {   // 価格が残価より安い時は、残価のほうが下がる
+      r.zanka = Math.min(k.zanka, fin); const rest = fin - r.zanka;
+      r.monthly = Math.floor(rest / k.months); const first = rest - r.monthly * (k.months - 1); if (first !== r.monthly) r.first = first;
+      r.return23 = rest; r.return12 = null;
+    }
+  } else if (dv.pay === "b36" && pr.b36 && same) { r.months = 36; r.monthly = pr.b36;
   } else if (dv.pay === "b12" || dv.pay === "b24" || dv.pay === "b36" || dv.pay === "kaedoki") {
     // ドコモの分割（12・24・36回、手数料無料）。割り切れない分は1回目に上乗せ（公式）
     r.months = { b12: 12, b36: 36 }[dv.pay] || 24; r.monthly = Math.floor(fin / r.months);
     const first = fin - r.monthly * (r.months - 1); if (first !== r.monthly) r.first = first;
     if (dv.pay === "kaedoki") r.note = "この機種はカエドキの対象外のため24回分割で計算しています";
+    if (r.monthly === 0) { r.pay = "ikkatsu"; r.months = 0; delete r.first; r.note = "端末代金が少額のため、一括払いで計算しています"; }
   } else { r.monthly = 0; }
   return r;
 }
@@ -480,19 +496,23 @@ function render() {
     <div class="row" style="margin:6px 0">${cats.length ? cats.map(c => `<div class="chip ${l.device.cat === c ? "on" : ""}" onclick="setDev('cat','${c}');setDev('model','')">${c}</div>`).join("") : `<span class="warn">機種データが未登録です（金額は手入力してください）</span>`}</div>
     ${models.length ? `<select onchange="setDev('model',this.value)" style="width:100%;max-width:520px"><option value="">機種を選択</option>${models.map(m => `<option ${m.name === l.device.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select>` : ""}
     <table class="kv" style="margin-top:8px">
-      <tr><td>オンラインショップ価格（${CONTRACTS.find(c => c.id === l.contract).name}）</td><td class="r">${pr.ikkatsu != null ? yen(pr.ikkatsu) + (pr.discount ? `<br><span class="note">本体${yen(pr.hontai)}から割引 ▲${yen(pr.discount)} 適用後</span>` : "") : "—"}</td></tr>
-      <tr><td>金額を手入力（オンライン価格がない時）</td><td class="r"><input class="yen" type="number" value="${l.device.manualPrice ?? ""}" onchange="setDev('manualPrice',this.value===''?null:this.value)"></td></tr>
+      <tr><td>本体価格</td><td class="r">${pr.hontai != null ? yen(pr.hontai) : "—"}</td></tr>
+      ${(() => { const st = devStore(l); if (!d) return "";
+        if (!st) return `<tr><td>店頭の割引（${CONTRACTS.find(c => c.id === l.contract).name}）</td><td class="r"><span class="note">この機種・お手続きでは割引なし</span></td></tr>`;
+        return `<tr><td>店頭の割引：<b>${esc(st.name)}</b>${st.cond ? `<br><span class="warn" style="font-weight:400">条件：${esc(st.cond)}</span><br><span class="seg" style="margin-top:4px">${[[false, "適用しない"], [true, "条件に当てはまる（適用）"]].map(([v, n]) => `<button class="${!!l.device.storeOn === v ? "on" : ""}" onclick="setDev('storeOn',${v})">${n}</button>`).join("")}</span>` : ""}</td><td class="r">${st.on ? `<b style="color:var(--red)">▲${yen(st.amt)}</b>` : `<span class="note">（▲${yen(st.amt)}）</span>`}</td></tr>`; })()}
+      <tr><td><b>店頭価格</b>（頭金を除く）</td><td class="r">${dv && dv.online !== null && !(l.device.manualPrice !== null && l.device.manualPrice !== "") ? `<b>${yen(dv.online)}</b>` + (dv.onlineShop != null && dv.onlineShop !== dv.online ? `<br><span class="note">参考：オンラインショップは${yen(dv.onlineShop)}</span>` : "") : "—"}</td></tr>
+      <tr><td>金額を手入力（店頭価格を直したい時）</td><td class="r"><input class="yen" type="number" value="${l.device.manualPrice ?? ""}" onchange="setDev('manualPrice',this.value===''?null:this.value)"></td></tr>
       <tr><td colspan="2"><b>頭金（店頭）</b> <span class="note">選ぶと店頭の端末総額が出ます</span>
         <div class="row" style="margin-top:6px">${ATAMA_CHOICES.map(v => `<div class="chip ${l.device.atama !== null && l.device.atama !== "" && Number(l.device.atama) === v ? "on" : ""}" onclick="setDev('atama',${v})">${yen(v)}</div>`).join("")}
         <span class="note">その他</span><input class="yen" type="number" value="${l.device.atama !== null && l.device.atama !== "" && !ATAMA_CHOICES.includes(Number(l.device.atama)) ? l.device.atama : ""}" placeholder="手入力" onchange="setDev('atama',this.value===''?null:this.value)"></div></td></tr>
-      <tr><td>店頭での端末総額（オンライン価格＋頭金）</td><td class="r">${dv && dv.total !== null ? `<b>${yen(dv.total)}</b>` : `<span class="warn">頭金を入力してください</span>`}</td></tr>
+      <tr><td>店頭での端末総額（店頭価格＋頭金）</td><td class="r">${dv && dv.total !== null ? `<b>${yen(dv.total)}</b>` : `<span class="warn">頭金を入力してください</span>`}</td></tr>
       <tr><td>下取り（円）</td><td class="r"><input class="yen" type="number" value="${l.device.shitadori || ""}" onchange="setDev('shitadori',this.value)"></td></tr>
       <tr><td>ポイント利用（pt）</td><td class="r"><input class="yen" type="number" value="${l.device.point || ""}" onchange="setDev('point',this.value)"></td></tr>
     </table>
     <div class="row" style="margin-top:8px">購入方法：
       ${[["kaedoki", pr.kaedoki ? pr.kaedoki.program : "いつでもカエドキ"], ["b12", "12回分割"], ["b24", "24回分割"], ["b36", "36回分割"], ["ikkatsu", "一括"]].filter(([k]) => k !== "kaedoki" || pr.kaedoki || !d).map(([k, n]) => `<div class="chip ${l.device.pay === k ? "on" : ""}" onclick="setDev('pay','${k}')">${n}</div>`).join("")}
     </div>
-    ${dv && dv.online !== null ? `<p>端末の月々：<b>${dv.monthly ? yen(dv.monthly) + " × " + dv.months + "回" : "なし（一括）"}</b>${dv.zanka ? `　24回目（残価）${yen(dv.zanka)}` : ""}${dv.return23 != null ? `<br><span class="note">23か月目に返却した場合の負担額 ${yen(dv.return23)}（プログラム利用料22,000円は別。買替えおトク割で免除あり）</span>` : ""}${dv.first ? `<br><span class="note">1回目のみ ${yen(dv.first)}（割り切れない分を1回目に上乗せ）</span>` : ""}${dv.note ? `<br><span class="note">${dv.note}</span>` : ""}</p>` : ""}
+    ${dv && dv.online !== null ? `<p>端末の月々：<b>${dv.months ? yen(dv.monthly) + " × " + dv.months + "回" : "なし（一括）"}</b>${dv.zanka ? `　24回目（残価）${yen(dv.zanka)}` : ""}${dv.return23 != null ? `<br><span class="note">23か月目に返却した場合の負担額 ${yen(dv.return23)}（プログラム利用料22,000円は別。買替えおトク割で免除あり）</span>` : ""}${dv.first ? `<br><span class="note">1回目のみ ${yen(dv.first)}（割り切れない分を1回目に上乗せ）</span>` : ""}${dv.note ? `<br><span class="note">${dv.note}</span>` : ""}</p>` : ""}
     ` : ""}
   </div>`}
 
@@ -653,7 +673,7 @@ function doPrint(mode) {
   const rw = (a, b, cls) => `<div class="rw ${cls || ""}"><span>${a}</span><b>${b}</b></div>`;
   const optRows = r => r.opts.length ? r.opts.map(x => x[1] < 0 ? rw(esc(x[0]), "▲" + yen(-x[1]), "dc") : rw(esc(x[0]), yen(x[1]))).join("") : `<div class="none">なし</div>`;
   const payName = dv => dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括払い" }[dv.pay];
-  const notes = `<div class="pn">※金額はすべて税込です（${DATA_AS_OF}）。端末代金はドコモオンラインショップ価格に店頭の頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
+  const notes = `<div class="pn">※金額はすべて税込です（${DATA_AS_OF}）。端末代金は店頭の割引（5G WELCOME割など）を引いた価格に頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
   const hero = (label, monthly, todayAmt, nextAmt, formula) => `<div class="hero ${todayAmt ? "" : "solo"}">
     <div class="hm"><div class="lb">${label}</div><div class="big"><em>約</em>${(Math.round(monthly) || 0).toLocaleString("ja-JP")}<small>円／月</small></div>${formula || ""}</div>
     ${todayAmt ? `<div class="hs"><div class="td"><span>当日のお支払い</span><b>${yen(todayAmt)}</b><small>頭金・アクセサリーなど、今日お店でお支払いいただく金額</small></div></div>` : ""}</div>`;
@@ -681,6 +701,7 @@ function doPrint(mode) {
     const sec3 = `<div class="sec"><h3>② 端末</h3>
       ${dv ? `<div class="dn">${esc(dv.name)}</div>`
         + rw("買い方", payName(dv))
+        + (dv.discount && dv.hontai != null ? rw("本体価格", yen(dv.hontai)) + rw(esc(dv.store.name), "▲" + yen(dv.discount), "dc") : "")
         + rw("端末代金（頭金込み）", dv.total !== null ? yen(dv.total) : "—")
         + (dv.atama !== null ? rw("うち頭金（当日お支払い）", yen(dv.atama), "sub") : "")
         + (Number(l.device.shitadori) ? rw("下取り", "▲" + yen(l.device.shitadori), "dc") : "")

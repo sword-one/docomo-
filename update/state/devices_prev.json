@@ -223,6 +223,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -268,6 +275,13 @@
 "return23": 160050,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
 }
 }
 },
@@ -315,6 +329,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+}
 }
 },
 {
@@ -360,6 +381,13 @@
 "return23": 275440,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
 }
 }
 },
@@ -407,6 +435,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -452,6 +487,13 @@
 "return23": 173910,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
 }
 }
 },
@@ -499,6 +541,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+}
 }
 },
 {
@@ -544,6 +593,13 @@
 "return23": 287980,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
 }
 }
 },
@@ -591,6 +647,18 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"shinki": {
+"name": "（U22＆MAX／スマデビュU15）5G WELCOME割",
+"amt": 33000,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）でドコモ MAXをご契約（予約申込み除く）の方、またはドコモ スマホデビュープラン U15をご契約（予約申込み除く）の方が対象です。"
+}
 }
 },
 {
@@ -637,6 +705,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+}
 }
 },
 {
@@ -681,6 +756,13 @@
 "return23": 129360,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
 }
 }
 },
@@ -727,6 +809,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+}
 }
 },
 {
@@ -772,6 +861,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+}
 }
 },
 {
@@ -816,6 +912,13 @@
 "return23": 148390,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
 }
 }
 },
@@ -863,6 +966,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+}
 }
 },
 {
@@ -908,6 +1018,13 @@
 "return23": 196790,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
 }
 }
 },
@@ -956,6 +1073,18 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -1002,6 +1131,18 @@
 "return23": 56760,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
 }
 }
 },
@@ -1050,6 +1191,23 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"shinki": {
+"name": "（U22／MAX／ポイ活MAX）5G WELCOME割",
+"amt": 22000,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）の方またはドコモ MAXをご契約（予約申込みは除く）の方またはドコモ ポイ活 MAXをご契約（予約申込みは除く）の方が対象です。"
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -1097,6 +1255,23 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"shinki": {
+"name": "（U22／MAX／ポイ活MAX）5G WELCOME割",
+"amt": 22000,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）の方またはドコモ MAXをご契約（予約申込みは除く）の方またはドコモ ポイ活 MAXをご契約（予約申込みは除く）の方が対象です。"
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -1142,6 +1317,18 @@
 "return23": 111881,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"shinki": {
+"name": "（U15）5G WELCOME割",
+"amt": 44000,
+"cond": "機種ご利用者が購入時に15歳以下（年齢確認が必要）の方が対象です。"
 }
 }
 },
@@ -1189,6 +1376,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -1233,6 +1427,23 @@
 "return23": 60280,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 43637,
+"cond": ""
+},
+"shinki": {
+"name": "（U22＆MAX／スマデビュU15）5G WELCOME割",
+"amt": 33000,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）でドコモ MAXをご契約（予約申込み除く）の方、またはドコモ スマホデビュープラン U15をご契約（予約申込み除く）の方が対象です。"
+},
+"kihen": {
+"name": "（ポイ活MAX）5G WELCOME割",
+"amt": 15400,
+"cond": "対象料金プラン（ドコモ ポイ活 MAX）をご契約（翌月からの予約適用も対象）の方が対象です。"
 }
 }
 },
@@ -1279,6 +1490,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+}
 }
 },
 {
@@ -1323,6 +1541,13 @@
 "return23": 84700,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
 }
 }
 },
@@ -1370,6 +1595,18 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 32857,
+"cond": ""
+},
+"shinki": {
+"name": "（U22＆MAX／スマデビュU15）5G WELCOME割",
+"amt": 10857,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）でドコモ MAXをご契約（予約申込み除く）の方、またはドコモ スマホデビュープラン U15をご契約（予約申込み除く）の方が対象です。"
+}
 }
 },
 {
@@ -1415,6 +1652,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+}
 }
 },
 {
@@ -1459,6 +1703,13 @@
 "return23": 92840,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
 }
 }
 },
@@ -1712,6 +1963,13 @@
 "return23": 90640,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 43879,
+"cond": ""
 }
 }
 },
@@ -2054,6 +2312,18 @@
 "ikkatsu": 22000,
 "hontai": 22000,
 "b36": 611
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 21989,
+"cond": ""
+},
+"shinki": {
+"name": "（U15）5G WELCOME割",
+"amt": 21989,
+"cond": "機種ご利用者が購入時に15歳以下（年齢確認が必要）の方が対象です。"
 }
 }
 },
@@ -2417,6 +2687,23 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+},
+"shinki": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 11000,
+"cond": ""
+}
 }
 },
 {
@@ -2441,6 +2728,18 @@
 "ikkatsu": 22000,
 "hontai": 22000,
 "b36": 611
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 21989,
+"cond": ""
+},
+"shinki": {
+"name": "（U15）5G WELCOME割",
+"amt": 21989,
+"cond": "機種ご利用者が購入時に15歳以下（年齢確認が必要）の方が対象です。"
 }
 }
 },
@@ -2533,6 +2832,13 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 43967,
+"cond": ""
+}
 }
 },
 {
@@ -2578,6 +2884,23 @@
 "return23": 52745,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"shinki": {
+"name": "（U22＆MAX／スマデビュU15）5G WELCOME割",
+"amt": 33000,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）でドコモ MAXをご契約（予約申込み除く）の方、またはドコモ スマホデビュープラン U15をご契約（予約申込み除く）の方が対象です。"
+},
+"kihen": {
+"name": "（ポイ活MAX）5G WELCOME割",
+"amt": 3300,
+"cond": "対象料金プラン（ドコモ ポイ活 MAX）をご契約（翌月からの予約適用も対象）の方が対象です。"
 }
 }
 },
@@ -2670,6 +2993,13 @@
 "return23": 59730,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 34232,
+"cond": ""
 }
 }
 },
@@ -3033,6 +3363,23 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 43912,
+"cond": ""
+},
+"shinki": {
+"name": "（U22／MAX／ポイ活MAX）5G WELCOME割",
+"amt": 43912,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）の方またはドコモ MAXをご契約（予約申込みは除く）の方またはドコモ ポイ活 MAXをご契約（予約申込みは除く）の方が対象です。"
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 22000,
+"cond": ""
+}
 }
 },
 {
@@ -3373,6 +3720,18 @@
 "hontai": 35970,
 "b36": 999
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 21989,
+"cond": ""
+},
+"shinki": {
+"name": "（U15）5G WELCOME割",
+"amt": 21989,
+"cond": "機種ご利用者が購入時に15歳以下（年齢確認が必要）の方が対象です。"
+}
 }
 },
 {
@@ -3463,6 +3822,23 @@
 "return12": null
 }
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 44000,
+"cond": ""
+},
+"shinki": {
+"name": "（U22＆MAX／スマデビュU15）5G WELCOME割",
+"amt": 22000,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）でドコモ MAXをご契約（予約申込み除く）の方、またはドコモ スマホデビュープラン U15をご契約（予約申込み除く）の方が対象です。"
+},
+"kihen": {
+"name": "（ポイ活MAX）5G WELCOME割",
+"amt": 3300,
+"cond": "対象料金プラン（ドコモ ポイ活 MAX）をご契約（翌月からの予約適用も対象）の方が対象です。"
+}
 }
 },
 {
@@ -3533,6 +3909,18 @@
 "hontai": 22000,
 "b36": 611
 }
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 21989,
+"cond": ""
+},
+"shinki": {
+"name": "（U15）5G WELCOME割",
+"amt": 21989,
+"cond": "機種ご利用者が購入時に15歳以下（年齢確認が必要）の方が対象です。"
+}
 }
 },
 {
@@ -3579,6 +3967,23 @@
 "return23": 10340,
 "return12": null
 }
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 23507,
+"cond": ""
+},
+"shinki": {
+"name": "（U22／MAX／ポイ活MAX）5G WELCOME割",
+"amt": 23507,
+"cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）の方またはドコモ MAXをご契約（予約申込みは除く）の方またはドコモ ポイ活 MAXをご契約（予約申込みは除く）の方が対象です。"
+},
+"kihen": {
+"name": "5G WELCOME割",
+"amt": 13200,
+"cond": ""
 }
 }
 },
@@ -3672,6 +4077,18 @@
 "ikkatsu": 22000,
 "hontai": 22000,
 "b36": 611
+}
+},
+"store": {
+"mnp": {
+"name": "5G WELCOME割",
+"amt": 21989,
+"cond": ""
+},
+"shinki": {
+"name": "（U15）5G WELCOME割",
+"amt": 21989,
+"cond": "機種ご利用者が購入時に15歳以下（年齢確認が必要）の方が対象です。"
 }
 }
 },
@@ -5438,6 +5855,13 @@
 "hontai": 28930,
 "b36": 803
 }
+},
+"store": {
+"shinki": {
+"name": "端末購入割引",
+"amt": 19250,
+"cond": ""
+}
 }
 },
 {
@@ -5524,6 +5948,13 @@
 "hontai": 45430,
 "b36": 1261
 }
+},
+"store": {
+"mnp": {
+"name": "端末購入割引",
+"amt": 5500,
+"cond": ""
+}
 }
 },
 {
@@ -5548,6 +5979,13 @@
 "ikkatsu": 33000,
 "hontai": 33000,
 "b36": 916
+}
+},
+"store": {
+"shinki": {
+"name": "端末購入割引",
+"amt": 18040,
+"cond": ""
 }
 }
 }
