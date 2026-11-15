@@ -61,6 +61,15 @@ const HEARTY = {
   jimuFree: true,                       // 契約事務手数料が無料
 };
 
+// 子育てサポート割引（ひとり親世帯など）。plans: 基本料からの割引額（ケータイプラン2は基本料の割引なし・通話オプションのみ）
+// 通話オプション（5分通話無料・かけ放題）を契約していれば、さらに880円引き。みんなドコモ割とは併用できない（ハーティ割引が優先）。
+// 出典：https://www.docomo.ne.jp/charge/kosodate_wari/ ・提供条件書 docomo_max.pdf／charge_plan2.pdf（mini・ahamoは対象外）
+const KOSODATE = {
+  plans: { max: 1210, poimax: 1210, poi20: 1210, keitai2: 0 },
+  voiceOff: 880,
+  cond: "ひとり親世帯など（児童扶養手当受給者証・戸籍謄本などで確認）。契約者1人につき1回線。お子さまが18歳になって最初の3月31日まで",
+};
+
 const VOICE = {
   std: [{ id: "none", name: "なし（22円/30秒）", price: 0 }, { id: "5min", name: "5分通話無料", price: 880 }, { id: "kakeho", name: "かけ放題", price: 1980 }],
   ahamo: [{ id: "none", name: "5分無料（標準）", price: 0 }, { id: "kakeho", name: "かけ放題", price: 1100 }],
@@ -71,9 +80,12 @@ const VOICE = {
 // 2026/11/14 公式（docomo.ne.jp 各サービスページ・各プランの提供条件書・ahamo.com）で項目ごとに検証済み。
 // pnote＝プラン別の注意（画面のオプション名の下に出る）。公式に明記が無く推定のものは「公式未記載」と書く。
 const P_ALL = ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "keitai2"];
+const P_PHONE = ["max", "poimax", "poi20", "mini2", "ahamo", "u15"];   // スマホのプラン
 const P_SMART = ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "dataplus"];
 const KEITAI_VIDEO = "ケータイ（ガラケー）で視聴できるかは公式に記載なし。要確認";
-const OPTION_GROUPS = ["メール・通話", "補償・あんしん", "動画・サブスク", "ahamo", "みんスマ"];
+const OPTION_GROUPS = ["メール・通話", "補償・あんしん", "動画・サブスク", "ドコモのサービス", "ahamo", "みんスマ"];
+// よく案内するオプション（いつも表示）。それ以外は「その他のオプション」を開くと出る
+const MAIN_OPTIONS = ["mailopt", "mailmotihakobi", "rusuden", "catch", "smartpack", "hosho", "security", "ahamopoi", "connect", "rakuraku", "adblock", "tentou"];
 const OPTIONS = [
   // ---- メール・通話 ----
   { id: "mailopt", group: "メール・通話", name: "ドコモメールオプション", price: 330, plans: ["mini2"],
@@ -113,13 +125,26 @@ const OPTIONS = [
   { id: "disney", group: "動画・サブスク", name: "Disney+", plans: P_ALL, choices: [{ l: "スタンダード", p: 1250 }, { l: "プレミアム", p: 1670 }],
     promo: { max: 3, poimax: 3, poi20: 3, ahamo: 3 }, promoAmt: 1250, promoNote: "セット割はエントリーが必要", pnote: { keitai2: KEITAI_VIDEO } },
   { id: "netflix", group: "動画・サブスク", name: "Netflix", plans: P_ALL, choices: [{ l: "広告つき", p: 890 }, { l: "スタンダード", p: 1590 }, { l: "プレミアム", p: 2290 }], pnote: { keitai2: KEITAI_VIDEO } },
+  // ---- ドコモのサービス（2026/11/15 公式で確認。ケータイプランは公式に記載が無いものは出さない） ----
+  { id: "dmagazine", group: "ドコモのサービス", name: "dマガジン", price: 580, plans: P_PHONE, need: "初回31日間無料" },
+  { id: "dhealthcare", group: "ドコモのサービス", name: "dヘルスケア（有料プラン）", price: 440, plans: P_PHONE, need: "初回31日間無料（App Store・Google Play経由は480円・無料期間なし）" },
+  { id: "dphoto", group: "ドコモのサービス", name: "dフォト（プリントサービス）", price: 594, plans: P_PHONE, need: "初回31日間無料", pnote: { ahamo: "ahamoで写真お預かりを使うには、これかクラウド容量オプションが必要", mini2: "mini系で写真お預かりを使うには、これかクラウド容量オプションが必要（ドコモminiの記載）" } },
+  { id: "cloud", group: "ドコモのサービス", name: "クラウド容量オプション", plans: [...P_PHONE, "keitai2"], choices: [{ l: "+10GB", p: 110 }, { l: "+25GB", p: 275 }, { l: "+50GB", p: 440 }], need: "初回最大31日間無料。データ保管BOX・dフォトの容量を追加" },
+  { id: "mydaiz", group: "ドコモのサービス", name: "my daiz（有料）", price: 110, plans: P_PHONE, need: "初回31日間無料（無料版もあり）" },
+  { id: "dhits", group: "ドコモのサービス", name: "dヒッツ", price: 690, plans: P_PHONE },
+  { id: "youtube", group: "ドコモのサービス", name: "YouTube Premium（ドコモ経由）", price: 1280, plans: P_PHONE, need: "個人プラン。初回31日間無料" },
+  { id: "spotify", group: "ドコモのサービス", name: "Spotify Premium（ドコモ経由）", price: 1080, plans: P_PHONE, need: "初めての方は3か月割引の特典あり（見積には入れていません）" },
+  { id: "googleone", group: "ドコモのサービス", name: "Google One（ドコモ経由）", plans: P_PHONE, choices: [{ l: "ベーシック", p: 290 }, { l: "スタンダード", p: 440 }, { l: "AI Plus 2TB", p: 1450 }], need: "金額はahamoの公式ページの記載" },
+  { id: "appleone", group: "ドコモのサービス", name: "Apple One（ドコモ経由）", plans: P_PHONE, choices: [{ l: "個人", p: 1350 }, { l: "ファミリー", p: 2500 }], need: "金額はahamoの公式ページの記載" },
+  { id: "jump", group: "ドコモのサービス", name: "デジタル版 週刊少年ジャンプ", price: 980, plans: P_PHONE, need: "金額はahamoの公式ページの記載" },
+  { id: "djob", group: "ドコモのサービス", name: "dジョブ スマホワーク", price: 330, plans: P_PHONE, need: "初回31日間無料。金額はahamoの公式ページの記載" },
   // ---- ahamo ----
   { id: "ahamopoi", group: "ahamo", name: "ahamo ポイ活オプション", price: 2200, plans: ["ahamo"], need: "12/1から大盛りオプションへの加入は不要。最大4,000pt還元" },
   // ---- みんスマ商材 ----
   { id: "connect", group: "みんスマ", name: "コネクトα", plans: P_SMART, choices: [{ l: "Plus", p: 550 }, { l: "PLATINUM", p: 870 }, { l: "PLATINUM", p: 1280 }] },
   { id: "rakuraku", group: "みんスマ", name: "らくらくバックアップ", plans: P_SMART, choices: [{ l: "", p: 550 }, { l: "Premium", p: 880 }] },
   { id: "adblock", group: "みんスマ", name: "広告ブロック", plans: P_SMART, choices: [{ l: "", p: 330 }, { l: "Pro", p: 550 }, { l: "Premium", p: 880 }] },
-  { id: "tentou", group: "みんスマ", name: "あんしん店頭サポート", plans: P_SMART, choices: [{ l: "", p: 550 }, { l: "", p: 990 }] },
+  { id: "tentou", group: "みんスマ", name: "あんしん店頭サポート", plans: P_SMART, choices: [{ l: "ミニ", p: 550 }, { l: "", p: 990 }] },
 ];
 
 // プランに最初から含まれているもの（オプション欄の上に表示）
