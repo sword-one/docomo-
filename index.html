@@ -46,6 +46,7 @@ table.kv { width:100%; border-collapse:collapse; font-size:14px; }
 table.kv td { padding:4px 6px; border-bottom:1px solid #eef1f6; }
 table.kv td.r { text-align:right; white-space:nowrap; }
 /* #print は #pv（プレビュー）の中に表示 */
+.wtag { font-size:11px; border-radius:4px; padding:1px 6px; margin-left:4px; } .wtag.today { background:#fde8e8; color:var(--red); } .wtag.next { background:#e8eef8; color:var(--navy); }
 .og { font-weight:700; color:var(--navy); margin:12px 0 2px; }
 details.others { margin-top:12px; border:1.5px solid var(--line); border-radius:10px; padding:4px 12px 8px; background:#fafbfd; }
 details.others > summary { cursor:pointer; font-weight:700; color:var(--navy); padding:8px 0; min-height:30px; list-style:none; }
@@ -101,7 +102,19 @@ label.ck { min-height:44px; }
 @page { size:A4 portrait; margin:10mm 10mm 10mm; }
 /* 見積書の中身（プレビュー・印刷で共通） */
 #print { font-size:10pt; color:#000; width:190mm; }
-#print .pg { page-break-inside:avoid; }
+#print .pg { break-after:page; page-break-after:always; width:190mm; }
+#print .pg:last-child { break-after:auto; page-break-after:auto; }
+#print .ph .psub { font-size:11pt; font-weight:700; margin-top:1mm; }
+#print .ph .cust { font-size:12pt; }
+#print .big3 { display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:3mm; margin:3mm 0; }
+#print .big3 > div { border:0.5mm solid #000; padding:2mm 3mm; }
+#print .big3 > div.hl { border-width:0.9mm; }
+#print .big3 span { display:block; font-size:9pt; font-weight:700; }
+#print .big3 b { display:block; font-size:17pt; line-height:1.3; }
+#print .big3 small { display:block; font-size:7.5pt; color:#333; }
+#print .psteps { font-size:9pt; margin:-1mm 0 3mm; }
+#print table.pt tr.sec td { background:#f1f1f1; font-weight:700; font-size:8.5pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+#print table.fam th, #print table.fam td { font-size:9pt; } #print table.fam td:nth-child(-n+2), #print table.fam th { white-space:nowrap; } #print table.fam th.r { text-align:right; }
 #print .ph { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:2mm; margin-bottom:3mm; }
 #print .ph h1 { font-size:18pt; margin:0; letter-spacing:.3em; }
 #print .ph .meta { font-size:9pt; text-align:right; line-height:1.5; }
@@ -109,7 +122,8 @@ label.ck { min-height:44px; }
 #print table.pt th, #print table.pt td { border:0.3mm solid #555; padding:0.9mm 1.6mm; font-size:9pt; }
 #print table.pt th { background:#e8e8e8; text-align:left; }
 #print table.pt td.r { text-align:right; white-space:nowrap; width:22mm; }
-#print .cols { display:grid; grid-template-columns:1fr 1fr; gap:3mm; } #print .cols.c3 { grid-template-columns:1.25fr 1fr 0.9fr; }
+#print .cols { display:grid; grid-template-columns:1fr 1fr; gap:3mm; align-items:start; } #print .cols.c3 { grid-template-columns:1.25fr 1fr 1fr; }
+#print .cols table.pt + table.pt { margin-top:3mm; }
 #print .cols table.pt { margin-bottom:0; }
 #print table.pt tr.tsum td { border-top:0.5mm solid #000; }
 #print table.pt tr.nm td { font-size:8.5pt; } #print table.pt tr.nm .k { color:#555; font-size:8pt; margin-right:1mm; }
@@ -125,6 +139,8 @@ label.ck { min-height:44px; }
 .pvbar { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--navy); color:#fff; padding:10px 16px; }
 .pvbar b { font-size:17px; margin-right:auto; }
 .pvbar .btn { background:#fff; }
+.pvbar .seg button { min-height:38px; font-size:14px; }
+@media screen { #print .pg { background:#fff; margin:0 auto 16px; } .sheet { width:auto; min-height:0; background:none; box-shadow:none; padding:0; } #print .pg { padding:10mm; min-height:262mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:content-box; } }
 .pvbar .hint { width:100%; font-size:12px; color:#dde4f0; }
 .sheet { width:210mm; min-height:297mm; margin:16px auto 40px; background:#fff; padding:10mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:border-box; }
 body.pvopen { overflow:hidden; }
@@ -160,7 +176,8 @@ body.pvopen { overflow:hidden; }
 
 <div class="sum" id="sumbar"></div>
 <div id="pv">
-  <div class="pvbar"><b>印刷プレビュー（A4縦）</b>
+  <div class="pvbar"><b>印刷プレビュー <span id="pvcount" style="font-size:13px;font-weight:400"></span></b>
+    <span class="seg" id="pvmode"></span>
     <button class="btn" onclick="window.print()">🖨 印刷する</button>
     <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button>
     <span class="hint">「印刷する」で印刷画面が開かない時は、iPadのSafariなら画面上の共有ボタン（□↑）→「プリント」で印刷できます。</span></div>
@@ -192,7 +209,7 @@ function newLine(n) {
     family: true, dcard: "none", hikari: false, denki: false, choki: "none", oyako: false,
     opts: {}, optAmt: {}, freeOpts: [{ name: "", price: 0 }],
     device: { use: true, cat: "", model: "", pay: "kaedoki", manualPrice: null, atama: null, shitadori: 0, point: 0 },
-    init: { jimu: true }, initAmt: {}, freeInit: [{ name: "", price: 0 }] };
+    init: { jimu: true }, initAmt: {}, initWhen: {}, freeInit: [{ name: "", price: 0 }] };
 }
 let S = { lines: [newLine(1)], cur: 0, extra: 0 };
 
@@ -244,12 +261,15 @@ function calc(l) {
     return { from: m + 1, monthly: r.monthly - r.planNet + Math.max(0, r.base - ds) + pr }; });
   // 初期費用
   r.init = [];
-  if (l.contract !== "plan" && l.init.jimu && p.id !== "ahamo") r.init.push(hearty ? ["契約事務手数料（ハーティ割引で無料）", 0] : ["契約事務手数料（翌月請求）", 4950]);
-  INITIAL.filter(i => !i.auto && l.init[i.id]).forEach(i => r.init.push(hearty && HEARTY.initFree.includes(i.id) ? [i.name + "（ハーティ割引で無料）", 0] : i.choices ? [i.name + "（" + (i.choices.find(c => c.p === Number(l.initAmt[i.id] ?? i.choices[0].p)) || i.choices[0]).l + "）", Number(l.initAmt[i.id] ?? i.choices[0].p)] : [i.name, i.input ? Number(l.initAmt[i.id] || 0) : i.price]));
-  l.freeInit.forEach(f => { if (f.name || f.price) r.init.push([f.name || "その他", Number(f.price || 0)]); });
-  if (r.dev && r.dev.atama !== null) r.init.push(["頭金", r.dev.atama]);
-  if (r.dev && r.dev.pay === "ikkatsu" && r.dev.total !== null) r.init.push(["端末代金（一括）", r.dev.total - (r.dev.atama || 0)]);
+  if (l.contract !== "plan" && l.init.jimu && p.id !== "ahamo") r.init.push(hearty ? ["契約事務手数料（ハーティ割引で無料）", 0, "next"] : ["契約事務手数料", 4950, "next"]);
+  INITIAL.filter(i => !i.auto && l.init[i.id]).forEach(i => { const w = initWhen(l, i);
+    r.init.push(hearty && HEARTY.initFree.includes(i.id) ? [i.name + "（ハーティ割引で無料）", 0, w] : i.choices ? [i.name + "（" + (i.choices.find(c => c.p === Number(l.initAmt[i.id] ?? i.choices[0].p)) || i.choices[0]).l + "）", Number(l.initAmt[i.id] ?? i.choices[0].p), w] : [i.name, i.input ? Number(l.initAmt[i.id] || 0) : i.price, w]); });
+  l.freeInit.forEach(f => { if (f.name || f.price) r.init.push([f.name || "その他", Number(f.price || 0), "today"]); });
+  if (r.dev && r.dev.atama !== null) r.init.push(["頭金", r.dev.atama, "today"]);
+  if (r.dev && r.dev.pay === "ikkatsu" && r.dev.total !== null) r.init.push(["端末代金（一括）", r.dev.total - (r.dev.atama || 0), "today"]);
   r.initTotal = r.init.reduce((a, b) => a + b[1], 0);
+  r.today = r.init.filter(x => x[2] === "today").reduce((a, b) => a + b[1], 0);     // 当日のお支払い
+  r.nextInit = r.init.filter(x => x[2] === "next").reduce((a, b) => a + b[1], 0);   // 翌月のご請求（初期費用分）
   return r;
 }
 
@@ -277,6 +297,7 @@ function optEff(l, o, p) {
   if (o.promo && o.promo[p.id]) { const pm = o.promo[p.id]; r.promo = { name: o.name + (o.id === "disney" ? "セット割" : "特典") + "（最大" + pm + "か月）", amt: Math.min(o.promoAmt, base), months: pm }; }
   return r;
 }
+function initWhen(l, i) { return i.when === "choose" ? (l.initWhen[i.id] || "today") : i.when || "today"; }
 function kosodateOn(l, p) { return l.kosodate && KOSODATE.plans[p.id] != null && !heartyOn(l, p); }   // ハーティ割引とは併用不可
 function heartyOn(l, p) { return l.hearty && HEARTY.plans[p.id] != null; }
 function optOK(o, p, l) {
@@ -427,7 +448,7 @@ function render() {
 
   <div class="card"><h2>⑥ 初期費用</h2>
     ${l.contract !== "plan" && p.id !== "ahamo" ? `<label class="ck"><input type="checkbox" ${l.init.jimu ? "checked" : ""} onchange="S.lines[S.cur].init.jimu=this.checked;render()">契約事務手数料（翌月請求）<span class="p">4,950円</span></label>` : ""}
-    ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.choices ? `<span class="p">${i.choices.map(c => `<span class="chip ${l.init[i.id] && Number(l.initAmt[i.id] ?? i.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 10px" onclick="S.lines[S.cur].init['${i.id}']=true;S.lines[S.cur].initAmt['${i.id}']=${c.p};render();event.preventDefault()">${c.l} ${yen(c.p)}</span>`).join(" ")}</span>` : i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
+    ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name} ${i.when === "choose" ? `<span class="seg" style="transform:scale(.85);transform-origin:left center">${[["today", "当日払い"], ["next", "翌月請求"]].map(([w, n]) => `<button class="${initWhen(l, i) === w ? "on" : ""}" style="min-height:30px;padding:3px 10px" onclick="S.lines[S.cur].initWhen['${i.id}']='${w}';S.lines[S.cur].init['${i.id}']=true;render();event.preventDefault()">${n}</button>`).join("")}</span>` : `<span class="wtag ${i.when}">${i.when === "next" ? "翌月請求" : "当日払い"}</span>`}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.choices ? `<span class="p">${i.choices.map(c => `<span class="chip ${l.init[i.id] && Number(l.initAmt[i.id] ?? i.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 10px" onclick="S.lines[S.cur].init['${i.id}']=true;S.lines[S.cur].initAmt['${i.id}']=${c.p};render();event.preventDefault()">${c.l} ${yen(c.p)}</span>`).join(" ")}</span>` : i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
     ${l.freeInit.map((f, i) => `<div class="row" style="padding:6px 0"><input type="text" placeholder="その他" value="${esc(f.name)}" onchange="S.lines[S.cur].freeInit[${i}].name=this.value;render()"><input class="yen" type="number" value="${f.price || ""}" placeholder="円" onchange="S.lines[S.cur].freeInit[${i}].price=this.value;render()"></div>`).join("")}
   </div>
 
@@ -440,7 +461,8 @@ function render() {
     <tr><td>端末の月々</td><td class="r">${yen(r.dev ? r.dev.monthly : 0)}</td></tr>
     <tr><td><b>月額合計</b></td><td class="r"><b>${yen(r.monthly)}</b></td></tr>
     ${r.steps.map(x => `<tr><td>　${x.from}か月目からの月額（期間限定の割引が終わった後）</td><td class="r">${yen(x.monthly)}</td></tr>`).join("")}
-    <tr><td>初期費用</td><td class="r">${yen(r.initTotal)}</td></tr>
+    <tr><td>当日のお支払い</td><td class="r"><b>${yen(r.today)}</b></td></tr>
+    <tr><td>翌月のご請求（初期費用分）</td><td class="r">${yen(r.nextInit)}</td></tr>
   </table></div>`;
   renderSum();
 }
@@ -537,7 +559,8 @@ function optRow(l, o, p) {
 function renderSum() {
   const rs = S.lines.map(calc);
   const m = rs.reduce((a, r) => a + r.monthly, 0), i = rs.reduce((a, r) => a + r.initTotal, 0);
-  $("sumbar").innerHTML = `${S.lines.length}回線　月額合計 <b>${yen(m)}</b>　初期費用 <b>${yen(i)}</b>`
+  const td = rs.reduce((a, r) => a + r.today, 0);
+  $("sumbar").innerHTML = `${S.lines.length}回線　月額合計 <b>${yen(m)}</b>　当日のお支払い <b>${yen(td)}</b>　<span class="note">初期費用 計${yen(i)}</span>`
     + (S.lines.length > 1 ? `<span class="note">（${S.lines.map((l, k) => esc(l.label) + " " + yen(rs[k].monthly)).join("／")}）</span>` : "");
 }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -562,60 +585,104 @@ function resetAll(btn) { if (!twoTap(btn, "reset", "もう一度押すと全部�
 
 
 // ---------- 印刷 ----------
-// A4縦1枚（印刷できる範囲 190×277mm）に収まるよう、はみ出す分だけ全体を縮小する
-function fitOnePage() {
-  const el = $("print"), mm = 96 / 25.4, H = 262 * mm;   // 印刷時の誤差を見込んで少し余裕を持たせる
-  let z = 1; el.style.zoom = 1; el.style.width = "190mm";
-  for (let k = 0; k < 30; k++) {   // 縮めると折り返しが変わるので、収まるまで少しずつ調整
-    const h = el.getBoundingClientRect().height;
-    if (h <= H) break;
-    z = Math.max(0.35, z * Math.sqrt(H / h) * 0.99); el.style.zoom = z; el.style.width = (190 / z) + "mm";   // 縮めた分だけ横幅を広げて、紙の幅いっぱいに使う
-    if (z === 0.35) break;
-  }
-}
 function closePv() { $("pv").classList.remove("open"); document.body.classList.remove("pvopen"); }
-function doPrint() {
-  const rs = S.lines.map(calc);
+let printMode = "each";   // each＝1回線ずつ1枚（家族はまとめ表付き）／one＝全回線を1枚に
+function doPrint(mode) {
+  if (mode) printMode = mode;
+  const rs = S.lines.map(calc), N = S.lines.length;
   const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
-  const head = `<div class="ph"><h1>簡易見積書</h1><div class="meta">${ds}<br>${esc($("store").value)}${$("staff").value ? "　担当：" + esc($("staff").value) : ""}${$("customer").value ? `<br><b>${esc($("customer").value)} 様</b>` : ""}</div></div>`;
-  const blocks = S.lines.map((l, k) => {
-    const r = rs[k], p = plan(l), dv = r.dev;
-    const tr = (a, b, cls) => cls === "nm" ? `<tr class="nm"><td colspan="2"><span class="k">${a}</span> ${b}</td></tr>` : `<tr${cls ? ` class="${cls}"` : ""}><td>${a}</td><td class="r">${b}</td></tr>`;
-    const mon = `<table class="pt"><tr><th colspan="2">月額料金</th></tr>
+  const cust = $("customer").value, staff = $("staff").value, store = $("store").value;
+  const head = sub => `<div class="ph"><div><h1>簡易見積書</h1>${sub ? `<div class="psub">${sub}</div>` : ""}</div><div class="meta">${ds}<br>${esc(store)}${staff ? "　担当：" + esc(staff) : ""}${cust ? `<br><b class="cust">${esc(cust)} 様</b>` : ""}</div></div>`;
+  const tr = (a, b, cls) => `<tr${cls ? ` class="${cls}"` : ""}><td>${a}</td><td class="r">${b}</td></tr>`;
+  const minus = v => v < 0 ? "▲" + yen(-v) : yen(v);
+  const payName = dv => dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括" }[dv.pay];
+  const notes = `<div class="pn">※金額はすべて税込です。${DATA_AS_OF}。端末代金はドコモオンラインショップ価格に店頭の頭金を加えた金額です。月額は目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
+
+  // --- 1回線ぶんの詳しいページ ---
+  const linePage = (l, k) => {
+    const r = rs[k], p = plan(l), dv = r.dev, c = CONTRACTS.find(x => x.id === l.contract).name;
+    const planT = `<table class="pt"><tr><th colspan="2">① 料金プラン</th></tr>
       ${tr(p.name + "（" + p.tiers[l.tier].label + "）", yen(r.base))}
       ${r.disc.map(x => tr("　" + x[0], "▲" + yen(x[1]))).join("")}
       ${r.late.map(x => tr("　" + x[0] + "（" + (x[2] + 1) + "か月目〜）", "▲" + yen(x[1]))).join("")}
       ${tr("通話：" + r.voiceName, yen(r.voice))}
-      ${r.opts.map(x => tr(esc(x[0]), x[1] < 0 ? "▲" + yen(-x[1]) : yen(x[1]))).join("")}
-      ${dv && dv.monthly ? tr("端末の月々（" + dv.months + "回）" + (dv.first ? "<br><small>1回目のみ" + yen(dv.first) + "</small>" : ""), yen(dv.monthly)) : ""}
-      ${tr("<b>月額 合計</b>", "<b>" + yen(r.monthly) + "</b>", "tsum")}</table>`;
-    const payName = dv ? (dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括" }[dv.pay]) : "";
-    const dev = (l.curModel || dv) ? `<table class="pt"><tr><th colspan="2">端末</th></tr>
-      ${l.curModel ? tr("今お使い", esc(l.curModel), "nm") : ""}
-      ${dv ? tr("機種", esc(dv.name), "nm") + tr("購入方法", payName, "nm")
-        + tr("端末代金（店頭）", dv.total !== null ? yen(dv.total) : "—")
-        + (dv.atama !== null ? tr("うち頭金", yen(dv.atama)) : "")
+      ${tr("<b>料金プラン 小計</b>", "<b>" + yen(r.planNet + r.voice) + "</b>", "tsum")}</table>`;
+    const optSum = r.opts.reduce((a, b) => a + b[1], 0);
+    const optT = `<table class="pt"><tr><th colspan="2">② オプション</th></tr>
+      ${r.opts.length ? r.opts.map(x => tr(esc(x[0]), minus(x[1]))).join("") : tr("なし", "0円")}
+      ${tr("<b>オプション 小計</b>", "<b>" + yen(optSum) + "</b>", "tsum")}</table>`;
+    const devT = `<table class="pt"><tr><th colspan="2">③ 端末</th></tr>
+      ${l.curModel ? tr("今お使いの機種", esc(l.curModel)) : ""}
+      ${dv ? tr("ご購入の機種", esc(dv.name)) + tr("購入方法", payName(dv))
+        + tr("端末代金（店頭・頭金込み）", dv.total !== null ? yen(dv.total) : "—")
+        + (dv.atama !== null ? tr("　うち頭金（当日）", yen(dv.atama)) : "")
         + (Number(l.device.shitadori) ? tr("下取り", "▲" + yen(l.device.shitadori)) : "")
         + (Number(l.device.point) ? tr("ポイント利用", "▲" + Number(l.device.point).toLocaleString() + "pt") : "")
+        + (dv.monthly ? tr("端末の月々（" + dv.months + "回）" + (dv.first ? "<br><small>1回目のみ " + yen(dv.first) + "</small>" : ""), yen(dv.monthly)) : "")
         + (dv.zanka ? tr("24回目（残価）", yen(dv.zanka)) : "")
-        + (dv.return23 != null ? tr("23か月目返却時の負担額", yen(dv.return23)) : "") : ""}</table>` : "";
-    const ini = `<table class="pt"><tr><th colspan="2">初期費用</th></tr>
-      ${r.init.length ? r.init.map(x => tr(esc(x[0]), yen(x[1]))).join("") : tr("なし", "0円")}
-      ${tr("<b>初期費用 合計</b>", "<b>" + yen(r.initTotal) + "</b>", "tsum")}</table>`;
-    const title = (S.lines.length > 1 ? esc(l.label) + "　" : "") + CONTRACTS.find(c => c.id === l.contract).name + "　" + p.name;
-    return `<div class="line-block"><div class="lh"><span>${title}</span><span>月額 約 ${yen(r.monthly)}</span></div>
-      <div class="cols ${dev ? "c3" : ""}"><div>${mon}</div>${dev ? `<div>${dev}</div>` : ""}<div>${ini}</div></div>
-      ${r.steps.length ? `<div class="pn">${r.steps.map(x => `${x.from}か月目からは 約 <b>${yen(x.monthly)}</b>／月`).join("　")}（期間限定の割引の終了後）</div>` : ""}</div>`;
-  });
-  const m = rs.reduce((a, r) => a + r.monthly, 0), it = rs.reduce((a, r) => a + r.initTotal, 0);
-  const fam = S.lines.length > 1 ? `<div class="tot" style="margin-bottom:4mm"><b>ご家族 ${S.lines.length}回線の合計</b>　月額 <span class="big">約 ${yen(m)}</span>／月　初期費用 ${yen(it)}
-    <div class="pn">${S.lines.map((l, k) => esc(l.label) + "：" + yen(rs[k].monthly)).join("　")}</div></div>` : "";
-  const notes = `<div class="pn">※金額はすべて税込です。${DATA_AS_OF}。端末代金はドコモオンラインショップ価格に店頭の頭金を加えた金額です。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
-  $("print").innerHTML = `<div class="pg">${head}${fam}${blocks.join("")}${notes}</div>`;
-  $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
-  fitOnePage();
-}
+        + (dv.return23 != null ? tr("23か月目に返却した場合の負担額", yen(dv.return23)) : "")
+        : (l.curModel ? "" : tr("端末の購入なし", "—"))}</table>`;
+    const tdy = r.init.filter(x => x[2] === "today"), nxt = r.init.filter(x => x[2] === "next");
+    const iniT = `<table class="pt"><tr><th colspan="2">④ 初期費用</th></tr>
+      <tr class="sec"><td colspan="2">当日のお支払い</td></tr>
+      ${tdy.length ? tdy.map(x => tr("　" + esc(x[0]), yen(x[1]))).join("") : tr("　なし", "0円")}
+      ${tr("<b>当日のお支払い 合計</b>", "<b>" + yen(r.today) + "</b>", "tsum")}
+      <tr class="sec"><td colspan="2">翌月のご請求</td></tr>
+      ${nxt.length ? nxt.map(x => tr("　" + esc(x[0]), yen(x[1]))).join("") : tr("　なし", "0円")}
+      ${tr("<b>翌月のご請求 合計</b>", "<b>" + yen(r.nextInit) + "</b>", "tsum")}</table>`;
+    const big = `<div class="big3">
+      <div><span>毎月のお支払い（目安）</span><b>約 ${yen(r.monthly)}</b><small>料金プラン ${yen(r.planNet + r.voice)}＋オプション ${yen(optSum)}${dv && dv.monthly ? "＋端末 " + yen(dv.monthly) : ""}</small></div>
+      <div class="hl"><span>当日のお支払い</span><b>${yen(r.today)}</b><small>頭金・アクセサリーなど</small></div>
+      <div><span>翌月のご請求（初期費用）</span><b>${yen(r.nextInit)}</b><small>事務手数料など</small></div></div>`;
+    const steps = r.steps.length ? `<div class="psteps">期間限定の割引が終わった後：${r.steps.map(x => `${x.from}か月目からは 約 <b>${yen(x.monthly)}</b>／月`).join("　")}</div>` : "";
+    return `<div class="pg">${head(`${N > 1 ? `${esc(l.label)}（${k + 1}／${N}回線）　` : ""}${c}`)}${big}${steps}
+      <div class="cols"><div>${planT}${optT}</div><div>${devT}${iniT}</div></div>${notes}</div>`;
+  };
 
+  // --- 家族のまとめページ ---
+  const famPage = () => {
+    const m = rs.reduce((a, r) => a + r.monthly, 0), td = rs.reduce((a, r) => a + r.today, 0), nx = rs.reduce((a, r) => a + r.nextInit, 0);
+    return `<div class="pg">${head(`ご家族 ${N}回線のまとめ`)}
+      <div class="big3"><div><span>毎月のお支払い（${N}回線の合計）</span><b>約 ${yen(m)}</b></div><div class="hl"><span>当日のお支払い（合計）</span><b>${yen(td)}</b></div><div><span>翌月のご請求（初期費用 合計）</span><b>${yen(nx)}</b></div></div>
+      <table class="pt fam"><tr><th>回線</th><th>お手続き</th><th>料金プラン</th><th>ご購入の機種</th><th class="r">毎月</th><th class="r">当日</th><th class="r">翌月(初期)</th></tr>
+      ${S.lines.map((l, k) => { const r = rs[k], p = plan(l); return `<tr><td>${esc(l.label)}</td><td>${CONTRACTS.find(x => x.id === l.contract).name}</td><td>${p.name}（${p.tiers[l.tier].label}）</td><td>${r.dev ? esc(r.dev.name) : "—"}</td><td class="r">${yen(r.monthly)}</td><td class="r">${yen(r.today)}</td><td class="r">${yen(r.nextInit)}</td></tr>`; }).join("")}
+      <tr class="tsum"><td colspan="4"><b>合計</b></td><td class="r"><b>${yen(m)}</b></td><td class="r"><b>${yen(td)}</b></td><td class="r"><b>${yen(nx)}</b></td></tr></table>
+      <p class="pn">※各回線の詳しい内訳は、次のページから1回線ずつ載せています。</p>${notes}</div>`;
+  };
+
+  // --- まとめて1枚（全回線をコンパクトに） ---
+  const onePage = () => {
+    const m = rs.reduce((a, r) => a + r.monthly, 0), td = rs.reduce((a, r) => a + r.today, 0), nx = rs.reduce((a, r) => a + r.nextInit, 0);
+    const blocks = S.lines.map((l, k) => {
+      const r = rs[k], p = plan(l), dv = r.dev, optSum = r.opts.reduce((a, b) => a + b[1], 0);
+      const a = `<table class="pt"><tr><th colspan="2">料金プラン</th></tr>${tr(p.name + "（" + p.tiers[l.tier].label + "）", yen(r.base))}${r.disc.map(x => tr("　" + x[0], "▲" + yen(x[1]))).join("")}${tr("通話：" + r.voiceName, yen(r.voice))}${tr("<b>小計</b>", "<b>" + yen(r.planNet + r.voice) + "</b>", "tsum")}</table>`;
+      const b = `<table class="pt"><tr><th colspan="2">オプション</th></tr>${r.opts.length ? r.opts.map(x => tr(esc(x[0]), minus(x[1]))).join("") : tr("なし", "0円")}${tr("<b>小計</b>", "<b>" + yen(optSum) + "</b>", "tsum")}</table>`;
+      const c = `<table class="pt"><tr><th colspan="2">端末・初期費用</th></tr>${dv ? tr(esc(dv.name), "") + tr(payName(dv), dv.monthly ? yen(dv.monthly) + "×" + dv.months : "") : tr("端末の購入なし", "—")}${tr("当日のお支払い", "<b>" + yen(r.today) + "</b>")}${tr("翌月のご請求（初期）", yen(r.nextInit))}</table>`;
+      return `<div class="line-block"><div class="lh"><span>${N > 1 ? esc(l.label) + "　" : ""}${CONTRACTS.find(x => x.id === l.contract).name}　${p.name}</span><span>毎月 約 ${yen(r.monthly)}</span></div><div class="cols c3"><div>${a}</div><div>${b}</div><div>${c}</div></div></div>`;
+    });
+    return `<div class="pg">${head(N > 1 ? `ご家族 ${N}回線` : "")}<div class="big3"><div><span>毎月のお支払い${N > 1 ? "（合計）" : ""}</span><b>約 ${yen(m)}</b></div><div class="hl"><span>当日のお支払い</span><b>${yen(td)}</b></div><div><span>翌月のご請求（初期費用）</span><b>${yen(nx)}</b></div></div>${blocks.join("")}${notes}</div>`;
+  };
+
+  const pages = printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)];
+  $("print").innerHTML = pages.join("");
+  $("pvmode").innerHTML = N > 1 ? [["each", `1回線ずつ（まとめ＋${N}枚）`], ["one", "まとめて1枚"]].map(([v, n]) => `<button class="${printMode === v ? "on" : ""}" onclick="doPrint('${v}')">${n}</button>`).join("") : "";
+  $("pvcount").textContent = `A4縦 ${pages.length}枚`;
+  $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
+  fitPages();
+}
+// 各ページをA4縦1枚（印刷できる範囲 190×277mm）に収める。はみ出す時だけ縮小
+function fitPages() {
+  const mm = 96 / 25.4, H = 262 * mm;
+  document.querySelectorAll("#print .pg").forEach(pg => {
+    let z = 1; pg.style.zoom = 1; pg.style.width = "190mm";
+    for (let k = 0; k < 30; k++) {
+      const h = pg.getBoundingClientRect().height;
+      if (h <= H) break;
+      z = Math.max(0.35, z * Math.sqrt(H / h) * 0.99); pg.style.zoom = z; pg.style.width = (190 / z) + "mm";
+      if (z === 0.35) break;
+    }
+  });
+}
 $("store").innerHTML = STORES.map(s => `<option>${s}</option>`).join("");
 try { const sv = localStorage.getItem("mitsumori_store"); if (sv) $("store").value = sv; } catch (e) {}
 $("store").onchange = () => { try { localStorage.setItem("mitsumori_store", $("store").value); } catch (e) {} };

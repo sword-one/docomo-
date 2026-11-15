@@ -161,15 +161,16 @@ const PLAN_INCLUDES = {
 };
 
 // 初期費用（店頭）
+// when: today＝当日お支払い／next＝翌月のご請求／choose＝お客様が選べる（画面で切り替え。最初は当日）
 const INITIAL = [
-  { id: "jimu", name: "契約事務手数料（翌月請求）", price: 4950, auto: true },
-  { id: "iko", name: "データ移行（当日・翌月請求）", price: 2200 },
-  { id: "ikomini", name: "データ移行mini（当日・翌月請求）", price: 1100 },
-  { id: "support", name: "店頭サポート", price: 3300 },
-  { id: "film", name: "フィルム", input: true },
-  { id: "case", name: "ケース", input: true },
-  { id: "charger", name: "充電器", input: true },
-  { id: "coat", name: "ハルトコーティング", choices: [{ l: "片面", p: 5500 }, { l: "両面", p: 6600 }] },
+  { id: "jimu", name: "契約事務手数料", price: 4950, auto: true, when: "next" },
+  { id: "iko", name: "データ移行", price: 2200, when: "choose" },
+  { id: "ikomini", name: "データ移行mini", price: 1100, when: "choose" },
+  { id: "support", name: "店頭サポート", price: 3300, when: "today" },
+  { id: "film", name: "フィルム", input: true, when: "today" },
+  { id: "case", name: "ケース", input: true, when: "today" },
+  { id: "charger", name: "充電器", input: true, when: "today" },
+  { id: "coat", name: "ハルトコーティング", choices: [{ l: "片面", p: 5500 }, { l: "両面", p: 6600 }], when: "today" },
 ];
 
 // 頭金（店頭）のよく使う金額。ボタンで選べて、手入力もできる
