@@ -191,7 +191,6 @@ body.pvopen { overflow:hidden; }
 <header class="bar">
   <h1>簡易見積書</h1>
   <select id="store"></select>
-  <input id="customer" type="text" placeholder="お客様名（任意）" style="width:160px">
   <input id="staff" type="text" placeholder="担当者" style="width:110px">
   <span class="sp"></span>
   <button class="btn" onclick="resetAll(this)">クリア</button>
@@ -612,7 +611,7 @@ function twoTap(btn, key, msg) {
   return false;
 }
 function delLine(btn) { if (S.lines.length < 2) return; if (!twoTap(btn, "del" + S.cur, "もう一度押すと削除")) return; S.lines.splice(S.cur, 1); S.cur = Math.min(S.cur, S.lines.length - 1); render(); }
-function resetAll(btn) { if (!twoTap(btn, "reset", "もう一度押すと全部消去")) return; S = { lines: [newLine(1)], cur: 0, extra: 0 }; $("customer").value = ""; render(); }
+function resetAll(btn) { if (!twoTap(btn, "reset", "もう一度押すと全部消去")) return; S = { lines: [newLine(1)], cur: 0, extra: 0 }; render(); }
 
 
 // ---------- 印刷 ----------
@@ -622,10 +621,10 @@ function doPrint(mode) {
   if (mode) printMode = mode;
   const rs = S.lines.map(calc), N = S.lines.length;
   const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
-  const cust = $("customer").value, staff = $("staff").value, store = $("store").value;
+  const staff = $("staff").value, store = $("store").value;
+  const nm = k => (k + 1) + "回線目";   // 見積書にはお客様名・続柄などの個人情報は載せない
   const head = (who, sub) => `<div class="ph"><div><div class="ttl">簡易見積書</div><div class="who">${who}${sub ? `<small>${sub}</small>` : ""}</div></div>
     <div class="meta">${ds}<br>${esc(store)}${staff ? "<br>担当：" + esc(staff) : ""}</div></div>`;
-  const custName = cust ? esc(cust) + " 様" : "";
   const rw = (a, b, cls) => `<div class="rw ${cls || ""}"><span>${a}</span><b>${b}</b></div>`;
   const optRows = r => r.opts.length ? r.opts.map(x => x[1] < 0 ? rw(esc(x[0]), "▲" + yen(-x[1]), "dc") : rw(esc(x[0]), yen(x[1]))).join("") : `<div class="none">なし</div>`;
   const payName = dv => dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括払い" }[dv.pay];
@@ -664,17 +663,17 @@ function doPrint(mode) {
     const sec4 = `<div class="sec"><h3>④ 初期費用</h3>
       <h4>当日のお支払い</h4>${initRows(r, "today")}${rw("当日のお支払い 合計", yen(r.today), "st")}
       <h4>翌月のご請求</h4>${initRows(r, "next")}${rw("翌月のご請求 合計", yen(r.nextInit), "st")}</div>`;
-    return `<div class="pg">${head(custName || esc(l.label), `${custName && N > 1 ? esc(l.label) + "　" : ""}${N > 1 ? `${k + 1}／${N}回線　` : ""}${c}`)}
+    return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
       ${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula)}${stepsBox(r)}
       <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}</div></div>${notes}</div>`;
   };
 
   const sumAll = f => rs.reduce((a, r) => a + f(r), 0);
   // --- 家族のまとめページ ---
-  const famPage = () => `<div class="pg">${head(custName || "ご家族", `ご家族 ${N}回線のまとめ`)}
+  const famPage = () => `<div class="pg">${head(`${N}回線のまとめ`, "")}
       ${hero(`毎月のお支払い（${N}回線の合計・目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit))}
       <table class="fam"><tr><th>回線</th><th>料金プラン／ご購入の端末</th><th class="r">毎月</th><th class="r">当日</th><th class="r">翌月（初期）</th></tr>
-      ${S.lines.map((l, k) => { const r = rs[k], p = plan(l); return `<tr><td class="nm">${esc(l.label)}<small>${CONTRACTS.find(x => x.id === l.contract).name}</small></td><td>${p.name}（${p.tiers[l.tier].label}）<small>${r.dev ? "端末：" + esc(r.dev.name) : "端末のご購入なし"}</small></td><td class="r"><b>${yen(r.monthly)}</b></td><td class="r">${yen(r.today)}</td><td class="r">${yen(r.nextInit)}</td></tr>`; }).join("")}
+      ${S.lines.map((l, k) => { const r = rs[k], p = plan(l); return `<tr><td class="nm">${nm(k)}<small>${CONTRACTS.find(x => x.id === l.contract).name}</small></td><td>${p.name}（${p.tiers[l.tier].label}）<small>${r.dev ? "端末：" + esc(r.dev.name) : "端末のご購入なし"}</small></td><td class="r"><b>${yen(r.monthly)}</b></td><td class="r">${yen(r.today)}</td><td class="r">${yen(r.nextInit)}</td></tr>`; }).join("")}
       <tr class="tsum"><td colspan="2">合計</td><td class="r">${yen(sumAll(r => r.monthly))}</td><td class="r">${yen(sumAll(r => r.today))}</td><td class="r">${yen(sumAll(r => r.nextInit))}</td></tr></table>
       <p class="pn">※回線ごとの詳しい内訳は、次のページから1回線ずつ載せています。</p>${notes}</div>`;
 
@@ -682,13 +681,13 @@ function doPrint(mode) {
   const onePage = () => {
     const cards = S.lines.map((l, k) => {
       const r = rs[k], p = plan(l), dv = r.dev, optSum = r.opts.reduce((a, b) => a + b[1], 0);
-      return `<div class="card1"><div class="ch"><span>${N > 1 ? esc(l.label) + "　" : ""}${CONTRACTS.find(x => x.id === l.contract).name}</span><span>毎月 <b>約 ${yen(r.monthly)}</b></span></div>
+      return `<div class="card1"><div class="ch"><span>${N > 1 ? nm(k) + "　" : ""}${CONTRACTS.find(x => x.id === l.contract).name}</span><span>毎月 <b>約 ${yen(r.monthly)}</b></span></div>
         <div class="cb"><div><h5>① 料金プラン</h5>${planRows(l, r, p)}${rw("小計", yen(r.planNet + r.voice), "st")}</div>
         <div><h5>② オプション</h5>${optRows(r)}${rw("小計", yen(optSum), "st")}</div>
         <div><h5>③ 端末・④ 初期費用</h5>${dv ? `<div class="dn">${esc(dv.name)}</div>` + rw(payName(dv), dv.monthly ? yen(dv.monthly) + "×" + dv.months + "回" : (dv.total !== null ? yen(dv.total) : "—")) : `<div class="none" style="padding:1mm 0">端末のご購入なし</div>`}
           ${rw("当日のお支払い", yen(r.today), "st")}${rw("翌月のご請求（初期費用）", yen(r.nextInit))}</div></div></div>`;
     });
-    return `<div class="pg">${head(custName || (N > 1 ? "ご家族" : esc(S.lines[0].label)), N > 1 ? `ご家族 ${N}回線` : "")}
+    return `<div class="pg">${head(N > 1 ? `${N}回線のお見積り` : CONTRACTS.find(x => x.id === S.lines[0].contract).name, "")}
       ${hero(`毎月のお支払い（${N > 1 ? N + "回線の合計・" : ""}目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit))}${cards.join("")}${notes}</div>`;
   };
 
