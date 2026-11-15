@@ -70,6 +70,22 @@ const KOSODATE = {
   cond: "ひとり親世帯など（児童扶養手当受給者証・戸籍謄本などで確認）。契約者1人につき1回線。お子さまが18歳になって最初の3月31日まで",
 };
 
+// dカード（2026/11/15 dカード公式で確認）。rate＝ドコモ利用料金1,000円（税抜）ごとのポイント還元率
+// 対象は割引後の基本料・通話料など。端末代金・事務手数料などは対象外。ドコモ mini2・ahamo の料金は対象外。
+// ※公式に「2026年12月以降、還元率・年会費などを見直し中」の記載あり → 変わったらここを直す
+const DCARD = {
+  general: { name: "dカード", short: "dカード", rate: 0.01, fee: 0, off: 1 },
+  goldu: { name: "dカード GOLD U", short: "GOLD U", rate: 0.05, fee: 3300, off: 0, feeNote: "22歳以下・年30万円以上の利用などで実質無料" },
+  gold: { name: "dカード GOLD", short: "GOLD", rate: 0.10, fee: 11000, off: 0 },
+  platinum: { name: "dカード PLATINUM", short: "PLATINUM", rate: 0.20, fee: 29700, off: 0, rateNote: "20%は入会初年度。2年目以降はカードのご利用額で10〜20%（月20万円以上20%／10万円以上15%／10万円未満10%）" },
+};
+const DCARD_NO_POINT = ["mini2", "ahamo"];   // 料金へのポイント還元が対象外のプラン
+// ポイ活プランの還元（d払い・dカードでのお買い物に対して。期間・用途限定ポイント）。rates＝お買い物額に対する還元率％
+const POIKATSU = {
+  poimax: { cap: 5000, rates: { none: 3, general: 3, goldu: 5, gold: 5, platinum: 10 } },
+  poi20: { cap: 2500, rates: { none: 1, general: 1, goldu: 2, gold: 2, platinum: 5 } },
+};
+
 const VOICE = {
   std: [{ id: "none", name: "なし（22円/30秒）", price: 0 }, { id: "5min", name: "5分通話無料", price: 880 }, { id: "kakeho", name: "かけ放題", price: 1980 }],
   ahamo: [{ id: "none", name: "5分無料（標準）", price: 0 }, { id: "kakeho", name: "かけ放題", price: 1100 }],
