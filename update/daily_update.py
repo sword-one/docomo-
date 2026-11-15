@@ -246,6 +246,18 @@ def main():
                 for d in devices:
                     if pm.get(d["key"]): d["store"] = pm[d["key"]]
             status = {"ok": False, "message": "店頭の割引を取得できなかったため、割引は前回の値のまま表示しています。"}
+        # 商品画像のURL（取れなかった日は前回のURLを引き継ぐ）
+        try:
+            import images
+            named, apple = images.fetch()
+            if len(named) < 10: raise RuntimeError("画像一覧が読めません")
+            log("商品画像", images.attach(devices, named, apple), "機種")
+        except Exception as e:   # noqa
+            log("商品画像の取得でエラー（前回の値を引き継ぎ）", e)
+            if prev:
+                pm = {d["key"]: d.get("img") for d in prev}
+                for d in devices:
+                    if pm.get(d["key"]): d["img"] = pm[d["key"]]
         save_json("devices_prev.json", devices)
         out = [{k: v for k, v in d.items() if k != "key"} for d in devices]
         js = "// 機種代金（ドコモ公式「おてがる料金シミュレーション」＝ドコモオンラインショップの販売価格）毎朝自動更新\n"

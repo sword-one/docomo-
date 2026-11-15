@@ -48,6 +48,7 @@ table.kv td.r { text-align:right; white-space:nowrap; }
 /* #print は #pv（プレビュー）の中に表示 */
 .wtag { font-size:11px; border-radius:4px; padding:1px 6px; margin-left:4px; } .wtag.today { background:#fde8e8; color:var(--red); } .wtag.next { background:#e8eef8; color:var(--navy); }
 .cardb { margin-top:6px; padding:6px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#222; font-size:13px; } .cardb.on { border:2px solid var(--navy); background:#eef2f9; } .cardb small { display:block; color:#666; font-size:11px; }
+.devimg { text-align:center; margin:8px 0 0; } .devimg img { max-height:150px; max-width:220px; object-fit:contain; }
 .og { font-weight:700; color:var(--navy); margin:12px 0 2px; }
 details.others { margin-top:12px; border:1.5px solid var(--line); border-radius:10px; padding:4px 12px 8px; background:#fafbfd; }
 details.others > summary { cursor:pointer; font-weight:700; color:var(--navy); padding:8px 0; min-height:30px; list-style:none; }
@@ -153,6 +154,7 @@ label.ck { min-height:44px; }
 #print .cardsec .cn em { font-style:normal; font-size:8pt; font-weight:700; border:0.25mm solid #000; border-radius:1mm; padding:0 1.2mm; margin-left:2mm; }
 #print .cardsec .rw.st { font-size:10.5pt; } #print .cardsec .rw.yr { border-top:0.2mm solid #c8c8c8; font-size:11.5pt; }
 #print .psteps + .psteps { margin-top:-2mm; }
+#print .dnw { display:flex; align-items:center; gap:3mm; padding:1mm 1mm 0; } #print .dnw img { height:24mm; max-width:26mm; object-fit:contain; flex:none; }
 #print .dn { font-size:13.5pt; font-weight:800; padding:1.5mm 1mm 1mm; }
 #print .none { padding:2mm 1mm; color:#444; }
 #print .pn { font-size:8pt; color:#333; margin-top:3mm; line-height:1.5; }
@@ -398,7 +400,7 @@ function devCalc(l) {
   const online = manual ? Number(dv.manualPrice) : storePrice;
   const atama = dv.atama === null || dv.atama === "" ? null : Number(dv.atama);
   const r = { name: dv.model || "（機種未選択）", pay: dv.pay, online, atama, monthly: 0, months: 0, zanka: null, total: null,
-    hontai: pr.hontai ?? null, store: st, discount: !manual && st && st.on ? st.amt : 0, onlineShop: pr.ikkatsu ?? null };
+    hontai: pr.hontai ?? null, img: d && !manual ? d.img : (d ? d.img : null), store: st, discount: !manual && st && st.on ? st.amt : 0, onlineShop: pr.ikkatsu ?? null };
   const credit = Number(dv.shitadori || 0) + Number(dv.point || 0);
   if (online === null) return r;
   if (atama !== null) r.total = online + atama;   // 店頭での端末総額は頭金を入れてから出す
@@ -495,6 +497,7 @@ function render() {
     ${l.device.use ? `
     <div class="row" style="margin:6px 0">${cats.length ? cats.map(c => `<div class="chip ${l.device.cat === c ? "on" : ""}" onclick="setDev('cat','${c}');setDev('model','')">${c}</div>`).join("") : `<span class="warn">機種データが未登録です（金額は手入力してください）</span>`}</div>
     ${models.length ? `<select onchange="setDev('model',this.value)" style="width:100%;max-width:520px"><option value="">機種を選択</option>${models.map(m => `<option ${m.name === l.device.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select>` : ""}
+    ${d && d.img ? `<div class="devimg"><img src="${d.img}" alt="" onerror="this.parentNode.style.display='none'"></div>` : ""}
     <table class="kv" style="margin-top:8px">
       <tr><td>本体価格</td><td class="r">${pr.hontai != null ? yen(pr.hontai) : "—"}</td></tr>
       ${(() => { const st = devStore(l); if (!d) return "";
@@ -699,7 +702,7 @@ function doPrint(mode) {
       <div class="pn" style="margin-top:1mm">※ドコモの料金をカードでお支払いの場合。割引後の基本料・通話料（税抜1,000円ごと）が対象です。${pc.some(c => c.id === "platinum") ? "PLATINUMは入会初年度（20%）の場合で、2年目以降はカードのご利用額により10〜20%です。" : ""}</div></div>` : "";
     const poiBox = r.poikatsu ? `<div class="psteps">▶ <b>ポイ活の還元</b>を上限（${r.poikatsu.cap.toLocaleString()}pt）まで貯めた場合、<b>実質 約 ${yen(r.poikatsu.jisshitsu)}</b>／月<span style="font-size:9pt">（年間で最大 ${(r.poikatsu.cap * 12).toLocaleString()}pt。d払い・dカードのお買い物の${r.poikatsu.rate}%を還元。月 約${yen(r.poikatsu.need)}のお買い物で上限。期間・用途限定ポイント）</span></div>` : "";
     const sec3 = `<div class="sec"><h3>② 端末</h3>
-      ${dv ? `<div class="dn">${esc(dv.name)}</div>`
+      ${dv ? `<div class="dnw">${dv.img ? `<img src="${dv.img}" alt="" onerror="this.style.display='none'">` : ""}<div class="dn">${esc(dv.name)}</div></div>`
         + rw("買い方", payName(dv))
         + (dv.discount && dv.hontai != null ? rw("本体価格", yen(dv.hontai)) + rw(esc(dv.store.name), "▲" + yen(dv.discount), "dc") : "")
         + rw("端末代金（頭金込み）", dv.total !== null ? yen(dv.total) : "—")
