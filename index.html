@@ -125,6 +125,8 @@ label.ck { min-height:44px; }
 #print .totl { font-size:12pt; font-weight:800; letter-spacing:.3em; border-top:0.9mm solid #000; padding-top:2.5mm; margin:2mm 0 2.5mm; }
 #print .psteps { margin-top:-1mm; }
 #print .hm { border:1mm solid #000; border-radius:3mm; padding:3mm 5mm 3.5mm; }
+#print .hrow { display:flex; align-items:center; gap:6mm; } #print .hrow .arw { font-size:16pt; color:#555; }
+#print .hrow .jis { border-left:0.4mm solid #999; padding-left:6mm; } #print .hrow .jis .big { font-size:28pt; }
 #print .hm .lb { font-size:11.5pt; font-weight:800; }
 #print .hm .big { font-size:34pt; font-weight:800; line-height:1.15; letter-spacing:.01em; }
 #print .hm .big small { font-size:15pt; font-weight:800; margin-left:1mm; }
@@ -738,9 +740,13 @@ function doPrint(mode) {
   const payName = dv => dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括払い" }[dv.pay];
   const notes = `<div class="pn">※金額はすべて税込です（${DATA_AS_OF}）。端末代金は店頭の割引（5G WELCOME割など）を引いた価格に頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
   const payM = PAY_METHODS.find(m => m.id === (S.pay || "cash")) || PAY_METHODS[0];
-  const hero = (label, monthly, todayAmt, nextAmt, formula) => `<div class="hero solo">
-    <div class="hm"><div class="lb">${label}</div><div class="big"><em>約</em>${(Math.round(monthly) || 0).toLocaleString("ja-JP")}<small>円／月</small></div>${formula || ""}</div>
+  // jis＝ポイ活の還元を引いた実質の月額（ポイ活プランがある時だけ、毎月のお支払いの横に出す）
+  const hero = (label, monthly, todayAmt, nextAmt, formula, jis) => `<div class="hero solo">
+    <div class="hm"><div class="hrow"><div><div class="lb">${label}</div><div class="big"><em>約</em>${(Math.round(monthly) || 0).toLocaleString("ja-JP")}<small>円／月</small></div></div>
+      ${jis != null ? `<div class="arw">▶</div><div class="jis"><div class="lb">ポイ活の還元後　実質</div><div class="big"><em>約</em>${(Math.round(jis) || 0).toLocaleString("ja-JP")}<small>円／月</small></div></div>` : ""}</div>${formula || ""}</div>
 </div>`;
+  const poiSave = r => r.poikatsu ? r.monthly - r.poikatsu.jisshitsu : 0;
+  const anyPoi = rs.some(r => r.poikatsu);
   const stepsBox = r => r.steps.length ? `<div class="psteps">${r.steps.map(x => `▶ <b>${x.from}か月目から</b>は 約 <b>${yen(x.monthly)}</b>／月`).join("　")}<span style="font-size:9pt">（期間限定の割引が終わるため）</span></div>` : "";
 
   // 内訳の部品（1回線ずつのページ・まとめて1枚の両方で使う）
@@ -761,7 +767,7 @@ function doPrint(mode) {
     const cardSec = pc.length ? `<div class="sec cardsec"><h3>dカードでたまるポイント <small>目安</small></h3>
       ${pc.map(c => `<div class="rw"><span>${c.name}${c.sel ? "<em>ご利用予定</em>" : ""}</span><b>毎月 ${c.pts.toLocaleString()}pt／年間 ${(c.pts * 12).toLocaleString()}pt</b></div>`).join("")}
       <div class="pn" style="margin-top:1mm">※ドコモの料金をカードでお支払いの場合。割引後の基本料・通話料（税抜1,000円ごと）が対象です。${pc.some(c => c.id === "platinum") ? "PLATINUMは入会初年度（20%）の場合で、2年目以降はカードのご利用額により10〜20%です。" : ""}</div></div>` : "";
-    const poiBox = r.poikatsu ? `<div class="psteps">▶ <b>ポイ活の還元</b>を上限（${r.poikatsu.cap.toLocaleString()}pt）まで貯めた場合、<b>実質 約 ${yen(r.poikatsu.jisshitsu)}</b>／月<span style="font-size:9pt">（年間で最大 ${(r.poikatsu.cap * 12).toLocaleString()}pt。d払い・dカードのお買い物の${r.poikatsu.rate}%を還元。月 約${yen(r.poikatsu.need)}のお買い物で上限。期間・用途限定ポイント）</span></div>` : "";
+    const poiBox = r.poikatsu ? `<div class="pn" style="margin-top:-2mm;margin-bottom:2mm">※実質は、ポイ活の還元を上限（月${r.poikatsu.cap.toLocaleString()}pt）まで貯めて、基本料金に充てた場合の金額です。d払い・dカードのお買い物の${r.poikatsu.rate}%が還元され、月 約${yen(r.poikatsu.need)}のお買い物で上限になります（期間・用途限定ポイント）。</div>` : "";
     const sec3 = `<div class="sec"><h3>② 端末</h3>
       ${dv ? `<div class="dnw">${dv.img ? `<img src="${dv.img}" alt="" onerror="this.style.display='none'">` : ""}<div class="dn">${esc(dv.name)}</div></div>`
         + rw("買い方", payName(dv))
@@ -781,7 +787,7 @@ function doPrint(mode) {
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
       <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}</div></div>
-      <div class="totl">合計</div>${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula)}${stepsBox(r)}${poiBox}${notes}</div>`;
+      <div class="totl">合計</div>${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula, r.poikatsu ? r.poikatsu.jisshitsu : null)}${poiBox}${stepsBox(r)}${notes}</div>`;
   };
 
   const sumAll = f => rs.reduce((a, r) => a + f(r), 0);
@@ -791,7 +797,7 @@ function doPrint(mode) {
       <table class="fam"><tr><th>回線</th><th>料金プラン／ご購入の端末</th><th class="r">毎月</th>${anyT ? `<th class="r">当日</th>` : ""}<th class="r">事務手数料など<br><small style="font-weight:400">（翌月に1回だけ加算）</small></th></tr>
       ${S.lines.map((l, k) => { const r = rs[k], p = plan(l); return `<tr><td class="nm">${nm(k)}<small>${CONTRACTS.find(x => x.id === l.contract).name}</small></td><td>${p.name}（${p.tiers[l.tier].label}）<small>${r.dev ? "端末：" + esc(r.dev.name) : "端末のご購入なし"}</small></td><td class="r"><b>${yen(r.monthly)}</b></td>${anyT ? `<td class="r">${r.today ? yen(r.today) : "—"}</td>` : ""}<td class="r">${yen(r.nextInit)}</td></tr>`; }).join("")}</table>
       <p class="pn">※回線ごとの詳しい内訳は、次のページから1回線ずつ載せています。</p>
-      <div class="totl">合計</div>${hero(`毎月のお支払い（${N}回線の合計・目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit))}${notes}</div>`; };
+      <div class="totl">合計</div>${hero(`毎月のお支払い（${N}回線の合計・目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit), "", anyPoi ? sumAll(r => r.monthly) - sumAll(poiSave) : null)}${anyPoi ? `<div class="pn" style="margin-top:-2mm;margin-bottom:2mm">※実質は、ポイ活プランの還元を上限まで貯めて、基本料金に充てた場合の金額です（期間・用途限定ポイント）。</div>` : ""}${notes}</div>`; };
 
   // --- まとめて1枚 ---
   const onePage = () => {
@@ -803,7 +809,7 @@ function doPrint(mode) {
           ${r.today ? rw("当日のお支払い", yen(r.today), "st") : ""}${r.nextInit ? rw("事務手数料など（翌月に1回だけ加算）", yen(r.nextInit)) : ""}</div></div></div>`;
     });
     return `<div class="pg">${head(N > 1 ? `${N}回線のお見積り` : CONTRACTS.find(x => x.id === S.lines[0].contract).name, "")}
-      ${cards.join("")}<div class="totl">合計</div>${hero(`毎月のお支払い（${N > 1 ? N + "回線の合計・" : ""}目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit))}${notes}</div>`;
+      ${cards.join("")}<div class="totl">合計</div>${hero(`毎月のお支払い（${N > 1 ? N + "回線の合計・" : ""}目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit), "", anyPoi ? sumAll(r => r.monthly) - sumAll(poiSave) : null)}${anyPoi ? `<div class="pn" style="margin-top:-2mm;margin-bottom:2mm">※実質は、ポイ活プランの還元を上限まで貯めて、基本料金に充てた場合の金額です（期間・用途限定ポイント）。</div>` : ""}${notes}</div>`;
   };
 
   const pages = printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)];
