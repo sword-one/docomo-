@@ -230,11 +230,11 @@ const PLAN_INCLUDES = {
 };
 
 // 初期費用（店頭）
-// when: today＝当日お支払い／next＝翌月のご請求／choose＝お客様が選べる（画面で切り替え。最初は当日）
+// when: today＝当日お支払い／next＝翌月のご請求／choose＝お客様が選べる（画面で切り替え。def が最初の選択。データ移行は翌月請求が多いので next）
 const INITIAL = [
   { id: "jimu", name: "契約事務手数料", price: 4950, auto: true, when: "next" },
-  { id: "iko", name: "データ移行", price: 2200, when: "choose" },
-  { id: "ikomini", name: "データ移行mini", price: 1100, when: "choose" },
+  { id: "iko", name: "データ移行", price: 2200, when: "choose", def: "next" },
+  { id: "ikomini", name: "データ移行mini", price: 1100, when: "choose", def: "next" },
   { id: "support", name: "店頭サポート", price: 3300, when: "today" },
   { id: "film", name: "フィルム", input: true, when: "today" },
   { id: "case", name: "ケース", input: true, when: "today" },

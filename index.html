@@ -378,7 +378,7 @@ function optEff(l, o, p) {
   if (o.promo && o.promo[p.id]) { const pm = o.promo[p.id]; r.promo = { name: o.name + (o.id === "disney" ? "セット割" : "特典") + "（最大" + pm + "か月）", amt: Math.min(o.promoAmt, base), months: pm }; }
   return r;
 }
-function initWhen(l, i) { return i.when === "choose" ? (l.initWhen[i.id] || "today") : i.when || "today"; }
+function initWhen(l, i) { return i.when === "choose" ? (l.initWhen[i.id] || i.def || "today") : i.when || "today"; }
 // このオプションを中身に含むパックが選ばれていれば、そのパックを返す
 function packOf(l, o, p) {
   for (const [pk, items] of Object.entries(PACK_INCLUDES)) {
