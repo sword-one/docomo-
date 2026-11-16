@@ -413,7 +413,7 @@ function optAmt(l, o) {
   if (o.input) { const man = l.optAmt[o.id]; if (man !== undefined && man !== null && man !== "") return Number(man); const a = hoshoAuto(l, o); return a ?? 0; }
   return o.choices ? Number(l.optAmt[o.id] ?? o.choices[0].p) : o.price;
 }
-// 機種名からメーカーを判定（Androidの機種選びで使う）
+// 機種名からシリーズ（Galaxy・Xperia など）を判定（Androidの機種選びで使う）
 const MAKERS = [[/Galaxy/i, "Galaxy"], [/Pixel/i, "Google Pixel"], [/Xperia/i, "Xperia"], [/AQUOS/i, "AQUOS"], [/arrows|らくらく/i, "arrows・らくらく"], [/motorola|moto |razr/i, "motorola"]];
 function makerOf(d) { const m = MAKERS.find(x => x[0].test(d.name)); return m ? m[1] : "その他"; }
 function devFind(l) { return DEV.find(d => d.name === l.device.model); }
@@ -539,7 +539,7 @@ function render() {
     <label class="ck"><input type="checkbox" ${l.device.use ? "checked" : ""} onchange="setDev('use',this.checked)">端末を購入する</label>
     ${l.device.use ? `
     <div class="row" style="margin:6px 0">${cats.length ? cats.map(c => `<div class="chip ${l.device.cat === c ? "on" : ""}" onclick="S.lines[S.cur].device.maker='';setDev('cat','${c}');setDev('model','')">${c}</div>`).join("") : `<span class="warn">機種データが未登録です（金額は手入力してください）</span>`}</div>
-    ${makers.length > 1 ? `<div class="row" style="margin:6px 0"><span class="note">メーカー：</span>${[["", "すべて"]].concat(makers.map(m => [m, m])).map(([v, n]) => `<div class="chip ${(l.device.maker || "") === v ? "on" : ""}" style="padding:6px 10px" onclick="S.lines[S.cur].device.maker='${v}';${"S.lines[S.cur].device.model='';"}render()">${n}</div>`).join("")}</div>` : ""}
+    ${makers.length > 1 ? `<div class="row" style="margin:6px 0"><span class="note">シリーズ：</span>${[["", "すべて"]].concat(makers.map(m => [m, m])).map(([v, n]) => `<div class="chip ${(l.device.maker || "") === v ? "on" : ""}" style="padding:6px 10px" onclick="S.lines[S.cur].device.maker='${v}';${"S.lines[S.cur].device.model='';"}render()">${n}</div>`).join("")}</div>` : ""}
     ${models.length ? `<select onchange="setDev('model',this.value)" style="width:100%;max-width:520px"><option value="">機種を選択</option>${models.map(m => `<option ${m.name === l.device.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select>` : ""}
     ${d && d.img ? `<div class="devimg"><img src="${d.img}" alt="" onerror="this.parentNode.style.display='none'"></div>` : ""}
     <table class="kv" style="margin-top:8px">
