@@ -175,6 +175,31 @@ label.ck { min-height:44px; }
 #print .dn { font-size:13.5pt; font-weight:800; padding:1.5mm 1mm 1mm; }
 #print .none { padding:2mm 1mm; color:#444; }
 #print .pn { font-size:8pt; color:#333; margin-top:3mm; line-height:1.5; }
+/* ご提案シート（別紙・白黒） */
+#print .teian .th { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:0.9mm solid #000; padding-bottom:2mm; margin-bottom:6mm; }
+#print .teian .tl { font-size:11pt; font-weight:800; letter-spacing:.05em; } #print .teian .tm { font-size:9pt; }
+#print .teian .tcatch { font-size:19pt; font-weight:800; line-height:1.55; } #print .teian .tcatch b { border-bottom:1.2mm solid #000; }
+#print .teian .tcatch .num { font-size:27pt; border-bottom:none; background:#000; color:#fff; padding:0.5mm 3mm; border-radius:1.5mm; white-space:nowrap; }
+#print .teian .tsub { font-size:10pt; margin:3mm 0 6mm; color:#222; }
+#print .teq { display:flex; align-items:stretch; gap:2mm; margin-bottom:6mm; }
+#print .teq > div { flex:1; border:0.5mm solid #000; border-radius:3mm; padding:3mm 3mm 2.5mm; text-align:center; }
+#print .teq > div.tot { flex:1.25; background:#e6e6e6; border-width:1mm; }
+#print .teq span { display:block; font-size:10pt; font-weight:800; } #print .teq b { display:block; font-size:21pt; font-weight:800; line-height:1.3; } #print .teq small { display:block; font-size:9.5pt; }
+#print .teq .tot small { font-size:12pt; font-weight:800; }
+#print .teq i { font-style:normal; font-size:18pt; font-weight:800; align-self:center; }
+#print .tloss { display:flex; border:0.5mm solid #000; border-radius:3mm; overflow:hidden; margin-bottom:6mm; }
+#print .tlh { background:#000; color:#fff; font-weight:800; font-size:11.5pt; padding:3mm 4mm; display:flex; align-items:center; width:42mm; line-height:1.4; }
+#print .tlb { padding:3mm 5mm; font-size:12pt; line-height:1.6; flex:1; } #print .tlb b { font-size:16pt; } #print .tlb span { font-size:10pt; }
+#print .tbh { font-size:12pt; font-weight:800; border-left:2.2mm solid #000; padding-left:3mm; margin-bottom:2.5mm; }
+#print .tbars { margin-bottom:6mm; }
+#print .tbr { display:grid; grid-template-columns:32mm 1fr 34mm; align-items:center; gap:3mm; margin-bottom:1.5mm; font-size:10.5pt; font-weight:700; }
+#print .tbr .bar { height:7mm; background:#f1f1f1; border-radius:1mm; } #print .tbr .bar i { display:block; height:100%; background:#000; border-radius:1mm; } #print .tbr .bar i.w { background:#9a9a9a; }
+#print .tbr b { text-align:right; font-size:12.5pt; }
+#print .tnet { margin-top:2.5mm; font-size:12pt; text-align:right; } #print .tnet b { font-size:15pt; border-bottom:0.8mm solid #000; }
+#print .tperk { margin-bottom:4mm; display:grid; grid-template-columns:1fr 1fr; gap:2mm 6mm; } #print .tperk .tbh { grid-column:1 / -1; margin-bottom:1mm; }
+#print .tp { display:flex; gap:2.5mm; font-size:10pt; line-height:1.45; } #print .tp .ck { font-size:13pt; font-weight:800; }
+#print .tplus { font-size:10pt; background:#ebebeb; border-radius:2mm; padding:2mm 4mm; margin-bottom:5mm; }
+#print .tcta { border:1mm solid #000; border-radius:3mm; padding:3.5mm 5mm; text-align:center; margin-bottom:3mm; } #print .tcta b { display:block; font-size:14pt; } #print .tcta span { font-size:9.5pt; }
 /* 家族のまとめ表 */
 #print table.fam { width:100%; border-collapse:collapse; margin-top:2mm; }
 #print table.fam th { text-align:left; font-size:9.5pt; padding:2mm 2mm; border-bottom:0.6mm solid #000; white-space:nowrap; }
@@ -235,7 +260,7 @@ body.pvopen { overflow:hidden; }
 <div class="sum" id="sumbar"></div>
 <div id="pv">
   <div class="pvbar"><b>印刷プレビュー <span id="pvcount" style="font-size:13px;font-weight:400"></span></b>
-    <span class="seg" id="pvmode"></span>
+    <span class="seg" id="pvmode"></span><span class="seg" id="pvprop"></span>
     <button class="btn" onclick="window.print()">🖨 印刷する</button>
     <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button>
     <span class="hint">「印刷する」で印刷画面が開かない時は、iPadのSafariなら画面上の共有ボタン（□↑）→「プリント」で印刷できます。</span></div>
@@ -269,7 +294,7 @@ function newLine(n) {
     device: { use: true, cat: "", model: "", pay: "kaedoki", storeOn: false, manualPrice: null, atama: null, shitadori: 0, point: 0 },
     init: { jimu: true }, initAmt: {}, initWhen: {}, freeInit: [{ name: "", price: 0 }] };
 }
-let S = { lines: [newLine(1)], cur: 0, extra: 0, pay: "cash" };
+let S = { lines: [newLine(1)], cur: 0, extra: 0, pay: "cash", props: {} };
 
 function plan(l) { const p = PLANS.find(x => x.id === l.plan); if (l.tier >= p.tiers.length) l.tier = p.tiers.length - 1; const vs = VOICE[p.voice] || VOICE.none; if (!vs.find(v => v.id === l.voice)) l.voice = vs[0].id; return p; }
 const tierOff = (p, l) => (p.noDiscTiers || []).includes(l.tier);                 // この段階は割引・回線数カウントの対象外（irumo 0.5GB）
@@ -320,7 +345,7 @@ function calc(l) {
   r.monthly = r.monthlyCharge + (r.dev ? r.dev.monthly : 0);
   // dカードのおトク（割引＋料金のポイント還元）。カードごとに「持った場合」を計算
   const billBase = r.planNet + cardOff(l.dcard);   // dカード割引を引く前の基本料
-  r.cards = !dcardOf(p, l) ? [] : ["gold", "platinum"].concat(["general", "goldu"].includes(l.dcard) ? [l.dcard] : []).map(c => {
+  r.cards = !dcardOf(p, l) ? [] : ["general", "goldu", "gold", "platinum"].map(c => {
     const off = cardOff(c), bill = Math.max(0, billBase - off) + r.voice;                     // 割引後の基本料＋通話（税込）
     const pts = DCARD_NO_POINT.includes(p.id) ? 0 : Math.floor(Math.round(bill / 1.1) / 1000) * 1000 * DCARD[c].rate;
     return { id: c, name: DCARD[c].name, off, pts: Math.round(pts), total: off + Math.round(pts), fee: DCARD[c].fee, sel: l.dcard === c };
@@ -639,7 +664,7 @@ function discRows(l, p, r) {
   // 4. dカード
   if (p.dcard && tierOff(p, l)) out.push(row("dカード", `<span class="note">${p.name} ${p.tiers[l.tier].label}はdカードお支払割の対象外です</span>`, `<span class="dv off">対象外</span>`, ""));
   else if (p.dcard) {
-    const cs = r.cards.filter(c => c.pts > 0).map(c => `<div class="cardb ${c.sel ? "on" : ""}"><b>${c.name}</b>${c.sel ? "（選択中）" : "にすると"}　たまるポイント <b>毎月 ${c.pts.toLocaleString()}pt／年間 ${(c.pts * 12).toLocaleString()}pt</b>${DCARD[c.id].rateNote ? `<small>${DCARD[c.id].rateNote}</small>` : ""}</div>`).join("");
+    const cs = r.cards.filter(c => c.pts > 0 && (c.sel || c.id === "gold" || c.id === "platinum")).map(c => `<div class="cardb ${c.sel ? "on" : ""}"><b>${c.name}</b>${c.sel ? "（選択中）" : "にすると"}　たまるポイント <b>毎月 ${c.pts.toLocaleString()}pt／年間 ${(c.pts * 12).toLocaleString()}pt</b>${DCARD[c.id].rateNote ? `<small>${DCARD[c.id].rateNote}</small>` : ""}</div>`).join("");
     out.push(row("dカード", seg("dcard", l.dcard, [["none", "なし"], ["general", "dカード"], ["goldu", "GOLD U"], ["gold", "GOLD"], ["platinum", "PLATINUM"]]), hearty ? `<span class="dv off">—</span>` : amt(/dカード/),
       (hearty ? "ハーティ割引中はdカードお支払割は使えません（ポイント還元は対象）。" : `お支払割：dカード ▲${yen(p.dcard[1])}／GOLD U・GOLD・PLATINUM ▲${yen(p.dcard[0])}。`) + (DCARD_NO_POINT.includes(p.id) ? `${p.name}の料金はポイント還元の対象外。` : "ポイントは割引後の基本料・通話料（税抜1,000円ごと）が対象。端末代・事務手数料は対象外。") + cs));
     if (r.poikatsu) out.push(row("ポイ活の還元", `<span class="note">d払い・dカードのお買い物の ${r.poikatsu.rate}%（上限 ${r.poikatsu.cap.toLocaleString()}pt／月）。上限まで貯めるには月 約${yen(r.poikatsu.need)}のお買い物</span>`, `<b class="dv">実質 ${yen(r.poikatsu.jisshitsu)}</b><small>上限まで貯めた場合／年間 最大${(r.poikatsu.cap * 12).toLocaleString()}pt</small>`, ""));
@@ -731,6 +756,7 @@ function closePv() { $("pv").classList.remove("open"); document.body.classList.r
 let printMode = "each";   // each＝1回線ずつ1枚（家族はまとめ付き）／one＝全回線を1枚に
 function doPrint(mode) {
   if (mode) printMode = mode;
+  if (!S.props) S.props = {};
   const rs = S.lines.map(calc), N = S.lines.length;
   const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
   const staff = $("staff").value, store = $("store").value;
@@ -813,9 +839,57 @@ function doPrint(mode) {
       ${cards.join("")}<div class="totl">合計</div>${hero(`毎月のお支払い（${N > 1 ? N + "回線の合計・" : ""}目安）`, sumAll(r => r.monthly), sumAll(r => r.today), sumAll(r => r.nextInit), "", anyPoi ? sumAll(r => r.monthly) - sumAll(poiSave) : null)}${anyPoi ? `<div class="pn" style="margin-top:-2mm;margin-bottom:2mm">※実質は、ポイ活プランの還元を上限まで貯めて、基本料金に充てた場合の金額です（期間・用途限定ポイント）。</div>` : ""}${notes}</div>`;
   };
 
-  const pages = printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)];
+  // ===== ご提案シート（別紙）：dカード =====
+  // まだ GOLD／PLATINUM をお持ちでない回線があれば出す。数字はこの見積の内容から計算（割引＋料金でたまるポイント）
+  const cardPage = () => {
+    const tgt = S.lines.map((l, k) => ({ l, r: rs[k] })).filter(x => x.r.cards.length && !["gold", "platinum"].includes(x.l.dcard));
+    if (!tgt.length) return "";
+    const sum = id => tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.id === id); return { off: a.off + c.off, pts: a.pts + c.pts }; }, { off: 0, pts: 0 });
+    const cur = tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.sel); return c ? { off: a.off + c.off, pts: a.pts + c.pts } : a; }, { off: 0, pts: 0 });   // 今お使いのカード（dカード・GOLD U）の分
+    const net = id => { const v = sum(id); return (v.off + v.pts) * 12 - DCARD[id].fee; };
+    const best = net("gold") >= net("general") && net("gold") > 0 ? "gold" : "general";   // 年会費を引いて一番おトクなカードをおすすめする
+    if (best === "general" && tgt.every(x => x.l.dcard === "general")) return "";           // すでにそのカードをお持ち
+    const v = sum(best), month = v.off + v.pts, year = month * 12, fee = DCARD[best].fee, card = DCARD[best];
+    const pl = sum("platinum");
+    const lines = tgt.length, bar = (val, max) => Math.max(4, Math.round(val / max * 100));
+    const mx = Math.max(year, fee, 1);
+    return `<div class="pg teian">
+      <div class="th"><div class="tl">ドコモをご利用のお客さまへ　お支払い方法のご提案</div><div class="tm">${ds}　${esc(store)}</div></div>
+      <div class="tcatch">お支払いを <b>${card.name}</b> に変えるだけで、<br>ドコモの料金が <b class="num">年間 約 ${year.toLocaleString("ja-JP")}円分</b> おトクになります。</div>
+      <div class="tsub">本日のお見積り（${lines > 1 ? lines + "回線分" : "1回線"}）の内容で計算した金額です。プランも使い方も、今のままで変わりません。</div>
+
+      <div class="teq">
+        <div><span>毎月の料金が安くなる</span><b>${yen(v.off)}</b><small>dカードお支払割</small></div>${v.pts ? `<i>＋</i>
+        <div><span>毎月 dポイントがたまる</span><b>${v.pts.toLocaleString("ja-JP")}pt</b><small>ドコモの料金の${Math.round(card.rate * 100)}%</small></div>` : ""}<i>＝</i>
+        <div class="tot"><span>毎月</span><b>約 ${yen(month)}分</b><small>1年で 約 ${yen(year)}分</small></div>
+      </div>
+
+      <div class="tloss"><div class="tlh">今のお支払い方法のままだと…</div>
+        <div class="tlb">この <b>年間 約 ${yen(year - (cur.off + cur.pts) * 12)}分</b> は、毎年 受け取らないままになります。<br><span>5年で 約 ${yen((year - (cur.off + cur.pts) * 12) * 5)}分。同じ料金を払うなら、受け取れる方がおトクです。</span></div></div>
+
+      <div class="tbars"><div class="tbh">${fee ? "年会費とくらべると" : "年会費はかかりません"}</div>
+        <div class="tbr"><span>1年間のおトク</span><div class="bar"><i style="width:${bar(year, mx)}%"></i></div><b>${yen(year)}分</b></div>
+        <div class="tbr"><span>年会費</span><div class="bar"><i class="w" style="width:${fee ? bar(fee, mx) : 0}%"></i></div><b>${fee ? yen(fee) : "無料"}</b></div>
+        ${fee ? `<div class="tnet">年会費を引いても <b>年間 約 ${yen(year - fee)}分 プラス</b> です。</div>` : `<div class="tnet">年会費がかからないので、<b>おトクな分がそのまま残ります。</b></div>`}
+      </div>
+
+      ${best === "gold" ? `<div class="tperk"><div class="tbh">料金のおトクだけではありません</div>
+        ${DCARD_GOLD_PERKS.map(x => `<div class="tp"><span class="ck">✔</span><div><b>${x[0]}</b><br>${x[1]}</div></div>`).join("")}</div>
+        <div class="tplus">さらに <b>dカード PLATINUM</b> なら、たまるポイントは 毎月 ${pl.pts.toLocaleString("ja-JP")}pt（入会初年度。2年目以降はカードのご利用額により変わります）。</div>` : ""}
+
+      <div class="tcta"><b>お申込みは、この場でスタッフがお手伝いします。</b><span>お手続きに必要なもの・入会特典は、スタッフにおたずねください。</span></div>
+
+      <div class="pn">※金額は税込。本日のお見積りの料金をもとにした目安で、実際の割引・ポイントはご利用状況により変わります。ポイントは割引後の基本料金・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。ドコモ mini2・ahamo などポイント還元の対象外のプランがあります。<br>
+      ※dカードお支払割は、対象プランの料金をカードでお支払いの場合に適用されます。${fee ? `${card.name}の年会費は${yen(fee)}（税込）です。` : ""}カードのお申込みには所定の審査があります（満18歳以上・高校生を除く）。<br>
+      ※${DATA_AS_OF.replace("改定後の料金", "時点の内容")}。特典・還元率は変更になる場合があります。</div>
+    </div>`;
+  };
+  const props = (S.props && S.props.dcard !== false) ? [cardPage()].filter(Boolean) : [];
+  const hasProp = !!cardPage();
+  const pages = (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)]).concat(props);
   $("print").innerHTML = pages.join("");
   $("pvmode").innerHTML = N > 1 ? [["each", `1回線ずつ（まとめ＋${N}枚）`], ["one", "まとめて1枚"]].map(([v, n]) => `<button class="${printMode === v ? "on" : ""}" onclick="doPrint('${v}')">${n}</button>`).join("") : "";
+  $("pvprop").innerHTML = hasProp ? `<button class="${S.props.dcard !== false ? "on" : ""}" onclick="S.props.dcard=${S.props.dcard === false};doPrint()">別紙：dカードのご提案 ${S.props.dcard !== false ? "あり" : "なし"}</button>` : "";
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
   $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
   fitPages();
