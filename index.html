@@ -559,7 +559,7 @@ function render() {
     <div class="row" style="margin-top:8px">購入方法：
       ${[["kaedoki", pr.kaedoki ? pr.kaedoki.program : "いつでもカエドキ"], ["b12", "12回分割"], ["b24", "24回分割"], ["b36", "36回分割"], ["ikkatsu", "一括"]].filter(([k]) => k !== "kaedoki" || pr.kaedoki || !d).map(([k, n]) => `<div class="chip ${l.device.pay === k ? "on" : ""}" onclick="setDev('pay','${k}')">${n}</div>`).join("")}
     </div>
-    ${dv && dv.online !== null ? `<p>端末の月々：<b>${dv.months ? yen(dv.monthly) + " × " + dv.months + "回" : "なし（一括）"}</b>${dv.zanka ? `　24回目（残価）${yen(dv.zanka)}` : ""}${dv.return23 != null ? `<br><span class="note">23か月目に返却した場合の負担額 ${yen(dv.return23)}（プログラム利用料22,000円は別。買替えおトク割で免除あり）</span>` : ""}${dv.first ? `<br><span class="note">1回目のみ ${yen(dv.first)}（割り切れない分を1回目に上乗せ）</span>` : ""}${dv.note ? `<br><span class="note">${dv.note}</span>` : ""}</p>` : ""}
+    ${dv && dv.online !== null ? `<p>端末の月々：<b>${dv.months ? yen(dv.monthly) + " × " + dv.months + "回" : "なし（一括）"}</b>${dv.zanka ? `　24回目（残価）${yen(dv.zanka)}` : ""}${dv.zanka ? `<br><span class="note">そのまま使い続ける場合：25か月目からは 月 ${yen(Math.floor(dv.zanka / 24))} × 24回（24回目の残価を24回に分けた金額）</span>` : ""}${dv.first ? `<br><span class="note">1回目のみ ${yen(dv.first)}（割り切れない分を1回目に上乗せ）</span>` : ""}${dv.note ? `<br><span class="note">${dv.note}</span>` : ""}</p>` : ""}
     ` : ""}
   </div>`}
 
@@ -771,7 +771,7 @@ function doPrint(mode) {
         + (Number(l.device.shitadori) ? rw("下取り", "▲" + yen(l.device.shitadori), "dc") : "")
         + (Number(l.device.point) ? rw("ポイント利用", "▲" + Number(l.device.point).toLocaleString() + "pt", "dc") : "")
         + (dv.zanka ? rw("24回目のお支払い（残価）", yen(dv.zanka)) : "")
-        + (dv.return23 != null ? rw("23か月目に返却した場合のご負担", yen(dv.return23), "sub") : "")
+        + (dv.zanka ? rw("そのまま使い続ける場合（25か月目から）", "月 " + yen(Math.floor(dv.zanka / 24)) + " × 24回", "sub") : "")
         + (dv.monthly ? rw("② 毎月の分割（" + dv.months + "回）", yen(dv.monthly), "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
         : `<div class="none">端末のご購入なし</div>`}
       ${l.contract === "plan" && l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
