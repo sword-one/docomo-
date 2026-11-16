@@ -6,30 +6,60 @@ const DATA_AS_OF = "2026年12月1日改定後の料金（2026年11月確認）";
 // count: みんなドコモ割の回線数に数える（音声プラン。キッズケータイ・データプランは数えない）
 // family: みんなドコモ割 {2回線, 3回線以上} / dcard: dカードお支払割 {gold, general} / hikari: 光・home5Gセット割 / denki: でんきセット割 / choki: 長期利用割の対象
 const PLANS = [
-  { id: "max", count: true, name: "ドコモ MAX", group: "MAX",
+  { id: "max", logo: "https://www.docomo.ne.jp/flcache_data/charge/index/logo_docomo_max.png", color: "#cc0033", count: true, name: "ドコモ MAX", group: "MAX",
     tiers: [{ label: "〜1GB", price: 5698 }, { label: "1GB超〜3GB", price: 6798 }, { label: "3GB超〜無制限", price: 8448 }],
     family: [550, 1210], dcard: [550, 220], hikari: 1210, denki: 110, choki: true, voice: "std", tokuten: 2 },
-  { id: "poimax", count: true, name: "ドコモ ポイ活 MAX", group: "ポイ活",
+  { id: "poimax", logo: "https://www.docomo.ne.jp/flcache_data/charge/index/logo_docomo_poikatsu_max.png", color: "#bc9500", count: true, name: "ドコモ ポイ活 MAX", group: "ポイ活",
     tiers: [{ label: "無制限", price: 11748 }], note: "ポイント還元 上限5,000pt",
     family: [550, 1210], dcard: [550, 220], hikari: 1210, denki: 110, choki: true, voice: "std", tokuten: 2 },
-  { id: "poi20", count: true, name: "ドコモ ポイ活 20", group: "ポイ活",
+  { id: "poi20", logo: "https://www.docomo.ne.jp/flcache_data/charge/index/logo_docomo_poikatsu_20.png", color: "#bc9500", count: true, name: "ドコモ ポイ活 20", group: "ポイ活",
     tiers: [{ label: "〜20GB", price: 7898 }, { label: "20GB超〜無制限", price: 9570 }], note: "ポイント還元 上限2,500pt",
     family: [550, 1210], dcard: [550, 220], hikari: 1210, denki: 110, choki: false, voice: "std" },
-  { id: "mini2", count: true, name: "ドコモ mini2", group: "mini",
+  { id: "mini2", logo: "https://www.docomo.ne.jp/flcache_data/charge/docomo_mini2/images/logo_two_step_plan.svg", color: "#0068b7", count: true, name: "ドコモ mini2", group: "mini",
     tiers: [{ label: "〜6GB", price: 3278 }, { label: "6GB超〜12GB", price: 4598 }], note: "12GB超は月末まで128kbps",
     family: [550, 550], dcard: [550, 220], hikari: 1210, denki: 110, choki: false, voice: "std", senior60Kakeho: true },
-  { id: "ahamo", count: true, name: "ahamo", group: "ahamo",
+  { id: "ahamo", logo: "https://www.docomo.ne.jp/flcache_data/charge/index/logo_ahamo.png", color: "#040000", count: true, name: "ahamo", group: "ahamo",
     tiers: [{ label: "40GB以下", price: 3135 }, { label: "40GB超〜60GB", price: 4125 }, { label: "60GB超〜120GB", price: 5115 }], note: "5分以内の国内通話無料つき",
     family: null, dcard: null, hikari: 0, denki: 0, choki: false, voice: "ahamo" },
-  { id: "u15", count: true, name: "ドコモ スマホデビュープラン U15", group: "特殊",
+  { id: "u15", color: "#cc0033", count: true, name: "ドコモ スマホデビュープラン U15", group: "特殊",
     tiers: [{ label: "〜5GB", price: 2508 }, { label: "5GB超〜20GB", price: 3278 }], note: "利用者5〜15歳",
     family: null, dcard: [550, 220], hikari: 0, denki: 0, choki: false, voice: "std", oyako: [1100, 1870] },
-  { id: "keitai2", count: true, name: "ケータイプラン２", group: "特殊",
+  { id: "keitai2", color: "#555555", count: true, name: "ケータイプラン２", group: "特殊",
     tiers: [{ label: "100MB", price: 1617 }], family: null, dcard: [187, 187], hikari: 0, denki: 0, choki: false, voice: "std" },
-  { id: "kids3", count: false, name: "キッズケータイプラン３", group: "特殊",
+  { id: "kids3", color: "#e58a00", count: false, name: "キッズケータイプラン３", group: "特殊",
     tiers: [{ label: "-", price: 660 }], family: null, dcard: null, hikari: 0, denki: 0, choki: false, voice: "none" },
-  { id: "dataplus", count: false, name: "5Gデータプラス（タブレット等）", group: "特殊",
+  { id: "dataplus", color: "#555555", count: false, name: "5Gデータプラス（タブレット等）", group: "特殊",
     tiers: [{ label: "データシェア", price: 1210 }], family: null, dcard: null, hikari: 0, denki: 0, choki: false, voice: "none" },
+  // ===== 旧プラン（新規受付は終了。機種変更などで今のプランを続ける方向け）=====
+  // 料金は 2026/12/1 改定後（公式の改定表 /charge/plan_renewal2026/js/price.json）。割引は各プランの提供条件書・公式の割引ページで確認（2026/11/16）。
+  // hikari は段階ごとに額が違うプランは配列。noDiscTiers＝その段階は dカードお支払割なし・家族の回線数にも数えない。optLike＝オプションの出し方を合わせるプラン
+  { id: "eximo", legacy: true, color: "#b97850", count: true, name: "eximo", group: "旧プラン",
+    tiers: [{ label: "〜1GB", price: 5115 }, { label: "1GB超〜3GB", price: 6215 }, { label: "3GB超〜無制限", price: 7865 }],
+    family: [550, 1100], dcard: [187, 187], hikari: 1100, denki: 0, choki: false, voice: "std", optLike: "max" },
+  { id: "eximo_poikatsu", legacy: true, color: "#b97850", count: true, name: "eximo ポイ活", group: "旧プラン",
+    tiers: [{ label: "無制限", price: 11165 }], note: "ポイント還元 上限5,000pt",
+    family: [550, 1100], dcard: [187, 187], hikari: 1100, denki: 0, choki: false, voice: "std", optLike: "max" },
+  { id: "irumo", legacy: true, logo: "https://cache.irumo.cilite.docomo.ne.jp/assets/images/common/logo.svg", color: "#00b496", count: true, name: "irumo", group: "旧プラン",
+    tiers: [{ label: "0.5GB", price: 660 }, { label: "3GB", price: 2497 }, { label: "6GB", price: 3157 }, { label: "9GB", price: 3707 }], note: "0.5GBは割引なし・家族の回線数にも数えません",
+    family: null, dcard: [187, 187], hikari: [0, 1100, 1100, 1100], denki: 0, choki: false, voice: "std", noDiscTiers: [0], optLike: "mini2" },
+  { id: "mini", legacy: true, logo: "https://www.docomo.ne.jp/flcache_data/charge/index/logo_docomo_mini.png", color: "#0068b7", count: true, name: "ドコモ mini", group: "旧プラン",
+    tiers: [{ label: "4GB", price: 2750 }, { label: "10GB", price: 3850 }], note: "2026/11/30で新規受付終了。4GB⇔10GBの変更も12/1以降はできません",
+    family: null, dcard: [550, 220], hikari: 1210, denki: 110, choki: false, voice: "std", optLike: "mini2" },
+  { id: "giga5g", legacy: true, color: "#333333", count: true, name: "5Gギガホ", group: "旧プラン",
+    tiers: [{ label: "無制限", price: 8965 }],
+    family: [550, 1100], dcard: [187, 187], hikari: 1100, denki: 0, choki: false, voice: "std", optLike: "max" },
+  { id: "gigapremier5g", legacy: true, color: "#333333", count: true, name: "5Gギガホ プレミア", group: "旧プラン",
+    tiers: [{ label: "〜3GB", price: 6215 }, { label: "3GB超〜無制限", price: 7865 }],
+    family: [550, 1100], dcard: [187, 187], hikari: 1100, denki: 0, choki: false, voice: "std", optLike: "max" },
+  { id: "gigalite5g", legacy: true, color: "#333333", count: true, name: "5Gギガライト", group: "旧プラン",
+    tiers: [{ label: "〜1GB", price: 3795 }, { label: "1GB超〜3GB", price: 4895 }, { label: "3GB超〜5GB", price: 5995 }, { label: "5GB超〜7GB", price: 7095 }],
+    family: [550, 1100], dcard: [187, 187], hikari: [0, 550, 1100, 1100], denki: 0, choki: false, voice: "std", optLike: "max" },
+  { id: "hajimete", legacy: true, color: "#e4007f", count: true, name: "はじめてスマホプラン", group: "旧プラン",
+    tiers: [{ label: "1GB", price: 2090 }], note: "5分以内の国内通話無料つき。はじめてスマホ割（▲550円・最大12か月）が適用中の方は、手入力のオプション欄にマイナスで入れてください",
+    family: null, dcard: [187, 187], hikari: 0, denki: 0, choki: false, voice: "hajimete", autoDisc: [["はじめてスマホISP割", 165]], optLike: "u15" },
+  { id: "u15hajimete", legacy: true, color: "#e4007f", count: true, name: "U15はじめてスマホプラン", group: "旧プラン",
+    tiers: [{ label: "5GB", price: 2090 }, { label: "10GB", price: 3190 }], note: "5分以内の国内通話無料つき",
+    family: null, dcard: [187, 187], hikari: 0, denki: 0, choki: false, voice: "hajimete", autoDisc: [["U15はじめてスマホISP割", 165]], optLike: "u15" },
 ];
 
 // 年齢で使える割引（2026/11/14 ドコモ公式で確認）。plans: プランid → データ量の段階ごとの割引額（税込）
@@ -48,7 +78,8 @@ const SENIOR60_KAKEHO = 990;
 // ハーティ割引（障がい者割引）。plans: 基本料からの割引額。みんなドコモ割・dカードお支払割・オプションパック割引とは併用できない。
 // 出典：https://www.docomo.ne.jp/charge/discount/hearty/about/ ・提供条件書 hearty.pdf・charge_plan2.pdf（ahamo は対象外と明記）
 const HEARTY = {
-  plans: { max: 1980, poimax: 1980, poi20: 1980, u15: 770, keitai2: 407 },
+  plans: { max: 1980, poimax: 1980, poi20: 1980, u15: 770, keitai2: 407,
+    eximo: 1507, eximo_poikatsu: 1507, giga5g: 1507, gigapremier5g: 1507, gigalite5g: 1507, hajimete: 572, u15hajimete: 572 },   // 旧プラン（はじめてスマホ系は基本374＋ISP198。ISP割とは併用不可）
   check: {   // 対象かもしれないが金額が確定できないもの（計算に入れず「要確認」と表示）
     mini2: "mini2がハーティ割引の対象かは公式に記載なし。店頭で確認",
     dataplus: "5Gデータプラスは対象だが、公式資料で割引額が食い違う（22円／220円）ため店頭で確認",
@@ -65,7 +96,7 @@ const HEARTY = {
 // 通話オプション（5分通話無料・かけ放題）を契約していれば、さらに880円引き。みんなドコモ割とは併用できない（ハーティ割引が優先）。
 // 出典：https://www.docomo.ne.jp/charge/kosodate_wari/ ・提供条件書 docomo_max.pdf／charge_plan2.pdf（mini・ahamoは対象外）
 const KOSODATE = {
-  plans: { max: 1210, poimax: 1210, poi20: 1210, keitai2: 0 },
+  plans: { max: 1210, poimax: 1210, poi20: 1210, keitai2: 0, eximo: 1100, eximo_poikatsu: 1100, giga5g: 1100, gigapremier5g: 1100, gigalite5g: 1100 },
   voiceOff: 880,
   cond: "ひとり親世帯など（児童扶養手当受給者証・戸籍謄本などで確認）。契約者1人につき1回線。お子さまが18歳になって最初の3月31日まで",
 };
@@ -79,7 +110,7 @@ const DCARD = {
   gold: { name: "dカード GOLD", short: "GOLD", rate: 0.10, fee: 11000, off: 0 },
   platinum: { name: "dカード PLATINUM", short: "PLATINUM", rate: 0.20, fee: 29700, off: 0, rateNote: "20%は入会初年度。2年目以降はカードのご利用額で10〜20%（月20万円以上20%／10万円以上15%／10万円未満10%）" },
 };
-const DCARD_NO_POINT = ["mini2", "ahamo"];   // 料金へのポイント還元が対象外のプラン
+const DCARD_NO_POINT = ["mini2", "ahamo", "mini", "irumo"];   // 料金へのポイント還元が対象外のプラン
 // ポイ活プランの還元（d払い・dカードでのお買い物に対して。期間・用途限定ポイント）。rates＝お買い物額に対する還元率％
 const POIKATSU = {
   poimax: { cap: 5000, rates: { none: 3, general: 3, goldu: 5, gold: 5, platinum: 10 } },
@@ -89,6 +120,7 @@ const POIKATSU = {
 const VOICE = {
   std: [{ id: "none", name: "なし（22円/30秒）", price: 0 }, { id: "5min", name: "5分通話無料", price: 880 }, { id: "kakeho", name: "かけ放題", price: 1980 }],
   ahamo: [{ id: "none", name: "5分無料（標準）", price: 0 }, { id: "kakeho", name: "かけ放題", price: 1100 }],
+  hajimete: [{ id: "none", name: "5分無料（標準）", price: 0 }, { id: "kakeho", name: "かけ放題", price: 1100 }],
   none: [{ id: "none", name: "-", price: 0 }],
 };
 
@@ -109,9 +141,9 @@ const OPTIONS = [
   { id: "mailmotihakobi", group: "メール・通話", name: "ドコモメール持ち運び", price: 330, plans: ["ahamo"],
     need: "ahamoでドコモメールを使うなら必要。ドコモからahamoへ変える時は、変更と同時にしか申し込めない" },
   { id: "rusuden", group: "メール・通話", name: "留守番電話", price: 330, plans: P_ALL, freeWithVoice: true,
-    pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2"] },
+    pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2", "irumo"] },
   { id: "catch", group: "メール・通話", name: "キャッチホン", price: 220, plans: P_ALL, freeWithVoice: true,
-    pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2"] },
+    pnote: { ahamo: "ahamoは2026/2/25から利用可。かけ放題に入っても割引なし", mini2: "mini2は通話オプションとの割引が公式未記載のため割引なしで計算（ドコモminiは割引あり）。店頭で確認" }, noVoiceFree: ["mini2", "irumo"] },
   { id: "melody", group: "メール・通話", name: "メロディコール", price: 110, plans: ["max", "poimax", "poi20", "u15", "keitai2"], need: "通話オプションに入っても割引なし（割引は留守電・キャッチだけ）。初回31日間無料。曲ごとの音源利用料は別" },
   { id: "optpack", group: "メール・通話", name: "オプションパック（留守電・キャッチ・メロディ・転送）", price: 440, plans: ["max", "poimax", "poi20", "u15", "keitai2"], packWithVoice: 110 },
   // ---- 補償・あんしん ----
@@ -165,6 +197,12 @@ const OPTIONS = [
 
 // プランに最初から含まれているもの（オプション欄の上に表示）
 const PLAN_INCLUDES = {
+  eximo: "ドコモメール・spモード込み（旧プラン）",
+  eximo_poikatsu: "ドコモメール・spモード込み（旧プラン）。ポイント還元は上限5,000pt",
+  giga5g: "ドコモメール・spモード込み（旧プラン）", gigapremier5g: "ドコモメール・spモード込み（旧プラン）", gigalite5g: "ドコモメール・spモード込み（旧プラン）",
+  irumo: "ドコモメールは「ドコモメールオプション（330円）」が必要（旧プラン）",
+  mini: "ドコモメールは「ドコモメールオプション（330円）」が必要。メロディコール・オプションパックは使えない",
+  hajimete: "5分以内の国内通話無料込み（旧プラン）", u15hajimete: "5分以内の国内通話無料込み（旧プラン）",
   max: "ドコモメール・spモード込み。選べる特典（Lemino・dアニメストア・DAZN・NBAのうち月額の高い2つが0円。各サービスの申込は必要）",
   poimax: "ドコモメール・spモード込み。選べる特典（Lemino・dアニメストア・DAZN・NBAのうち月額の高い2つが0円。各サービスの申込は必要）",
   poi20: "ドコモメール・spモード込み",

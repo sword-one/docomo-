@@ -78,8 +78,15 @@ details.others > summary::before { content:"＋ "; } details.others[open] > summ
 .pcard .pr { font-size:13px; color:var(--navy); font-weight:700; margin-top:2px; }
 .pcard .tg { font-size:12px; color:#666; margin-top:2px; }
 .pgrid.sub .pcard { padding:8px 10px; } .pgrid.sub .pcard .nm { font-size:14px; }
-.pcard.on { background:var(--navy); border-color:var(--navy); color:#fff; }
-.pcard.on .pr, .pcard.on .tg { color:#dde4f0; }
+.pcard { border-left:6px solid var(--pc, var(--navy)); }
+.pcard.on { background:#fff; border-color:var(--pc, var(--navy)); box-shadow:0 0 0 2.5px var(--pc, var(--navy)) inset; }
+.plogo { height:30px; display:flex; align-items:center; margin-bottom:4px; } .plogo img { max-height:30px; max-width:100%; object-fit:contain; }
+.plogo .ptxt { font-weight:800; font-size:15px; color:var(--pc, var(--navy)); line-height:1.2; }
+.plogo.big { height:38px; display:inline-flex; vertical-align:middle; margin:0 8px 0 0; } .plogo.big img { max-height:38px; max-width:230px; } .plogo.big .ptxt { font-size:19px; }
+.selplan { border-left:8px solid var(--pc, var(--navy)) !important; background:#fff !important; }
+.ptabs { display:flex; gap:6px; border-bottom:2px solid var(--navy); margin-bottom:4px; }
+.ptabs button { border:none; background:#dde4f0; padding:10px 16px; border-radius:8px 8px 0 0; font-size:15px; font-weight:700; cursor:pointer; min-height:44px; color:#222; }
+.ptabs button.on { background:var(--navy); color:#fff; }
 .selplan { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#eef2f9; border:1.5px solid var(--navy); border-radius:10px; padding:10px 12px; }
 .selplan .nm { font-size:18px; font-weight:800; color:var(--navy); } .selplan .tg { font-size:13px; color:#555; }
 .tgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; }
@@ -255,7 +262,11 @@ function newLine(n) {
 let S = { lines: [newLine(1)], cur: 0, extra: 0 };
 
 function plan(l) { const p = PLANS.find(x => x.id === l.plan); if (l.tier >= p.tiers.length) l.tier = p.tiers.length - 1; const vs = VOICE[p.voice] || VOICE.none; if (!vs.find(v => v.id === l.voice)) l.voice = vs[0].id; return p; }
-function familyCount() { return S.lines.filter(l => { const p = plan(l); return p && p.count && l.family; }).length + Number(S.extra || 0); }
+const tierOff = (p, l) => (p.noDiscTiers || []).includes(l.tier);                 // この段階は割引・回線数カウントの対象外（irumo 0.5GB）
+const hikariOf = (p, l) => Array.isArray(p.hikari) ? (p.hikari[l.tier] || 0) : (p.hikari || 0);   // 光セット割は段階で額が違うプランがある
+const dcardOf = (p, l) => tierOff(p, l) ? null : p.dcard;
+const oid = p => p.optLike || p.id;                                              // オプションの出し方を合わせるプラン
+function familyCount() { return S.lines.filter(l => { const p = plan(l); return p && p.count && l.family && !tierOff(p, l); }).length + Number(S.extra || 0); }
 
 // ---------- 計算 ----------
 function calc(l) {
@@ -264,14 +275,15 @@ function calc(l) {
   const fc = familyCount();
   const hearty = l.hearty && HEARTY.plans[p.id] != null;
   if (hearty) r.disc.push(["ハーティ割引", HEARTY.plans[p.id]]);
+  if (p.autoDisc && !hearty) p.autoDisc.forEach(x => r.disc.push([x[0], x[1]]));   // 自動で付く割引（はじめてスマホISP割。ハーティ割引とは併用不可）
   const ag = AGE_DISCOUNTS[l.age];
   if (ag && ag.plans[p.id]) { const a = ag.plans[p.id]; r.disc.push([ag.name + "（最大" + ag.months + "か月）", a[Math.min(l.tier, a.length - 1)], ag.months]); }
   const kosodate = kosodateOn(l, p);
   if (kosodate && KOSODATE.plans[p.id]) r.disc.push(["子育てサポート割引", KOSODATE.plans[p.id]]);
   if (!hearty && !kosodate && p.family && l.family && fc >= 2) r.disc.push(["みんなドコモ割（" + (p.family[0] === p.family[1] ? "2回線以上" : fc >= 3 ? "3回線以上" : "2回線") + "）", fc >= 3 ? p.family[1] : p.family[0]]);
-  const cardOff = c => (!hearty && p.dcard && DCARD[c]) ? p.dcard[DCARD[c].off] : 0;   // dカードお支払割の額
+  const cardOff = c => (!hearty && dcardOf(p, l) && DCARD[c]) ? p.dcard[DCARD[c].off] : 0;   // dカードお支払割の額
   if (cardOff(l.dcard)) r.disc.push(["dカードお支払割（" + DCARD[l.dcard].short + "）", cardOff(l.dcard)]);
-  if (p.hikari && l.hikari) r.disc.push(["ドコモ光／home 5G セット割", p.hikari]);
+  if (hikariOf(p, l) && l.hikari) r.disc.push(["ドコモ光／home 5G セット割", hikariOf(p, l)]);
   // 年齢の割引（U22/U29/60歳以上割）の期間中は、でんきセット割・長期利用割は適用されず、期間後に再開（提供条件書）
   const agOn = ag && ag.plans[p.id] ? ag.months : 0;
   r.late = [];
@@ -298,7 +310,7 @@ function calc(l) {
   r.monthly = r.monthlyCharge + (r.dev ? r.dev.monthly : 0);
   // dカードのおトク（割引＋料金のポイント還元）。カードごとに「持った場合」を計算
   const billBase = r.planNet + cardOff(l.dcard);   // dカード割引を引く前の基本料
-  r.cards = !p.dcard ? [] : ["gold", "platinum"].concat(["general", "goldu"].includes(l.dcard) ? [l.dcard] : []).map(c => {
+  r.cards = !dcardOf(p, l) ? [] : ["gold", "platinum"].concat(["general", "goldu"].includes(l.dcard) ? [l.dcard] : []).map(c => {
     const off = cardOff(c), bill = Math.max(0, billBase - off) + r.voice;                     // 割引後の基本料＋通話（税込）
     const pts = DCARD_NO_POINT.includes(p.id) ? 0 : Math.floor(Math.round(bill / 1.1) / 1000) * 1000 * DCARD[c].rate;
     return { id: c, name: DCARD[c].name, off, pts: Math.round(pts), total: off + Math.round(pts), fee: DCARD[c].fee, sel: l.dcard === c };
@@ -325,6 +337,12 @@ function calc(l) {
   return r;
 }
 
+let planTab = "now";      // プラン一覧のタブ（now＝いまのプラン／old＝旧プラン）
+// プランのロゴ（公式の画像）。ロゴの無いプランは、プランの色の帯＋名前で見分ける
+function planLogo(x, big) {
+  return x.logo ? `<div class="plogo ${big ? "big" : ""}"><img src="${x.logo}" alt="${esc(x.name)}" onerror="this.outerHTML='<span class=&quot;ptxt&quot;>${esc(x.name)}</span>'"></div>`
+                : `<div class="plogo ${big ? "big" : ""}"><span class="ptxt">${esc(x.name)}</span></div>`;
+}
 let planOpen = false;
 let othersOpen = false;   // 「その他のオプション」を開いているか   // プラン一覧を開いているか（選んだら閉じて、データ量だけ見せる）
 const MAIN_PLANS = ["max", "poimax", "poi20", "mini2", "ahamo"];
@@ -355,7 +373,7 @@ function heartyOn(l, p) { return l.hearty && HEARTY.plans[p.id] != null; }
 function optOK(o, p, l) {
   if (l && heartyOn(l, p) && HEARTY.noOptions.includes(o.id)) return false;
   if (l && HOSHO_OPT[o.id]) { const t = hoshoTarget(l); if (t && t.h && t.h.type !== HOSHO_OPT[o.id].type) return false; }
-  return !o.plans || o.plans.includes(p.id);
+  return !o.plans || o.plans.includes(oid(p));
 }
 // ---- 機種ごとの補償の金額（ドコモ公式の月額料金検索から毎朝取得） ----
 const HS = (typeof HOSHO !== "undefined") ? HOSHO : [];
@@ -432,7 +450,7 @@ function render() {
   const l = S.lines[S.cur], p = plan(l), r = calc(l);
   const tierBtns = p.tiers.map((t, i) => `<div class="tcard ${l.tier === i ? "on" : ""}" onclick="set('tier',${i})"><div class="lb">${t.label === "-" ? "定額" : t.label}</div><div class="yen">${yen(t.price)}</div></div>`).join("");
   const planCard = x => { const lo = Math.min(...x.tiers.map(t => t.price));
-    return `<div class="pcard ${l.plan === x.id ? "on" : ""}" onclick="setPlan('${x.id}')"><div class="nm">${x.name}${x.auto ? '<span class="badge">新プラン</span>' : x.changed ? '<span class="badge">料金変更</span>' : ""}</div><div class="pr">月 ${yen(lo)}${x.tiers.length > 1 ? "〜" : ""}</div><div class="tg">${PLAN_TAG[x.id] || ""}</div></div>`; };
+    return `<div class="pcard ${l.plan === x.id ? "on" : ""}" style="--pc:${x.color || "#1b3f73"}" onclick="setPlan('${x.id}')">${planLogo(x)}<div class="pr">月 ${yen(lo)}${x.tiers.length > 1 ? "〜" : ""}${x.auto ? '<span class="badge">新プラン</span>' : x.changed ? '<span class="badge">料金変更</span>' : ""}</div><div class="tg">${PLAN_TAG[x.id] || ""}</div></div>`; };
   const vEff = v => { if (p.senior60Kakeho && l.age === "s60" && v.id === "kakeho") return SENIOR60_KAKEHO; if (heartyOn(l, p) && p.voice === "std" && HEARTY.voice[v.id] != null) return HEARTY.voice[v.id]; if (kosodateOn(l, p) && v.price) return Math.max(0, (p.senior60Kakeho && l.age === "s60" && v.id === "kakeho" ? SENIOR60_KAKEHO : v.price) - KOSODATE.voiceOff); return v.price; };
   const voices = (VOICE[p.voice] || VOICE.none).map(v => { const e = vEff(v); return `<div class="chip ${l.voice === v.id ? "on" : ""}" onclick="set('voice','${v.id}')">${v.name}<small>${e !== v.price ? `<s>${yen(v.price)}</s> ${yen(e)}` : v.price ? yen(v.price) : ""}</small></div>`; }).join("");
   const cats = [...new Set(DEV.map(d => d.cat))];
@@ -455,12 +473,16 @@ function render() {
 
   <div class="card"><h2>① 料金プラン</h2>
     ${planOpen ? `
+    <div class="ptabs">${[["now", "いまのプラン"], ["old", "その他プラン（旧プラン）"]].map(([k, n]) => `<button class="${planTab === k ? "on" : ""}" onclick="planTab='${k}';render()">${n}</button>`).join("")}</div>
+    ${planTab === "old" ? `
+    <p class="note" style="margin:6px 0">新しく申し込むことはできないプランです。機種変更などで、今のプランをそのまま続ける方に使ってください。料金は2026年12月1日の改定後の金額です。</p>
+    <div class="pgrid">${PLANS.filter(x => x.legacy).map(planCard).join("")}</div>` : `
     <div class="sec-t">スマホのプラン</div>
     <div class="pgrid">${PLANS.filter(x => MAIN_PLANS.includes(x.id)).map(planCard).join("")}</div>
     <div class="sec-t">お子さま・ケータイ・タブレット${PLANS.some(x => x.auto) ? "・新プラン" : ""}</div>
-    <div class="pgrid sub">${PLANS.filter(x => !MAIN_PLANS.includes(x.id)).map(planCard).join("")}</div>
+    <div class="pgrid sub">${PLANS.filter(x => !MAIN_PLANS.includes(x.id) && !x.legacy).map(planCard).join("")}</div>`}
     <div style="text-align:right;margin-top:8px"><button class="btn" onclick="planOpen=false;render()">閉じる</button></div>` : `
-    <div class="selplan"><div><div class="nm">${p.name}${p.auto ? '<span class="badge">新プラン</span>' : p.changed ? '<span class="badge">料金変更</span>' : ""}</div><div class="tg">${PLAN_TAG[p.id] || ""}</div></div>
+    <div class="selplan" style="--pc:${p.color || "#1b3f73"}"><div>${planLogo(p, true)}${p.legacy ? '<span class="badge" style="background:#666">旧プラン</span>' : ""}${p.auto ? '<span class="badge">新プラン</span>' : p.changed ? '<span class="badge">料金変更</span>' : ""}<div class="tg">${PLAN_TAG[p.id] || ""}</div></div>
       <button class="btn" onclick="planOpen=true;render()">プランを変える</button></div>`}
     ${p.tiers.length > 1 ? `<div class="sec-t">ひと月に使うデータ量（${p.name}）</div><div class="tgrid">${tierBtns}</div>` : `<div class="sec-t">月額（${p.name}）</div><div class="tgrid">${tierBtns}</div>`}
     ${p.note ? `<p class="note">※${p.note}</p>` : ""}
@@ -477,7 +499,7 @@ function render() {
 
   <div class="card"><h2>④ オプション <span class="note">（${p.name}で申し込めるものだけ表示）</span></h2>
     ${l.removedMsg ? `<p class="warn">${esc(l.removedMsg)}</p>` : ""}
-    ${PLAN_INCLUDES[p.id] ? `<p class="note" style="margin:0 0 6px">ℹ ${p.name}：${PLAN_INCLUDES[p.id]}</p>` : ""}
+    ${PLAN_INCLUDES[p.id] || PLAN_INCLUDES[oid(p)] ? `<p class="note" style="margin:0 0 6px">ℹ ${p.name}：${PLAN_INCLUDES[p.id] || PLAN_INCLUDES[oid(p)]}</p>` : ""}
     ${(() => {
       const grp = (list) => OPTION_GROUPS.map(g => { const os = list.filter(o => o.group === g); return os.length ? `<div class="og">${g}</div>` + os.map(o => optRow(l, o, p)).join("") : ""; }).join("");
       const ok = OPTIONS.filter(o => optOK(o, p, l));
@@ -576,7 +598,8 @@ function discRows(l, p, r) {
   // 3. みんなドコモ割（家族の回線数）
   const fc = familyCount();
   const stepper = `<div class="step"><span>見積以外のご家族</span><button onclick="S.extra=Math.max(0,Number(S.extra||0)-1);render()">－</button><b>${Number(S.extra || 0)}</b><button onclick="S.extra=Number(S.extra||0)+1;render()">＋</button><span>回線</span></div>`;
-  if (p.count) {
+  if (p.count && tierOff(p, l)) out.push(row("みんなドコモ割", `<span class="note">${p.name} ${p.tiers[l.tier].label}は割引の対象外で、ご家族の回線数にも数えません</span>`, `<span class="dv off">対象外</span>`, ""));
+  else if (p.count) {
     const fRight = !p.family ? `<span class="dv off">割引なし</span>` : hearty ? `<span class="dv off">—</span>` : fc >= 2 && l.family ? amt(/みんなドコモ割/) : `<span class="dv off">—</span>`;
     const fSub = hearty && p.family ? ng : !p.family ? `${p.name}は割引なし（家族の回線数には数える）` : `ご家族の音声回線 合計<b>${fc}回線</b>（2回線で▲${yen(p.family[0])}、3回線以上で▲${yen(p.family[1])}）`;
     if (!p.family) out.push(row("みんなドコモ割", `<span class="note">${p.name}は割引の対象外です（ご家族の割引の回線数には数えます）</span>`, `<span class="dv off">対象外</span>`, ""));
@@ -585,14 +608,16 @@ function discRows(l, p, r) {
     else out.push(row("みんなドコモ割", seg("family", l.family, [[true, "家族グループに入る"], [false, "入らない"]]) + (l.family ? stepper : ""), fRight, l.family ? fSub + (fc < 2 ? "　<b>※2回線以上で割引になります</b>" : "") : "グループに入らないと割引なし"));
   }
   // 4. dカード
-  if (p.dcard) {
+  if (p.dcard && tierOff(p, l)) out.push(row("dカード", `<span class="note">${p.name} ${p.tiers[l.tier].label}はdカードお支払割の対象外です</span>`, `<span class="dv off">対象外</span>`, ""));
+  else if (p.dcard) {
     const cs = r.cards.filter(c => c.pts > 0).map(c => `<div class="cardb ${c.sel ? "on" : ""}"><b>${c.name}</b>${c.sel ? "（選択中）" : "にすると"}　たまるポイント <b>毎月 ${c.pts.toLocaleString()}pt／年間 ${(c.pts * 12).toLocaleString()}pt</b>${DCARD[c.id].rateNote ? `<small>${DCARD[c.id].rateNote}</small>` : ""}</div>`).join("");
     out.push(row("dカード", seg("dcard", l.dcard, [["none", "なし"], ["general", "dカード"], ["goldu", "GOLD U"], ["gold", "GOLD"], ["platinum", "PLATINUM"]]), hearty ? `<span class="dv off">—</span>` : amt(/dカード/),
       (hearty ? "ハーティ割引中はdカードお支払割は使えません（ポイント還元は対象）。" : `お支払割：dカード ▲${yen(p.dcard[1])}／GOLD U・GOLD・PLATINUM ▲${yen(p.dcard[0])}。`) + (DCARD_NO_POINT.includes(p.id) ? `${p.name}の料金はポイント還元の対象外。` : "ポイントは割引後の基本料・通話料（税抜1,000円ごと）が対象。端末代・事務手数料は対象外。") + cs));
     if (r.poikatsu) out.push(row("ポイ活の還元", `<span class="note">d払い・dカードのお買い物の ${r.poikatsu.rate}%（上限 ${r.poikatsu.cap.toLocaleString()}pt／月）。上限まで貯めるには月 約${yen(r.poikatsu.need)}のお買い物</span>`, `<b class="dv">実質 ${yen(r.poikatsu.jisshitsu)}</b><small>上限まで貯めた場合／年間 最大${(r.poikatsu.cap * 12).toLocaleString()}pt</small>`, ""));
   }
   // 5. 光・でんき
-  if (p.hikari) out.push(row("ドコモ光・home 5G", seg("hikari", l.hikari, [[false, "なし"], [true, "あり"]]), amt(/光／home/), `セット割 ▲${yen(p.hikari)}`));
+  if (hikariOf(p, l)) out.push(row("ドコモ光・home 5G", seg("hikari", l.hikari, [[false, "なし"], [true, "あり"]]), amt(/光／home/), `セット割 ▲${yen(hikariOf(p, l))}${Array.isArray(p.hikari) ? "（データ量の段階で額が変わります）" : ""}`));
+  else if (Array.isArray(p.hikari)) out.push(row("ドコモ光・home 5G", `<span class="note">${p.name} ${p.tiers[l.tier].label}はセット割の対象外です</span>`, `<span class="dv off">対象外</span>`, ""));
   if (p.denki) out.push(row("ドコモでんき", seg("denki", l.denki, [[false, "なし"], [true, "あり"]]), amt(/でんき/), `セット割 ▲${yen(p.denki)}` + (agA ? "（年齢の割引の期間中は止まり、終わってから適用）" : "")));
   // 6. 長期利用割
   if (p.choki) out.push(row("ドコモの利用期間", seg("choki", l.choki, [["none", "10年未満"], ["10", "10年以上"], ["20", "20年以上"]]), amt(/長期利用割/), "長期利用割 10年以上▲110／20年以上▲220" + (agA ? "（年齢の割引の期間中は止まり、終わってから適用）" : "")));
@@ -621,7 +646,8 @@ function optRow(l, o, p) {
     if (t && !t.buy) tips.push("補償は機種を買う時にしか新しく入れません（加入中の方の月額として表示）"); }
   else if (o.input && o.hint) tips.push("目安 " + o.hint + "（機種で変わる）");
   if (o.need) tips.push(o.need);
-  if (o.pnote && o.pnote[p.id]) tips.push(o.pnote[p.id]);
+  if (o.pnote && (o.pnote[p.id] || (p.id !== "mini" && o.pnote[oid(p)]))) tips.push(o.pnote[p.id] || o.pnote[oid(p)]);
+  if (o.freeWithVoice && p.id === "irumo") tips.push("irumoは通話オプションとの割引が公式で確認できないため、割引なしで計算");
   if (e.why) tips.push(e.why);
   else if (o.freeWithVoice && p.voice === "std") tips.push("5分通話無料かかけ放題に入ると0円");
   if (o.freeWithVoice && p.id === "ahamo") tips.push("ahamoでも使える（2026/2/25から）。かけ放題に入っても割引なし");
@@ -644,7 +670,7 @@ function renderSum() {
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function set(k, v) { S.lines[S.cur][k] = v; render(); }
 function setDev(k, v) { S.lines[S.cur].device[k] = v; render(); }
-function setPlan(id) { planOpen = false; const l = S.lines[S.cur]; l.plan = id; const p = plan(l);
+function setPlan(id) { planOpen = false; planTab = PLANS.find(x => x.id === id).legacy ? "old" : "now"; const l = S.lines[S.cur]; l.plan = id; const p = plan(l);
   const drop = OPTIONS.filter(o => l.opts[o.id] && !optOK(o, p, l)); drop.forEach(o => delete l.opts[o.id]);
   l.removedMsg = drop.length ? `${p.name}では使えないため外しました：${drop.map(o => o.name).join("、")}` : ""; l.tier = p.tiers.length - 1; l.voice = (VOICE[p.voice] || VOICE.none)[0].id; render(); }
 function addLine() { S.lines.push(newLine(S.lines.length + 1)); S.cur = S.lines.length - 1; render(); }
