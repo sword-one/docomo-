@@ -882,20 +882,21 @@ function doPrint(mode) {
   // ===== ご提案シート（別紙）：dカード =====
   // まだ GOLD／PLATINUM をお持ちでない回線があれば出す。数字はこの見積の内容から計算（割引＋料金でたまるポイント）
   const cardPage = () => {
-    const best = "gold";   // ご提案するのは dカード GOLD（山口さん指定：年会費無料のdカードは提案しない）
-    let v, cur, pl, lines;
+    const best = M.card === "platinum" ? "platinum" : "gold";   // ご提案するのは GOLD か PLATINUM（山口さん指定：年会費無料のdカードは提案しない）
+    const now = M.now === "gold" && best !== "platinum" ? "none" : M.now;
+    let v, cur, pl, lines, gPts;   // gPts＝還元10%で計算したポイント（PLATINUMの2年目以降の下限）
     if (man) {   // 手入力：お支払割は「額×回線数」、ポイントは うかがった毎月の料金（税込）を税抜にして計算
       lines = M.c550 + M.c187; if (!lines) return needIn("回線数");
       const base = Math.floor(Math.round(Number(M.bill || 0) / 1.1) / 1000) * 1000, pt = id => Math.round(base * DCARD[id].rate);
-      v = { off: PM_CARD.n[0] * M.c550 + PM_CARD.o[0] * M.c187, pts: pt("gold") };
-      cur = M.now === "general" ? { off: PM_CARD.n[1] * M.c550 + PM_CARD.o[1] * M.c187, pts: pt("general") } : { off: 0, pts: 0 };
+      v = { off: PM_CARD.n[0] * M.c550 + PM_CARD.o[0] * M.c187, pts: pt(best) }; gPts = pt("gold");
+      cur = now === "general" ? { off: PM_CARD.n[1] * M.c550 + PM_CARD.o[1] * M.c187, pts: pt("general") } : now === "gold" ? { off: v.off, pts: pt("gold") } : { off: 0, pts: 0 };
       pl = { pts: pt("platinum") };
     } else {
-      const tgt = S.lines.map((l, k) => ({ l, r: rs[k] })).filter(x => x.r.cards.length && !["gold", "platinum"].includes(x.l.dcard));
+      const tgt = S.lines.map((l, k) => ({ l, r: rs[k] })).filter(x => x.r.cards.length && !(best === "platinum" ? ["platinum"] : ["gold", "platinum"]).includes(x.l.dcard));
       if (!tgt.length) return "";
       const sum = id => tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.id === id); return { off: a.off + c.off, pts: a.pts + c.pts }; }, { off: 0, pts: 0 });
       cur = tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.sel); return c ? { off: a.off + c.off, pts: a.pts + c.pts } : a; }, { off: 0, pts: 0 });   // 今お使いのカード（dカード・GOLD U）の分
-      v = sum(best); pl = sum("platinum"); lines = tgt.length;
+      v = sum(best); pl = sum("platinum"); lines = tgt.length; gPts = sum("gold").pts;
     }
     const month = v.off + v.pts, year = month * 12, fee = DCARD[best].fee, card = DCARD[best];
     const curY = (cur.off + cur.pts) * 12, G = year - curY;   // G＝今のお支払い方法とくらべて、1年で増えるおトク
@@ -908,13 +909,14 @@ function doPrint(mode) {
 
       <div class="teq">
         <div><span>毎月の料金が安くなる</span><b>${yen(v.off)}</b><small>dカードお支払割</small></div>${v.pts ? `<i>＋</i>
-        <div><span>毎月 dポイントがたまる</span><b>${v.pts.toLocaleString("ja-JP")}pt</b><small>ドコモの料金の${Math.round(card.rate * 100)}%</small></div>` : ""}<i>＝</i>
+        <div><span>毎月 dポイントがたまる</span><b>${v.pts.toLocaleString("ja-JP")}pt</b><small>ドコモの料金の${Math.round(card.rate * 100)}%${best === "platinum" ? "（入会初年度）" : ""}</small></div>` : ""}<i>＝</i>
         <div class="tot"><span>毎月</span><b>約 ${yen(month)}分</b><small>1年で 約 ${yen(year)}分</small></div>
       </div>
-      ${curY ? `<div class="pn" style="margin-top:-1mm">※上は ${card.name} で受けられる合計です。今の dカードで受けている分（年間 約 ${yen(curY)}分）を引いた差が、年間 約 ${yen(G)}分です。</div>` : ""}
+      ${best === "platinum" && v.pts ? `<div class="pn" style="margin-top:-1mm;font-size:9.5pt"><b>※ポイント20%は入会初年度です。</b>2年目以降はカードのご利用額により10〜20%（月20万円以上20%／10万円以上15%／10万円未満10%）。10%の場合は 1年で 約 ${yen((v.off + gPts) * 12)}分です。</div>` : ""}
+      ${curY ? `<div class="pn" style="margin-top:-1mm">※上は ${card.name} で受けられる合計です。今の${now === "gold" || (!man && curY && best === "platinum") ? "カード" : " dカード"}で受けている分（年間 約 ${yen(curY)}分）を引いた差が、年間 約 ${yen(G)}分です。</div>` : ""}
 
       <div class="tloss"><div class="tlh">今のお支払い方法のままだと…</div>
-        <div class="tlb">この <b>年間 約 ${yen(G)}分</b> は、毎年 受け取らないままになります。<br><span>5年で 約 ${yen(G * 5)}分。同じ料金を払うなら、受け取れる方がおトクです。</span></div></div>
+        <div class="tlb">この <b>年間 約 ${yen(G)}分</b> は、毎年 受け取らないままになります。<br><span>${best === "platinum" ? "" : `5年で 約 ${yen(G * 5)}分。`}同じ料金を払うなら、受け取れる方がおトクです。</span></div></div>
 
       <div class="tbars"><div class="tbh">${fee ? "年会費とくらべると" : "年会費はかかりません"}</div>
         <div class="tbr"><span>1年間のおトク</span><div class="bar"><i style="width:${bar(G, mx)}%"></i></div><b>${yen(G)}分</b></div>
@@ -922,18 +924,18 @@ function doPrint(mode) {
         ${G >= fee ? `<div class="tnet">年会費を引いても <b>年間 約 ${yen(G - fee)}分 プラス</b> です。</div>` : `<div class="tnet">料金のおトクに加えて、<b>下の特典も合わせてご覧ください。</b></div>`}
       </div>
 
-      ${best === "gold" ? `<div class="tperk"><div class="tbh">料金のおトクだけではありません</div>
-        ${DCARD_GOLD_PERKS.map(x => `<div class="tp"><span class="ck">✔</span><div><b>${x[0]}</b><br>${x[1]}</div></div>`).join("")}</div>
-        ${pl.pts ? `<div class="tplus">さらに <b>dカード PLATINUM</b> なら、たまるポイントは 毎月 ${pl.pts.toLocaleString("ja-JP")}pt（入会初年度。2年目以降はカードのご利用額により変わります）。</div>` : ""}` : ""}
+      ${true ? `<div class="tperk"><div class="tbh">料金のおトクだけではありません</div>
+        ${(best === "platinum" ? DCARD_PLATINUM_PERKS : DCARD_GOLD_PERKS).map(x => `<div class="tp"><span class="ck">✔</span><div><b>${x[0]}</b><br>${x[1]}</div></div>`).join("")}</div>
+        ${best === "gold" && pl.pts ? `<div class="tplus">さらに <b>dカード PLATINUM</b> なら、たまるポイントは 毎月 ${pl.pts.toLocaleString("ja-JP")}pt（入会初年度。2年目以降はカードのご利用額により変わります）。</div>` : ""}` : ""}
 
       <div class="tfam"><div class="tfh">ご家族も<br>家族カードを<br>作ると</div><div class="tfb">
-        <div><b>1枚目は 年会費無料</b>（2枚目からは1枚 1,100円）</div>
+        <div><b>1枚目は 年会費無料</b>${best === "gold" ? "（2枚目からは1枚 1,100円）" : ""}</div>
         <div>✔ ご家族のお買い物でも dポイントがたまり、<b>ポイントはまとめて1つに</b></div>
-        <div>✔ ご家族のスマホにも <b>dカードケータイ補償</b>／<b>お買物あんしん保険</b></div></div></div>
+        ${best === "gold" ? `<div>✔ ご家族のスマホにも <b>dカードケータイ補償</b>／<b>お買物あんしん保険</b></div>` : `<div>✔ ご家族それぞれが、自分のカードでお支払いできます</div>`}</div></div>
       <div class="tcta"><b>お申込みは、この場でスタッフがお手伝いします。</b><span>お手続きに必要なもの・入会特典は、スタッフにおたずねください。</span></div>
 
       <div class="pn">※金額は税込。${man ? "うかがった内容" : "本日のお見積りの料金"}をもとにした目安で、実際の割引・ポイントはご利用状況により変わります。ポイントは割引後の基本料金・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。ドコモ mini2・ahamo などポイント還元の対象外のプランがあります。<br>
-      ※dカードお支払割は、対象プランの料金をカードでお支払いの場合に適用されます。${fee ? `${card.name}の年会費は${yen(fee)}（税込）です。` : ""}カードのお申込みには所定の審査があります（満18歳以上・高校生を除く）。家族カードは、生計を共にする満18歳以上（高校生を除く）の配偶者・お子さま・ご両親が対象で、ポイントは本会員にまとまります。ケータイ補償のご利用には携帯電話番号の登録が必要です。<br>
+      ※dカードお支払割は、対象プランの料金をカードでお支払いの場合に適用されます。${fee ? `${card.name}の年会費は${yen(fee)}（税込）です。` : ""}カードのお申込みには所定の審査があります（${best === "platinum" ? "満20歳以上・学生を除く・安定した継続収入のある方" : "満18歳以上・高校生を除く"}）。${best === "platinum" ? "家族会員は対象外になるサービスがあります。" : ""}家族カードは、生計を共にする満18歳以上（高校生を除く）の配偶者・お子さま・ご両親が対象で、ポイントは本会員にまとまります。ケータイ補償のご利用には携帯電話番号の登録が必要です。<br>
       ※${DATA_AS_OF.replace("改定後の料金", "時点の内容")}。特典・還元率は変更になる場合があります。</div>
     </div>`;
   };
@@ -1012,7 +1014,7 @@ function doPrint(mode) {
       ※ドコモでんきセット割は、ドコモ MAX・ポイ活 MAX・ポイ活 20・ドコモ mini2 などが対象です（年齢による割引の期間中は適用されません）。ドコモ ガスは東邦ガスの都市ガスエリアが対象で、一部ご利用になれない地域があります。2026年11月時点の内容です。</div></div>`;
   };
 
-  const SHEETS = [["dcard", "dカード GOLD", cardPage], ["hikari", "ドコモ光", hikariPage], ["denki", "でんき・ガス", denkiPage]];
+  const SHEETS = [["dcard", "dカード", cardPage], ["hikari", "ドコモ光", hikariPage], ["denki", "でんき・ガス", denkiPage]];
   const PROPS = SHEETS.map(([id, name, f]) => ({ id, name, html: f() })).filter(x => x.html);
   const props = PROPS.filter(x => S.props[x.id] !== false).map(x => x.html);
   const isProp = printMode === "prop";
@@ -1032,15 +1034,18 @@ function doPrint(mode) {
   if (!isProp) {
     if (N > 1) ctl += row("見積書の形", pk(printMode === "each", `1回線ずつ（まとめ＋${N}枚）`, "doPrint('each')") + pk(printMode === "one", "まとめて1枚", "doPrint('one')"));
     if (PROPS.length) ctl += row("別紙をつける", PROPS.map(x => pk(S.props[x.id] !== false, x.name, `S.props['${x.id}']=${S.props[x.id] === false};doPrint()`)).join("") + `<small>色がついているものが、見積書のうしろに付きます。押すと付ける／はずすが切り替わります。</small>`);
+    if (PROPS.some(x => x.id === "dcard") && S.props.dcard !== false) ctl += row("dカードの別紙", pk(M.card !== "platinum", "dカード GOLD", "pmSet('card','gold')") + pk(M.card === "platinum", "dカード PLATINUM", "pmSet('card','platinum')"));
     if (PROPS.some(x => x.id === "hikari") && S.props.hikari !== false) ctl += row("ドコモ光の別紙", homeNet);
     if (PROPS.some(x => x.id === "denki") && S.props.denki !== false) ctl += row("でんきの別紙", denGas);
   } else {
     ctl += row("① どれを見せる？", SHEETS.map(([id, name]) => pk(sheet === id, name, `pmSet('sheet','${id}')`)).join(""));
     ctl += row("② 金額は", pk(man, "ここで手入力", "pmSet('src','man')") + pk(!man, "見積の内容で計算", "pmSet('src','est')"));
+    if (sheet === "dcard") ctl += row("③ どのカード？", pk(M.card !== "platinum", "dカード GOLD", "pmSet('card','gold')") + pk(M.card === "platinum", "dカード PLATINUM", "pmSet('card','platinum')"));
     if (sheet === "dcard" && man) {
-      ctl += row("③ 回線数", stp("c550", `<b class="a">${yen(PM_CARD.n[0])}</b> 引き<small>新しいプラン（MAX・ポイ活・mini2・mini）</small>`) + stp("c187", `<b class="a">${yen(PM_CARD.o[0])}</b> 引き<small>前のプラン（eximo・irumo・ギガホなど）</small>`));
-      ctl += row("④ 毎月の料金", pin("pm", "bill", "基本料金＋通話料の合計（税込・だいたい）", "例 8000") + `<small>入れると、たまるポイントも出ます（空でもOK）。mini2・mini・irumo・ahamo の回線はポイントの対象外なので、入れないでください。</small>`);
-      ctl += row("⑤ 今のお支払い", pk(M.now !== "general", "口座振替・ほかのカード", "pmSet('now','none')") + pk(M.now === "general", "dカード（年会費無料）", "pmSet('now','general')"));
+      ctl += row("④ 回線数", stp("c550", `<b class="a">${yen(PM_CARD.n[0])}</b> 引き<small>新しいプラン（MAX・ポイ活・mini2・mini）</small>`) + stp("c187", `<b class="a">${yen(PM_CARD.o[0])}</b> 引き<small>前のプラン（eximo・irumo・ギガホなど）</small>`));
+      ctl += row("⑤ 毎月の料金", pin("pm", "bill", "基本料金＋通話料の合計（税込・だいたい）", "例 8000") + `<small>入れると、たまるポイントも出ます（空でもOK）。mini2・mini・irumo・ahamo の回線はポイントの対象外なので、入れないでください。</small>`);
+      const nw = M.now === "gold" && M.card !== "platinum" ? "none" : (M.now || "none");
+      ctl += row("⑥ 今のお支払い", pk(nw === "none", "口座振替・ほかのカード", "pmSet('now','none')") + pk(nw === "general", "dカード（年会費無料）", "pmSet('now','general')") + (M.card === "platinum" ? pk(nw === "gold", "dカード GOLD", "pmSet('now','gold')") : ""));
     }
     if (sheet === "hikari") {
       if (man) ctl += row("③ 回線数", stp("h1210", `<b class="a">1,210円</b> 引き<small>新しいプラン（MAX・ポイ活・mini2・mini）</small>`) + stp("h1100", `<b class="a">1,100円</b> 引き<small>前のプラン（eximo・irumo 3GB〜・ギガホなど）</small>`) + stp("h550", `<b class="a">550円</b> 引き<small>5Gギガライト（1GB超〜3GB）</small>`));
