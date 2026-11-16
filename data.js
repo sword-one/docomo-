@@ -117,6 +117,20 @@ const DCARD_GOLD_PERKS = [
   ["旅行・出張に", "国内の主要空港とハワイの空港ラウンジが無料／海外旅行保険 最大1億円"],
   ["お買い物に", "お買物あんしん保険 年間300万円まで"],
 ];
+// ご提案シート（別紙）用：ドコモ光・home 5G・ドコモでんき・ドコモ ガス（2026/11/16 公式で確認。金額は税込）
+const HIKARI_INFO = {
+  fee: { mansion: 4400, kodate: 5720 },   // 1ギガ タイプA・2年定期（www.docomo.ne.jp/hikari/charge/）
+  jimu: 4950, koji: 28600,                // 契約事務手数料／新規工事料（代表例。dポイント24か月分割進呈で実質0円の特典あり）
+  home5g: 5280,                           // home 5G プラン（工事不要。セット割は光と同額）
+};
+const DENKI_INFO = {   // 中部エリア・2026年11月検針分から（denki.docomo.ne.jp の提供条件）
+  greenFee: 500,       // ドコモでんき Green は Basic（地域電力と同等）＋500円／月
+  green: { gold: 10, card: 5, other: 4 },   // Green の還元率％（ドコモ回線あり）：GOLD・GOLD U払い／dカード払い／その他
+  basic: { card: 2, other: 1 },             // Basic の還元率％：dカード払い／その他
+  gasPlus: 2,          // ドコモ ガスも契約すると電気代の還元＋2%
+  gas: { card: 1, other: 0.5 },             // ガス代の還元率％（でんき契約あり）：dカード払い／その他
+  examples: [6000, 10000, 14000],           // 例に使う「基本料金＋電力量料金（税抜）」の月額
+};
 const DCARD_NO_POINT = ["mini2", "ahamo", "mini", "irumo"];   // 料金へのポイント還元が対象外のプラン
 // ポイ活プランの還元（d払い・dカードでのお買い物に対して。期間・用途限定ポイント）。rates＝お買い物額に対する還元率％
 const POIKATSU = {

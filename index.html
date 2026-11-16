@@ -200,6 +200,11 @@ label.ck { min-height:44px; }
 #print .tp { display:flex; gap:2.5mm; font-size:10pt; line-height:1.45; } #print .tp .ck { font-size:13pt; font-weight:800; }
 #print .tplus { font-size:10pt; background:#ebebeb; border-radius:2mm; padding:2mm 4mm; margin-bottom:5mm; }
 #print .tcta { border:1mm solid #000; border-radius:3mm; padding:3.5mm 5mm; text-align:center; margin-bottom:3mm; } #print .tcta b { display:block; font-size:14pt; } #print .tcta span { font-size:9.5pt; }
+#print .tbr3 { display:grid; grid-template-columns:24mm 1fr 6mm 1fr 6mm 1.2fr; align-items:center; gap:2mm; font-size:10.5pt; padding:1.8mm 1mm; border-bottom:0.2mm solid #c8c8c8; }
+#print .tbr3 span { font-weight:800; } #print .tbr3 b { text-align:right; font-size:13pt; } #print .tbr3 i { font-style:normal; text-align:center; font-weight:800; }
+#print .tbr3 .res { font-size:15pt; } #print .tbr3.hd b { font-size:9pt; font-weight:700; } #print .tbr3.hd { border-bottom:0.5mm solid #000; padding-bottom:1mm; }
+#print table.ttab { width:100%; border-collapse:collapse; } #print .ttab th { font-size:9.5pt; text-align:center; padding:1.5mm 2mm; border-bottom:0.6mm solid #000; line-height:1.35; } #print .ttab th small { font-weight:400; font-size:8pt; }
+#print .ttab td { text-align:center; padding:2mm; border-bottom:0.2mm solid #c8c8c8; font-size:11pt; line-height:1.35; } #print .ttab td b { font-size:14pt; } #print .ttab td small { font-size:8.5pt; } #print .ttab td:first-child { font-weight:800; }
 /* 家族のまとめ表 */
 #print table.fam { width:100%; border-collapse:collapse; margin-top:2mm; }
 #print table.fam th { text-align:left; font-size:9.5pt; padding:2mm 2mm; border-bottom:0.6mm solid #000; white-space:nowrap; }
@@ -223,7 +228,7 @@ label.ck { min-height:44px; }
 .pvbar { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--navy); color:#fff; padding:10px 16px; }
 .pvbar b { font-size:17px; margin-right:auto; }
 .pvbar .btn { background:#fff; }
-.pvbar .seg button { min-height:38px; font-size:14px; }
+.pvbar .seg button { min-height:38px; font-size:14px; } .pvbar .pvl { color:#222; font-size:12px; padding:0 6px 0 10px; align-self:center; background:#fff; }
 @media screen { #print .pg { background:#fff; margin:0 auto 16px; } #pv .sheet { width:max-content; max-width:none; min-height:0; margin:16px auto 40px; background:none; box-shadow:none; padding:0; } #print .pg { padding:10mm; min-height:262mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:content-box; } }
 .pvbar .hint { width:100%; font-size:12px; color:#dde4f0; }
 .sheet { width:210mm; min-height:297mm; margin:16px auto 40px; background:#fff; padding:10mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:border-box; }
@@ -884,12 +889,79 @@ function doPrint(mode) {
       ※${DATA_AS_OF.replace("改定後の料金", "時点の内容")}。特典・還元率は変更になる場合があります。</div>
     </div>`;
   };
-  const props = (S.props && S.props.dcard !== false) ? [cardPage()].filter(Boolean) : [];
-  const hasProp = !!cardPage();
+  // ===== ご提案シート（別紙）：ドコモ光 =====
+  const tHead = t => `<div class="th"><div class="tl">${t}</div><div class="tm">${ds}　${esc(store)}</div></div>`;
+  const hikariPage = () => {
+    const tgt = S.lines.map((l, k) => ({ l, r: rs[k], amt: hikariOf(plan(l), l) })).filter(x => x.amt && !x.l.hikari);
+    if (!tgt.length) return "";
+    const month = tgt.reduce((a, x) => a + x.amt, 0), year = month * 12, n = tgt.length, H = HIKARI_INFO;
+    const same = tgt.every(x => x.amt === tgt[0].amt);
+    const gold = S.lines.some(l => ["gold", "platinum"].includes(l.dcard));
+    const row = (name, fee) => `<div class="tbr3"><span>${name}</span><b>${yen(fee)}</b><i>−</i><b>${yen(month)}</b><i>＝</i><b class="res">実質 ${yen(Math.max(0, fee - month))}</b></div>`;
+    return `<div class="pg teian">${tHead("ドコモをご利用のお客さまへ　おうちのインターネットのご提案")}
+      <div class="tcatch">おうちのネットを <b>ドコモ光</b> にすると、<br>スマホ代が <b class="num">年間 約 ${year.toLocaleString("ja-JP")}円</b> 安くなります。</div>
+      <div class="tsub">本日のお見積り（${n > 1 ? n + "回線分" : "1回線"}）の内容で計算した金額です。割引は、ドコモ光をお使いのあいだ ずっと続きます。</div>
+      <div class="teq">
+        <div><span>スマホ1回線ごとに</span><b>${same ? yen(tgt[0].amt) : "最大 " + yen(Math.max(...tgt.map(x => x.amt)))}</b><small>ドコモ光セット割（毎月）</small></div><i>×</i>
+        <div><span>お見積りの回線</span><b>${n}回線</b><small>ご家族みんなが対象</small></div><i>＝</i>
+        <div class="tot"><span>毎月</span><b>${yen(month)} 割引</b><small>1年で ${yen(year)}</small></div>
+      </div>
+      <div class="tloss"><div class="tlh">今のネットのままだと…</div>
+        <div class="tlb">この <b>年間 ${yen(year)}</b> の割引は、受けられないままになります。<br><span>5年で ${yen(year * 5)}。ネット代はどこでもかかるので、スマホ代が下がる方がおトクです。</span></div></div>
+      <div class="tbars"><div class="tbh">ドコモ光の料金から、スマホ代の割引を引くと</div>
+        <div class="tbr3 hd"><span></span><b>ドコモ光の月額</b><i></i><b>スマホ代の割引</b><i></i><b class="res">差し引き</b></div>
+        ${row("マンション", H.fee.mansion)}${row("戸建て", H.fee.kodate)}
+        <div class="tnet">今のネット代とくらべてみてください。<b>実質の負担はここまで下がります。</b></div>
+      </div>
+      <div class="tperk"><div class="tbh">ほかにも</div>
+        <div class="tp"><span class="ck">✔</span><div><b>離れて暮らすご家族も割引</b><br>同じファミリー割引グループなら、対象プランの全回線が割引になります</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>工事料は実質0円</b><br>工事料相当のdポイントを24か月に分けて進呈（新規のお申込み）</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>他社からの乗り換えも安心</b><br>他社の解約金などに相当するdポイントを最大100,000pt進呈</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>${gold ? "dカード GOLD ならネット代もポイント10%" : "工事ができないお部屋なら home 5G"}</b><br>${gold ? "ドコモ光の料金（税抜1,000円ごと）も10%還元の対象です" : `コンセントにさすだけ・工事不要（月${yen(H.home5g)}）。セット割は同じ額です`}</div></div>
+      </div>
+      <div class="tcta"><b>お住まいで使えるか、この場でお調べします。</b><span>今お使いのネットの料金がわかるものがあれば、その場でくらべられます。</span></div>
+      <div class="pn">※金額は税込。割引額は本日のお見積りのプランで計算しています（プランやデータ量により割引額が変わります。ahamo など対象外のプランがあります）。<br>
+      ※ドコモ光の月額は、1ギガ タイプA・2年定期契約の場合（マンション${yen(H.fee.mansion)}／戸建て${yen(H.fee.kodate)}）。別に契約事務手数料${yen(H.jimu)}、新規工事料${yen(H.koji)}（代表例）がかかります。工事料実質0円の特典・乗り換え特典は、dポイント（期間・用途限定）での進呈で、条件があります（途中で解約すると進呈は終了。転用などは対象外）。2年定期契約は、更新期間以外の解約で解約金（マンション4,180円／戸建て5,500円）がかかります。<br>
+      ※2026年11月時点の内容です。特典は変更・終了する場合があります。</div></div>`;
+  };
+
+  // ===== ご提案シート（別紙）：ドコモでんき・ドコモ ガス =====
+  const denkiPage = () => {
+    if (!S.lines.some(l => !l.denki)) return "";
+    const tgt = S.lines.map(l => ({ l, amt: plan(l).denki || 0 })).filter(x => x.amt && !x.l.denki);
+    const month = tgt.reduce((a, x) => a + x.amt, 0), year = month * 12, n = tgt.length, D = DENKI_INFO;
+    const ex = D.examples.map(b => ({ b, green: Math.floor(b * D.green.gold / 100), basic: Math.floor(b * D.basic.card / 100) }));
+    return `<div class="pg teian">${tHead("ドコモをご利用のお客さまへ　電気・ガスのご提案")}
+      <div class="tcatch">電気を <b>ドコモでんき</b> に変えると、<br>${year ? `スマホ代が <b class="num">年間 ${year.toLocaleString("ja-JP")}円</b> 安くなり、<br>` : ""}<b>毎月の電気代で dポイントがたまります。</b></div>
+      <div class="tsub">電気の質も、停電の時の対応も、今までと同じです。工事も、今の電力会社への解約の連絡もいりません。</div>
+      ${year ? `<div class="teq">
+        <div><span>スマホ1回線ごとに</span><b>${yen(tgt[0].amt)}</b><small>ドコモでんきセット割（毎月）</small></div><i>×</i>
+        <div><span>お見積りの回線</span><b>${n}回線</b><small>ご家族の対象プランが割引</small></div><i>＝</i>
+        <div class="tot"><span>毎月</span><b>${yen(month)} 割引</b><small>1年で ${yen(year)}</small></div>
+      </div>` : ""}
+      <div class="tbars"><div class="tbh">電気代でたまる dポイント（1年間の目安）</div>
+        <table class="ttab"><tr><th>毎月の電気代<br><small>（基本料金＋電力量料金・税抜）</small></th><th>dカード GOLD でお支払い<br><small>ドコモでんき Green（${D.green.gold}%）</small></th><th>dカードでお支払い<br><small>ドコモでんき Basic（${D.basic.card}%）</small></th></tr>
+        ${ex.map(x => `<tr><td>${yen(x.b)}</td><td><b>年 ${(x.green * 12).toLocaleString("ja-JP")}pt</b><br><small>月額料金${yen(D.greenFee)}を引いて 年 ${((x.green - D.greenFee) * 12).toLocaleString("ja-JP")}円分</small></td><td><b>年 ${(x.basic * 12).toLocaleString("ja-JP")}pt</b><br><small>追加の料金なし</small></td></tr>`).join("")}</table>
+        <div class="tnet">電気代は毎月かならず払うもの。<b>同じ電気なら、ポイントがたまる方がおトクです。</b></div>
+      </div>
+      <div class="tperk"><div class="tbh">ガスも一緒にすると</div>
+        <div class="tp"><span class="ck">✔</span><div><b>電気代のポイントが ＋${D.gasPlus}%</b><br>ドコモ ガスも契約すると、電気代の還元率が上がります（GOLDなら${D.green.gold}%→${D.green.gold + D.gasPlus}%）</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>ガスの料金は東邦ガスと同じ</b><br>プランも料金もそのまま。ガス代にもdポイント（dカード払いで${D.gas.card}%）</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>切り替えの費用は0円</b><br>工事なし・今の会社への解約の連絡もいりません</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>電気の解約金はありません</b><br>合わなければ、いつでも元に戻せます</div></div>
+      </div>
+      <div class="tcta"><b>検針票（電気・ガスの明細）があれば、この場でおトク額をお調べします。</b><span>スマホの明細アプリの画面でも大丈夫です。</span></div>
+      <div class="pn">※金額は税込（ポイントの計算は税抜）。還元率は中部電力エリア・ドコモ回線をお持ちの方の場合で、2026年11月検針分からの内容です。ポイントの対象は基本料金＋電力量料金の税抜額（100円単位）で、燃料費等調整額・再生可能エネルギー発電促進賦課金は対象外です。お支払い方法がdカード以外の場合は還元率が下がります（Green ${D.green.other}%／Basic ${D.basic.other}%）。<br>
+      ※ドコモでんき Basic の料金は地域の電力会社の従量電灯と同等、Green は Basic に月${yen(D.greenFee)}を加えた料金です。電気料金は2026年12月検針分から改定され、2027年1月検針分からは電力市場に連動する単価が加わります。オール電化向けプランなどからの切り替えは、高くなる場合があります。<br>
+      ※ドコモでんきセット割は、ドコモ MAX・ポイ活 MAX・ポイ活 20・ドコモ mini2 などが対象です（年齢による割引の期間中は適用されません）。ドコモ ガスは東邦ガスの都市ガスエリアが対象で、一部ご利用になれない地域があります。2026年11月時点の内容です。</div></div>`;
+  };
+
+  const PROPS = [["dcard", "dカード", cardPage], ["hikari", "ドコモ光", hikariPage], ["denki", "でんき・ガス", denkiPage]].map(([id, name, f]) => ({ id, name, html: f() })).filter(x => x.html);
+  const props = PROPS.filter(x => S.props[x.id] !== false).map(x => x.html);
   const pages = (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)]).concat(props);
   $("print").innerHTML = pages.join("");
   $("pvmode").innerHTML = N > 1 ? [["each", `1回線ずつ（まとめ＋${N}枚）`], ["one", "まとめて1枚"]].map(([v, n]) => `<button class="${printMode === v ? "on" : ""}" onclick="doPrint('${v}')">${n}</button>`).join("") : "";
-  $("pvprop").innerHTML = hasProp ? `<button class="${S.props.dcard !== false ? "on" : ""}" onclick="S.props.dcard=${S.props.dcard === false};doPrint()">別紙：dカードのご提案 ${S.props.dcard !== false ? "あり" : "なし"}</button>` : "";
+  $("pvprop").innerHTML = PROPS.length ? `<span class="pvl">別紙のご提案：</span>` + PROPS.map(x => `<button class="${S.props[x.id] !== false ? "on" : ""}" onclick="S.props['${x.id}']=${S.props[x.id] === false};doPrint()">${x.name}</button>`).join("") : "";
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
   $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
   fitPages();
