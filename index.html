@@ -370,7 +370,7 @@ function hoshoOf(name) {
 // 補償の対象になる機種：端末を買うならその機種、買わないなら今お使いの機種
 function hoshoTarget(l) {
   const buy = l.contract !== "plan" && l.device.use && l.device.model;
-  const name = buy ? l.device.model : l.curModel;
+  const name = buy ? l.device.model : (l.contract === "plan" ? l.curModel : "");   // 今お使いの機種はプラン変更のみの時だけ使う
   return name ? { name, buy: !!buy, h: hoshoOf(name) } : null;
 }
 const HOSHO_OPT = { hosho: { type: "smart", add: 0 }, smartpack: { type: "smart", add: 462 }, keitaihosho: { type: "keitai", add: 0 }, anshinmobile: { type: "keitai", add: 462 } };   // パック＝補償＋セキュリティ220＋遠隔660−418
@@ -447,11 +447,11 @@ function render() {
     ${S.lines.length > 1 ? `<button class="btn danger" onclick="delLine(this)">この回線を削除</button>` : ""}
     <button class="btn" onclick="copyLine()">この回線を複製</button>
   </div>
-  <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #e3e7ee"><b style="font-size:14px">今お使いの機種</b>
+  ${l.contract !== "plan" ? "" : `<div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #e3e7ee"><b style="font-size:14px">今お使いの機種</b>
     ${HS.length ? [...new Set(HS.map(x => x.cat))].map(c => `<div class="chip ${l.curCat === c ? "on" : ""}" style="padding:6px 10px" onclick="S.lines[S.cur].curCat='${c}';S.lines[S.cur].curModel='';render()">${c}</div>`).join("") : ""}
     ${l.curCat ? `<select onchange="S.lines[S.cur].curModel=this.value;render()" style="min-width:260px"><option value="">機種を選択</option>${HS.filter(x => x.cat === l.curCat).map(x => `<option ${x.name === l.curModel ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>` : `<span class="note">（選ぶと補償の金額が自動で入ります）</span>`}
     ${l.curModel ? (() => { const h = hoshoOf(l.curModel); return h ? `<span class="note">${h.type === "smart" ? "smartあんしん補償" : "ケータイ補償サービス"} ${yen(h.price)}</span>` : ""; })() : ""}
-  </div></div>
+  </div>`}</div>
 
   <div class="card"><h2>① 料金プラン</h2>
     ${planOpen ? `
@@ -713,7 +713,7 @@ function doPrint(mode) {
         + (dv.return23 != null ? rw("23か月目に返却した場合のご負担", yen(dv.return23), "sub") : "")
         + (dv.monthly ? rw("② 毎月の分割（" + dv.months + "回）", yen(dv.monthly), "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
         : `<div class="none">端末のご購入なし</div>`}
-      ${l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
+      ${l.contract === "plan" && l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
     const sec4 = `<div class="sec"><h3>③ 初期費用</h3>
       ${r.init.some(x => x[2] === "today") ? `<h4>当日のお支払い</h4>${initRows(r, "today")}${rw("当日のお支払い 合計", yen(r.today), "st")}` : ""}
       ${r.init.some(x => x[2] === "next") ? `<h4>毎月のお支払いとは別に、翌月の請求に1回だけ加わるもの</h4>${initRows(r, "next")}` : ""}
