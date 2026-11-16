@@ -957,8 +957,9 @@ function doPrint(mode) {
       <div class="tbars"><div class="tbh">電気代でたまる dポイント（1年間の目安）</div>
         <table class="ttab"><tr><th>毎月の電気代<br><small>（基本料金＋電力量料金・税抜）</small></th><th>dカード GOLD でお支払い<br><small>ドコモでんき Green（${D.green.gold}%）</small></th><th>dカードでお支払い<br><small>ドコモでんき Basic（${D.basic.card}%）</small></th></tr>
         ${(() => { const d = Number(S.pin.denki || 0); if (!d) return ""; const b = Math.floor(d / 1.1 / 100) * 100, g = Math.floor(b * D.green.gold / 100), bs = Math.floor(b * D.basic.card / 100);
-          return `<tr class="you"><td>お客さまの場合<br><small>月 ${yen(d)}（税込）</small></td><td><b>年 ${(g * 12).toLocaleString("ja-JP")}pt</b><br><small>月額料金${yen(D.greenFee)}を引いて 年 ${((g - D.greenFee) * 12).toLocaleString("ja-JP")}円分</small></td><td><b>年 ${(bs * 12).toLocaleString("ja-JP")}pt</b><br><small>追加の料金なし</small></td></tr>`; })()}
+          return `<tr class="you"><td>お客さまの場合<br><small>電気代 月 約${yen(d)}（税込）</small></td><td><b>年 約 ${(g * 12).toLocaleString("ja-JP")}pt</b><br><small>月額料金${yen(D.greenFee)}を引いて 年 約 ${((g - D.greenFee) * 12).toLocaleString("ja-JP")}円分</small></td><td><b>年 約 ${(bs * 12).toLocaleString("ja-JP")}pt</b><br><small>追加の料金なし</small></td></tr>`; })()}
         ${ex.map(x => `<tr><td>${yen(x.b)}</td><td><b>年 ${(x.green * 12).toLocaleString("ja-JP")}pt</b><br><small>月額料金${yen(D.greenFee)}を引いて 年 ${((x.green - D.greenFee) * 12).toLocaleString("ja-JP")}円分</small></td><td><b>年 ${(x.basic * 12).toLocaleString("ja-JP")}pt</b><br><small>追加の料金なし</small></td></tr>`).join("")}</table>
+        ${Number(S.pin.denki || 0) ? `<div class="pn" style="margin-top:1mm">※「お客さまの場合」は、うかがった電気代（税込）を税抜にして計算した、おおよその目安です。燃料費等調整額などポイントの対象外の分があるため、実際は少なくなる場合があります。</div>` : ""}
         <div class="tnet">電気代は毎月かならず払うもの。<b>同じ電気なら、ポイントがたまる方がおトクです。</b></div>
       </div>
       <div class="tperk"><div class="tbh">ガスも一緒にすると</div>
@@ -983,7 +984,7 @@ function doPrint(mode) {
   const pin = (k, label, ph) => `<label>${label}<input type="number" inputmode="numeric" value="${S.pin[k] || ""}" placeholder="${ph}" onchange="S.pin['${k}']=this.value;doPrint()"><span>円</span></label>`;
   $("pvin").innerHTML = PROPS.some(x => x.id !== "dcard") ? `<b>お客様の今の料金（入れると、ご提案がその金額で計算されます）</b>`
     + (PROPS.some(x => x.id === "hikari") ? `<span class="seg">${[["", "住まい未選択"], ["mansion", "マンション"], ["kodate", "戸建て"]].map(([v, n]) => `<button class="${(S.pin.home || "") === v ? "on" : ""}" onclick="S.pin.home='${v}';doPrint()">${n}</button>`).join("")}</span>` + pin("net", "今のネット代（月）", "例 5500") : "")
-    + (PROPS.some(x => x.id === "denki") ? pin("denki", "電気の基本料金＋電力量料金（月）", "例 9000") + pin("gas", "ガス代（月）", "例 5000") : "") : "";
+    + (PROPS.some(x => x.id === "denki") ? pin("denki", "今の電気代（月・税込のだいたいでOK）", "例 10000") + pin("gas", "今のガス代（月・だいたい）", "例 5000") : "") : "";
   $("pvprop").innerHTML = PROPS.length ? `<span class="pvl">別紙のご提案：</span>` + PROPS.map(x => `<button class="${S.props[x.id] !== false ? "on" : ""}" onclick="S.props['${x.id}']=${S.props[x.id] === false};doPrint()">${x.name}</button>`).join("") : "";
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
   $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
