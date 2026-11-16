@@ -166,7 +166,7 @@ label.ck { min-height:44px; }
 #print .psteps + .psteps { margin-top:-2mm; }
 #print .dnw { display:flex; align-items:center; gap:3mm; padding:1mm 1mm 0; } #print .dnw img { height:24mm; max-width:26mm; object-fit:contain; flex:none; }
 #print .rw.uchi { border-bottom:none; padding:0.6mm 1mm 0.6mm 6mm; font-size:10pt; } #print .rw.uchi b { font-weight:700; }
-#print .wt { display:inline-block; font-style:normal; font-size:8pt; font-weight:800; min-width:13mm; text-align:center; border:0.3mm solid #000; border-radius:1mm; padding:0 1mm; margin-right:2mm; }
+#print .wt { display:inline-block; font-style:normal; font-size:8pt; font-weight:800; min-width:9mm; text-align:center; border:0.3mm solid #000; border-radius:1mm; padding:0 1mm; margin-right:2mm; }
 #print .wt.today { background:#000; color:#fff; }
 #print .dn { font-size:13.5pt; font-weight:800; padding:1.5mm 1mm 1mm; }
 #print .none { padding:2mm 1mm; color:#444; }
@@ -776,7 +776,7 @@ function doPrint(mode) {
         : `<div class="none">端末のご購入なし</div>`}
       ${l.contract === "plan" && l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
     const sec4 = `<div class="sec"><h3>③ 初期費用</h3>
-      ${[...r.init.filter(x => x[2] === "today"), ...r.init.filter(x => x[2] === "next")].map(x => rw(esc(x[0]), yen(x[1]))).join("")}
+      ${[...r.init.filter(x => x[2] === "today"), ...r.init.filter(x => x[2] === "next")].map(x => rw(`<i class="wt ${x[2]}">${x[2] === "today" ? "当日" : "翌月"}</i>` + esc(x[0]), yen(x[1]))).join("")}
       ${r.init.length ? rw("初期費用 合計", yen(r.initTotal), "st") + rw("うち 当日のお支払い", yen(r.today), "uchi") + rw("うち 翌月のご請求に加算", yen(r.nextInit), "uchi") : ""}
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
