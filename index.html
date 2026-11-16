@@ -205,6 +205,11 @@ label.ck { min-height:44px; }
 #print .tbr3 .res { font-size:15pt; } #print .tbr3.hd b { font-size:9pt; font-weight:700; } #print .tbr3.hd { border-bottom:0.5mm solid #000; padding-bottom:1mm; }
 #print table.ttab { width:100%; border-collapse:collapse; } #print .ttab th { font-size:9.5pt; text-align:center; padding:1.5mm 2mm; border-bottom:0.6mm solid #000; line-height:1.35; } #print .ttab th small { font-weight:400; font-size:8pt; }
 #print .ttab td { text-align:center; padding:2mm; border-bottom:0.2mm solid #c8c8c8; font-size:11pt; line-height:1.35; } #print .ttab td b { font-size:14pt; } #print .ttab td small { font-size:8.5pt; } #print .ttab td:first-child { font-weight:800; }
+#print .tcmp { display:flex; align-items:stretch; gap:2mm; margin-top:3mm; }
+#print .tcmp > div { flex:1; border:0.5mm solid #000; border-radius:3mm; padding:2.5mm 3mm; text-align:center; } #print .tcmp > div.res { background:#000; color:#fff; flex:1.2; }
+#print .tcmp span { display:block; font-size:9.5pt; font-weight:800; } #print .tcmp b { display:block; font-size:19pt; font-weight:800; line-height:1.3; } #print .tcmp small { font-size:10pt; font-weight:700; }
+#print .tcmp i { font-style:normal; font-size:15pt; font-weight:800; align-self:center; }
+#print .ttab tr.you td { background:#e6e6e6; border-top:0.6mm solid #000; border-bottom:0.6mm solid #000; }
 /* 家族のまとめ表 */
 #print table.fam { width:100%; border-collapse:collapse; margin-top:2mm; }
 #print table.fam th { text-align:left; font-size:9.5pt; padding:2mm 2mm; border-bottom:0.6mm solid #000; white-space:nowrap; }
@@ -228,6 +233,9 @@ label.ck { min-height:44px; }
 .pvbar { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--navy); color:#fff; padding:10px 16px; }
 .pvbar b { font-size:17px; margin-right:auto; }
 .pvbar .btn { background:#fff; }
+#pvin { width:100%; display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; font-size:13px; } #pvin:empty { display:none; }
+#pvin b { width:100%; font-size:12px; font-weight:400; color:#dde4f0; margin:0; } #pvin label { display:flex; align-items:center; gap:5px; color:#fff; }
+#pvin input { width:96px; font-size:16px; padding:5px 6px; border-radius:6px; border:none; text-align:right; }
 .pvbar .seg button { min-height:38px; font-size:14px; } .pvbar .pvl { color:#222; font-size:12px; padding:0 6px 0 10px; align-self:center; background:#fff; }
 @media screen { #print .pg { background:#fff; margin:0 auto 16px; } #pv .sheet { width:max-content; max-width:none; min-height:0; margin:16px auto 40px; background:none; box-shadow:none; padding:0; } #print .pg { padding:10mm; min-height:262mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:content-box; } }
 .pvbar .hint { width:100%; font-size:12px; color:#dde4f0; }
@@ -252,7 +260,8 @@ body.pvopen { overflow:hidden; }
   <input id="staff" type="text" placeholder="担当者" style="width:110px">
   <span class="sp"></span>
   <button class="btn" onclick="resetAll(this)">クリア</button>
-  <button class="btn main" onclick="doPrint()">🖨 印刷プレビュー</button>
+  <button class="btn main" onclick="doPrint('prop')">💡 ご提案を見せる</button>
+  <button class="btn main" onclick="doPrint(printMode === 'prop' ? 'each' : undefined)">🖨 印刷プレビュー</button>
 </header>
 
 <main>
@@ -268,6 +277,7 @@ body.pvopen { overflow:hidden; }
     <span class="seg" id="pvmode"></span><span class="seg" id="pvprop"></span>
     <button class="btn" onclick="window.print()">🖨 印刷する</button>
     <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button>
+    <div id="pvin"></div>
     <span class="hint">「印刷する」で印刷画面が開かない時は、iPadのSafariなら画面上の共有ボタン（□↑）→「プリント」で印刷できます。</span></div>
   <div class="sheet"><div id="print"></div></div>
 </div>
@@ -299,7 +309,7 @@ function newLine(n) {
     device: { use: true, cat: "", model: "", pay: "kaedoki", storeOn: false, manualPrice: null, atama: null, shitadori: 0, point: 0 },
     init: { jimu: true }, initAmt: {}, initWhen: {}, freeInit: [{ name: "", price: 0 }] };
 }
-let S = { lines: [newLine(1)], cur: 0, extra: 0, pay: "cash", props: {} };
+let S = { lines: [newLine(1)], cur: 0, extra: 0, pay: "cash", props: {}, pin: {} };
 
 function plan(l) { const p = PLANS.find(x => x.id === l.plan); if (l.tier >= p.tiers.length) l.tier = p.tiers.length - 1; const vs = VOICE[p.voice] || VOICE.none; if (!vs.find(v => v.id === l.voice)) l.voice = vs[0].id; return p; }
 const tierOff = (p, l) => (p.noDiscTiers || []).includes(l.tier);                 // この段階は割引・回線数カウントの対象外（irumo 0.5GB）
@@ -762,6 +772,7 @@ let printMode = "each";   // each＝1回線ずつ1枚（家族はまとめ付き
 function doPrint(mode) {
   if (mode) printMode = mode;
   if (!S.props) S.props = {};
+  if (!S.pin) S.pin = {};
   const rs = S.lines.map(calc), N = S.lines.length;
   const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
   const staff = $("staff").value, store = $("store").value;
@@ -910,8 +921,12 @@ function doPrint(mode) {
         <div class="tlb">この <b>年間 ${yen(year)}</b> の割引は、受けられないままになります。<br><span>5年で ${yen(year * 5)}。ネット代はどこでもかかるので、スマホ代が下がる方がおトクです。</span></div></div>
       <div class="tbars"><div class="tbh">ドコモ光の料金から、スマホ代の割引を引くと</div>
         <div class="tbr3 hd"><span></span><b>ドコモ光の月額</b><i></i><b>スマホ代の割引</b><i></i><b class="res">差し引き</b></div>
-        ${row("マンション", H.fee.mansion)}${row("戸建て", H.fee.kodate)}
-        <div class="tnet">今のネット代とくらべてみてください。<b>実質の負担はここまで下がります。</b></div>
+        ${S.pin.home !== "kodate" ? row("マンション", H.fee.mansion) : ""}${S.pin.home !== "mansion" ? row("戸建て", H.fee.kodate) : ""}
+        ${(() => { const net = Number(S.pin.net || 0), fee = S.pin.home ? H.fee[S.pin.home] : 0;
+          if (!net) return `<div class="tnet">今のネット代とくらべてみてください。<b>実質の負担はここまで下がります。</b></div>`;
+          if (!fee) return `<div class="tnet">今のネット代は 月 ${yen(net)}。<b>上の「実質」とくらべてみてください。</b></div>`;
+          const jis = Math.max(0, fee - month), diff = net - jis;
+          return `<div class="tcmp"><div><span>今のネット代</span><b>月 ${yen(net)}</b></div><i>▶</i><div><span>ドコモ光にすると（実質）</span><b>月 ${yen(jis)}</b></div><i>＝</i><div class="res"><span>${diff >= 0 ? "毎月 おトク" : "毎月の差"}</span><b>${diff >= 0 ? yen(diff) : "＋" + yen(-diff)}</b><small>${diff >= 0 ? "年間 " + yen(diff * 12) + " おトク" : "スマホ代の割引を含めた差額です"}</small></div></div>`; })()}
       </div>
       <div class="tperk"><div class="tbh">ほかにも</div>
         <div class="tp"><span class="ck">✔</span><div><b>離れて暮らすご家族も割引</b><br>同じファミリー割引グループなら、対象プランの全回線が割引になります</div></div>
@@ -941,12 +956,14 @@ function doPrint(mode) {
       </div>` : ""}
       <div class="tbars"><div class="tbh">電気代でたまる dポイント（1年間の目安）</div>
         <table class="ttab"><tr><th>毎月の電気代<br><small>（基本料金＋電力量料金・税抜）</small></th><th>dカード GOLD でお支払い<br><small>ドコモでんき Green（${D.green.gold}%）</small></th><th>dカードでお支払い<br><small>ドコモでんき Basic（${D.basic.card}%）</small></th></tr>
+        ${(() => { const d = Number(S.pin.denki || 0); if (!d) return ""; const b = Math.floor(d / 1.1 / 100) * 100, g = Math.floor(b * D.green.gold / 100), bs = Math.floor(b * D.basic.card / 100);
+          return `<tr class="you"><td>お客さまの場合<br><small>月 ${yen(d)}（税込）</small></td><td><b>年 ${(g * 12).toLocaleString("ja-JP")}pt</b><br><small>月額料金${yen(D.greenFee)}を引いて 年 ${((g - D.greenFee) * 12).toLocaleString("ja-JP")}円分</small></td><td><b>年 ${(bs * 12).toLocaleString("ja-JP")}pt</b><br><small>追加の料金なし</small></td></tr>`; })()}
         ${ex.map(x => `<tr><td>${yen(x.b)}</td><td><b>年 ${(x.green * 12).toLocaleString("ja-JP")}pt</b><br><small>月額料金${yen(D.greenFee)}を引いて 年 ${((x.green - D.greenFee) * 12).toLocaleString("ja-JP")}円分</small></td><td><b>年 ${(x.basic * 12).toLocaleString("ja-JP")}pt</b><br><small>追加の料金なし</small></td></tr>`).join("")}</table>
         <div class="tnet">電気代は毎月かならず払うもの。<b>同じ電気なら、ポイントがたまる方がおトクです。</b></div>
       </div>
       <div class="tperk"><div class="tbh">ガスも一緒にすると</div>
         <div class="tp"><span class="ck">✔</span><div><b>電気代のポイントが ＋${D.gasPlus}%</b><br>ドコモ ガスも契約すると、電気代の還元率が上がります（GOLDなら${D.green.gold}%→${D.green.gold + D.gasPlus}%）</div></div>
-        <div class="tp"><span class="ck">✔</span><div><b>ガスの料金は東邦ガスと同じ</b><br>プランも料金もそのまま。ガス代にもdポイント（dカード払いで${D.gas.card}%）</div></div>
+        <div class="tp"><span class="ck">✔</span><div><b>ガスの料金は東邦ガスと同じ</b><br>プランも料金もそのまま。ガス代にもdポイント（dカード払いで${D.gas.card}%${Number(S.pin.gas || 0) ? "。お客さまの場合 年 約" + (Math.floor(Number(S.pin.gas) / 1.1 / 100) * D.gas.card * 12).toLocaleString("ja-JP") + "pt" : ""}）</div></div>
         <div class="tp"><span class="ck">✔</span><div><b>切り替えの費用は0円</b><br>工事なし・今の会社への解約の連絡もいりません</div></div>
         <div class="tp"><span class="ck">✔</span><div><b>電気の解約金はありません</b><br>合わなければ、いつでも元に戻せます</div></div>
       </div>
@@ -958,9 +975,15 @@ function doPrint(mode) {
 
   const PROPS = [["dcard", "dカード", cardPage], ["hikari", "ドコモ光", hikariPage], ["denki", "でんき・ガス", denkiPage]].map(([id, name, f]) => ({ id, name, html: f() })).filter(x => x.html);
   const props = PROPS.filter(x => S.props[x.id] !== false).map(x => x.html);
-  const pages = (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)]).concat(props);
+  const pages = printMode === "prop" ? (props.length ? props : [`<div class="pg"><p style="font-size:13pt;padding:20mm 0;text-align:center">この見積の内容では、ご提案できるものがありません。<br><span style="font-size:10pt">（dカード GOLD・ドコモ光・ドコモでんきを、すでにご利用の設定になっています）</span></p></div>`])
+    : (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)]).concat(props);
   $("print").innerHTML = pages.join("");
-  $("pvmode").innerHTML = N > 1 ? [["each", `1回線ずつ（まとめ＋${N}枚）`], ["one", "まとめて1枚"]].map(([v, n]) => `<button class="${printMode === v ? "on" : ""}" onclick="doPrint('${v}')">${n}</button>`).join("") : "";
+  $("pvmode").innerHTML = (N > 1 ? [["each", `見積書（まとめ＋${N}枚）`], ["one", "見積書（まとめて1枚）"]] : [["each", "見積書"]]).concat([["prop", "ご提案だけ"]]).map(([v, n]) => `<button class="${printMode === v ? "on" : ""}" onclick="doPrint('${v}')">${n}</button>`).join("");
+  // お客様の今の料金を入れると、ご提案の数字がその人の金額になる
+  const pin = (k, label, ph) => `<label>${label}<input type="number" inputmode="numeric" value="${S.pin[k] || ""}" placeholder="${ph}" onchange="S.pin['${k}']=this.value;doPrint()"><span>円</span></label>`;
+  $("pvin").innerHTML = PROPS.some(x => x.id !== "dcard") ? `<b>お客様の今の料金（入れると、ご提案がその金額で計算されます）</b>`
+    + (PROPS.some(x => x.id === "hikari") ? `<span class="seg">${[["", "住まい未選択"], ["mansion", "マンション"], ["kodate", "戸建て"]].map(([v, n]) => `<button class="${(S.pin.home || "") === v ? "on" : ""}" onclick="S.pin.home='${v}';doPrint()">${n}</button>`).join("")}</span>` + pin("net", "今のネット代（月）", "例 5500") : "")
+    + (PROPS.some(x => x.id === "denki") ? pin("denki", "電気の基本料金＋電力量料金（月）", "例 9000") + pin("gas", "ガス代（月）", "例 5000") : "") : "";
   $("pvprop").innerHTML = PROPS.length ? `<span class="pvl">別紙のご提案：</span>` + PROPS.map(x => `<button class="${S.props[x.id] !== false ? "on" : ""}" onclick="S.props['${x.id}']=${S.props[x.id] === false};doPrint()">${x.name}</button>`).join("") : "";
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
   $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
