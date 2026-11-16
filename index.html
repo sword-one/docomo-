@@ -236,17 +236,26 @@ label.ck { min-height:44px; }
 .pvbar { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--navy); color:#fff; padding:10px 16px; }
 .pvbar b { font-size:17px; margin-right:auto; }
 .pvbar .btn { background:#fff; }
-#pvin { width:100%; display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; font-size:13px; } #pvin:empty { display:none; }
-#pvin b { width:100%; font-size:12px; font-weight:400; color:#dde4f0; margin:0; } #pvin label { display:flex; align-items:center; gap:5px; color:#fff; }
-#pvin input { width:96px; font-size:16px; padding:5px 6px; border-radius:6px; border:none; text-align:right; }
-.pvbar .seg button { min-height:38px; font-size:14px; } .pvbar .pvl { color:#222; font-size:12px; padding:0 6px 0 10px; align-self:center; background:#fff; }
+#pvctl { max-width:210mm; margin:12px auto 0; background:#fff; border-radius:12px; padding:12px 14px 8px; box-shadow:0 2px 10px rgba(0,0,0,.25); font-size:14px; color:#222; box-sizing:border-box; }
+#pvctl .pmode { display:flex; gap:8px; margin-bottom:10px; } #pvctl .pmode .pk { flex:1; font-size:17px; min-height:50px; }
+.pk { border:2px solid #c9d3e3; background:#f1f3f6; color:#7a8290; border-radius:10px; padding:8px 14px; font-size:15px; min-height:44px; cursor:pointer; touch-action:manipulation; }
+.pk.on { background:var(--navy); border-color:var(--navy); color:#fff; font-weight:800; }
+#pvctl .pr { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-top:1px solid #e3e7ee; }
+#pvctl .pl { width:8.5em; flex:none; font-weight:800; color:var(--navy); padding-top:10px; font-size:14px; }
+#pvctl .pc { flex:1; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+#pvctl .pc > small { color:#666; font-size:12px; width:100%; }
+#pvctl .stl { display:flex; align-items:center; gap:10px; width:100%; } #pvctl .stl > span:first-child { min-width:15.5em; } #pvctl .stl b.a { font-size:17px; } #pvctl .stl small { color:#666; font-size:12px; display:block; }
+.stp { display:inline-flex; align-items:center; border:2px solid var(--navy); border-radius:10px; overflow:hidden; background:#fff; }
+.stp button { border:none; background:#e8eef8; color:var(--navy); font-size:24px; font-weight:800; width:50px; height:44px; cursor:pointer; touch-action:manipulation; }
+.stp b { min-width:46px; text-align:center; font-size:20px; } .stp b.z { color:#b5bcc8; }
+.pinl { display:flex; align-items:center; gap:6px; } .pinl input { width:112px; font-size:17px; padding:8px; border:2px solid #c9d3e3; border-radius:8px; text-align:right; }
+#pvctl .hint { font-size:11.5px; color:#888; padding-top:6px; border-top:1px solid #e3e7ee; }
 @media screen { #print .pg { background:#fff; margin:0 auto 16px; } #pv .sheet { width:max-content; max-width:none; min-height:0; margin:16px auto 40px; background:none; box-shadow:none; padding:0; } #print .pg { padding:10mm; min-height:262mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:content-box; } }
-.pvbar .hint { width:100%; font-size:12px; color:#dde4f0; }
 .sheet { width:210mm; min-height:297mm; margin:16px auto 40px; background:#fff; padding:10mm; box-shadow:0 4px 18px rgba(0,0,0,.35); box-sizing:border-box; }
 body.pvopen { overflow:hidden; }
 @media print {
   body { background:#fff; }
-  header.bar, main, .sum, .pvbar { display:none !important; }
+  header.bar, main, .sum, .pvbar, #pvctl { display:none !important; }
   #pv { display:block !important; position:static; background:none; overflow:visible; }
   .sheet { width:auto; max-width:none; min-height:0; margin:0; padding:0; box-shadow:none; }
 }
@@ -264,7 +273,7 @@ body.pvopen { overflow:hidden; }
   <span class="sp"></span>
   <button class="btn" onclick="resetAll(this)">クリア</button>
   <button class="btn main" onclick="doPrint('prop')">💡 ご提案を見せる</button>
-  <button class="btn main" onclick="doPrint(printMode === 'prop' ? 'each' : undefined)">🖨 印刷プレビュー</button>
+  <button class="btn main" onclick="doPrint(estMode)">🖨 印刷プレビュー</button>
 </header>
 
 <main>
@@ -276,12 +285,10 @@ body.pvopen { overflow:hidden; }
 
 <div class="sum" id="sumbar"></div>
 <div id="pv">
-  <div class="pvbar"><b>印刷プレビュー <span id="pvcount" style="font-size:13px;font-weight:400"></span></b>
-    <span class="seg" id="pvmode"></span><span class="seg" id="pvprop"></span>
+  <div class="pvbar"><b><span id="pvttl">印刷プレビュー</span> <span id="pvcount" style="font-size:13px;font-weight:400"></span></b>
     <button class="btn" onclick="window.print()">🖨 印刷する</button>
-    <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button>
-    <div id="pvin"></div>
-    <span class="hint">「印刷する」で印刷画面が開かない時は、iPadのSafariなら画面上の共有ボタン（□↑）→「プリント」で印刷できます。</span></div>
+    <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button></div>
+  <div id="pvctl"></div>
   <div class="sheet"><div id="print"></div></div>
 </div>
 
@@ -771,9 +778,23 @@ function resetAll(btn) { if (!twoTap(btn, "reset", "もう一度押すと全部�
 
 // ---------- 印刷 ----------
 function closePv() { $("pv").classList.remove("open"); document.body.classList.remove("pvopen"); }
+let estMode = "each";     // 見積書の形（ご提案から見積書に戻る時に使う）
+// ご提案の手入力：回線数など。見積を作っていなくても、ご提案だけで使える
+const PM_CARD = { n: PLANS.find(x => x.id === "max").dcard, o: PLANS.find(x => x.id === "eximo").dcard };   // dカードお支払割 [GOLD以上, dカード]：新しいプラン／前のプラン
+const PM_HIKARI = [1210, 1100, 550], PM_DENKI = PLANS.find(x => x.id === "max").denki;
+const BLANK = JSON.stringify([newLine(1)]);
+function pmInit() { if (!S.pm) S.pm = { c550: 1, c187: 0, h1210: 1, h1100: 0, h550: 0, d110: 1, now: "none", bill: "" }; return S.pm; }
+// 金額のもと：選んでいなければ、見積が手つかずなら手入力、作ってあれば見積と連動
+function pmSrc() { return pmInit().src || (JSON.stringify(S.lines) === BLANK ? "man" : "est"); }
+function pmSet(k, v) { pmInit()[k] = v; doPrint(); }
+function pmAdd(k, d) { const M = pmInit(); M[k] = Math.max(0, Math.min(20, (M[k] || 0) + d)); doPrint(); }
 let printMode = "each";   // each＝1回線ずつ1枚（家族はまとめ付き）／one＝全回線を1枚に
 function doPrint(mode) {
   if (mode) printMode = mode;
+  if (mode && mode !== "prop") estMode = mode;
+  const M = pmInit(), man = printMode === "prop" && pmSrc() === "man";   // man＝手入力の数字でご提案を作る
+  const needIn = t => `<div class="pg"><p style="font-size:13pt;padding:20mm 0;text-align:center">上の欄で、${t}を入れてください。</p></div>`;
+  const srcTxt = n => man ? `ドコモの回線 ${n}回線分で計算した金額です。` : `本日のお見積り（${n > 1 ? n + "回線分" : "1回線"}）の内容で計算した金額です。`;
   if (!S.props) S.props = {};
   if (!S.pin) S.pin = {};
   const rs = S.lines.map(calc), N = S.lines.length;
@@ -861,39 +882,49 @@ function doPrint(mode) {
   // ===== ご提案シート（別紙）：dカード =====
   // まだ GOLD／PLATINUM をお持ちでない回線があれば出す。数字はこの見積の内容から計算（割引＋料金でたまるポイント）
   const cardPage = () => {
-    const tgt = S.lines.map((l, k) => ({ l, r: rs[k] })).filter(x => x.r.cards.length && !["gold", "platinum"].includes(x.l.dcard));
-    if (!tgt.length) return "";
-    const sum = id => tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.id === id); return { off: a.off + c.off, pts: a.pts + c.pts }; }, { off: 0, pts: 0 });
-    const cur = tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.sel); return c ? { off: a.off + c.off, pts: a.pts + c.pts } : a; }, { off: 0, pts: 0 });   // 今お使いのカード（dカード・GOLD U）の分
-    const net = id => { const v = sum(id); return (v.off + v.pts) * 12 - DCARD[id].fee; };
     const best = "gold";   // ご提案するのは dカード GOLD（山口さん指定：年会費無料のdカードは提案しない）
-    const v = sum(best), month = v.off + v.pts, year = month * 12, fee = DCARD[best].fee, card = DCARD[best];
-    const pl = sum("platinum");
-    const lines = tgt.length, bar = (val, max) => Math.max(4, Math.round(val / max * 100));
-    const mx = Math.max(year, fee, 1);
+    let v, cur, pl, lines;
+    if (man) {   // 手入力：お支払割は「額×回線数」、ポイントは うかがった毎月の料金（税込）を税抜にして計算
+      lines = M.c550 + M.c187; if (!lines) return needIn("回線数");
+      const base = Math.floor(Math.round(Number(M.bill || 0) / 1.1) / 1000) * 1000, pt = id => Math.round(base * DCARD[id].rate);
+      v = { off: PM_CARD.n[0] * M.c550 + PM_CARD.o[0] * M.c187, pts: pt("gold") };
+      cur = M.now === "general" ? { off: PM_CARD.n[1] * M.c550 + PM_CARD.o[1] * M.c187, pts: pt("general") } : { off: 0, pts: 0 };
+      pl = { pts: pt("platinum") };
+    } else {
+      const tgt = S.lines.map((l, k) => ({ l, r: rs[k] })).filter(x => x.r.cards.length && !["gold", "platinum"].includes(x.l.dcard));
+      if (!tgt.length) return "";
+      const sum = id => tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.id === id); return { off: a.off + c.off, pts: a.pts + c.pts }; }, { off: 0, pts: 0 });
+      cur = tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.sel); return c ? { off: a.off + c.off, pts: a.pts + c.pts } : a; }, { off: 0, pts: 0 });   // 今お使いのカード（dカード・GOLD U）の分
+      v = sum(best); pl = sum("platinum"); lines = tgt.length;
+    }
+    const month = v.off + v.pts, year = month * 12, fee = DCARD[best].fee, card = DCARD[best];
+    const curY = (cur.off + cur.pts) * 12, G = year - curY;   // G＝今のお支払い方法とくらべて、1年で増えるおトク
+    const bar = (val, max) => Math.max(4, Math.round(val / max * 100));
+    const mx = Math.max(G, fee, 1);
     return `<div class="pg teian">
       <div class="th"><div class="tl">ドコモをご利用のお客さまへ　お支払い方法のご提案</div><div class="tm">${ds}　${esc(store)}</div></div>
-      <div class="tcatch">お支払いを <b>${card.name}</b> に変えるだけで、<br>ドコモの料金が <b class="num">年間 約 ${year.toLocaleString("ja-JP")}円分</b> おトクになります。</div>
-      <div class="tsub">本日のお見積り（${lines > 1 ? lines + "回線分" : "1回線"}）の内容で計算した金額です。プランも使い方も、今のままで変わりません。</div>
+      <div class="tcatch">お支払いを <b>${card.name}</b> に変えるだけで、<br>ドコモの料金が <b class="num">${curY ? "今より " : ""}年間 約 ${G.toLocaleString("ja-JP")}円分</b> おトクになります。</div>
+      <div class="tsub">${srcTxt(lines)}プランも使い方も、今のままで変わりません。</div>
 
       <div class="teq">
         <div><span>毎月の料金が安くなる</span><b>${yen(v.off)}</b><small>dカードお支払割</small></div>${v.pts ? `<i>＋</i>
         <div><span>毎月 dポイントがたまる</span><b>${v.pts.toLocaleString("ja-JP")}pt</b><small>ドコモの料金の${Math.round(card.rate * 100)}%</small></div>` : ""}<i>＝</i>
         <div class="tot"><span>毎月</span><b>約 ${yen(month)}分</b><small>1年で 約 ${yen(year)}分</small></div>
       </div>
+      ${curY ? `<div class="pn" style="margin-top:-1mm">※上は ${card.name} で受けられる合計です。今の dカードで受けている分（年間 約 ${yen(curY)}分）を引いた差が、年間 約 ${yen(G)}分です。</div>` : ""}
 
       <div class="tloss"><div class="tlh">今のお支払い方法のままだと…</div>
-        <div class="tlb">この <b>年間 約 ${yen(year - (cur.off + cur.pts) * 12)}分</b> は、毎年 受け取らないままになります。<br><span>5年で 約 ${yen((year - (cur.off + cur.pts) * 12) * 5)}分。同じ料金を払うなら、受け取れる方がおトクです。</span></div></div>
+        <div class="tlb">この <b>年間 約 ${yen(G)}分</b> は、毎年 受け取らないままになります。<br><span>5年で 約 ${yen(G * 5)}分。同じ料金を払うなら、受け取れる方がおトクです。</span></div></div>
 
       <div class="tbars"><div class="tbh">${fee ? "年会費とくらべると" : "年会費はかかりません"}</div>
-        <div class="tbr"><span>1年間のおトク</span><div class="bar"><i style="width:${bar(year, mx)}%"></i></div><b>${yen(year)}分</b></div>
+        <div class="tbr"><span>1年間のおトク</span><div class="bar"><i style="width:${bar(G, mx)}%"></i></div><b>${yen(G)}分</b></div>
         <div class="tbr"><span>年会費</span><div class="bar"><i class="w" style="width:${fee ? bar(fee, mx) : 0}%"></i></div><b>${fee ? yen(fee) : "無料"}</b></div>
-        ${year >= fee ? `<div class="tnet">年会費を引いても <b>年間 約 ${yen(year - fee)}分 プラス</b> です。</div>` : `<div class="tnet">料金のおトクに加えて、<b>下の特典も合わせてご覧ください。</b></div>`}
+        ${G >= fee ? `<div class="tnet">年会費を引いても <b>年間 約 ${yen(G - fee)}分 プラス</b> です。</div>` : `<div class="tnet">料金のおトクに加えて、<b>下の特典も合わせてご覧ください。</b></div>`}
       </div>
 
       ${best === "gold" ? `<div class="tperk"><div class="tbh">料金のおトクだけではありません</div>
         ${DCARD_GOLD_PERKS.map(x => `<div class="tp"><span class="ck">✔</span><div><b>${x[0]}</b><br>${x[1]}</div></div>`).join("")}</div>
-        <div class="tplus">さらに <b>dカード PLATINUM</b> なら、たまるポイントは 毎月 ${pl.pts.toLocaleString("ja-JP")}pt（入会初年度。2年目以降はカードのご利用額により変わります）。</div>` : ""}
+        ${pl.pts ? `<div class="tplus">さらに <b>dカード PLATINUM</b> なら、たまるポイントは 毎月 ${pl.pts.toLocaleString("ja-JP")}pt（入会初年度。2年目以降はカードのご利用額により変わります）。</div>` : ""}` : ""}
 
       <div class="tfam"><div class="tfh">ご家族も<br>家族カードを<br>作ると</div><div class="tfb">
         <div><b>1枚目は 年会費無料</b>（2枚目からは1枚 1,100円）</div>
@@ -901,7 +932,7 @@ function doPrint(mode) {
         <div>✔ ご家族のスマホにも <b>dカードケータイ補償</b>／<b>お買物あんしん保険</b></div></div></div>
       <div class="tcta"><b>お申込みは、この場でスタッフがお手伝いします。</b><span>お手続きに必要なもの・入会特典は、スタッフにおたずねください。</span></div>
 
-      <div class="pn">※金額は税込。本日のお見積りの料金をもとにした目安で、実際の割引・ポイントはご利用状況により変わります。ポイントは割引後の基本料金・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。ドコモ mini2・ahamo などポイント還元の対象外のプランがあります。<br>
+      <div class="pn">※金額は税込。${man ? "うかがった内容" : "本日のお見積りの料金"}をもとにした目安で、実際の割引・ポイントはご利用状況により変わります。ポイントは割引後の基本料金・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。ドコモ mini2・ahamo などポイント還元の対象外のプランがあります。<br>
       ※dカードお支払割は、対象プランの料金をカードでお支払いの場合に適用されます。${fee ? `${card.name}の年会費は${yen(fee)}（税込）です。` : ""}カードのお申込みには所定の審査があります（満18歳以上・高校生を除く）。家族カードは、生計を共にする満18歳以上（高校生を除く）の配偶者・お子さま・ご両親が対象で、ポイントは本会員にまとまります。ケータイ補償のご利用には携帯電話番号の登録が必要です。<br>
       ※${DATA_AS_OF.replace("改定後の料金", "時点の内容")}。特典・還元率は変更になる場合があります。</div>
     </div>`;
@@ -909,18 +940,19 @@ function doPrint(mode) {
   // ===== ご提案シート（別紙）：ドコモ光 =====
   const tHead = t => `<div class="th"><div class="tl">${t}</div><div class="tm">${ds}　${esc(store)}</div></div>`;
   const hikariPage = () => {
-    const tgt = S.lines.map((l, k) => ({ l, r: rs[k], amt: hikariOf(plan(l), l) })).filter(x => x.amt && !x.l.hikari);
-    if (!tgt.length) return "";
+    const tgt = man ? [].concat(...PM_HIKARI.map(a => Array(M["h" + a] || 0).fill({ amt: a })))
+      : S.lines.map((l, k) => ({ l, r: rs[k], amt: hikariOf(plan(l), l) })).filter(x => x.amt && !x.l.hikari);
+    if (!tgt.length) return man ? needIn("回線数") : "";
     const month = tgt.reduce((a, x) => a + x.amt, 0), year = month * 12, n = tgt.length, H = HIKARI_INFO;
     const same = tgt.every(x => x.amt === tgt[0].amt);
-    const gold = S.lines.some(l => ["gold", "platinum"].includes(l.dcard));
+    const gold = !man && S.lines.some(l => ["gold", "platinum"].includes(l.dcard));
     const row = (name, fee) => `<div class="tbr3"><span>${name}</span><b>${yen(fee)}</b><i>−</i><b>${yen(month)}</b><i>＝</i><b class="res">実質 ${yen(Math.max(0, fee - month))}</b></div>`;
     return `<div class="pg teian">${tHead("ドコモをご利用のお客さまへ　おうちのインターネットのご提案")}
       <div class="tcatch">おうちのネットを <b>ドコモ光</b> にすると、<br>スマホ代が <b class="num">年間 約 ${year.toLocaleString("ja-JP")}円</b> 安くなります。</div>
-      <div class="tsub">本日のお見積り（${n > 1 ? n + "回線分" : "1回線"}）の内容で計算した金額です。割引は、ドコモ光をお使いのあいだ ずっと続きます。</div>
+      <div class="tsub">${srcTxt(n)}割引は、ドコモ光をお使いのあいだ ずっと続きます。</div>
       <div class="teq">
         <div><span>スマホ1回線ごとに</span><b>${same ? yen(tgt[0].amt) : "最大 " + yen(Math.max(...tgt.map(x => x.amt)))}</b><small>ドコモ光セット割（毎月）</small></div><i>×</i>
-        <div><span>お見積りの回線</span><b>${n}回線</b><small>ご家族みんなが対象</small></div><i>＝</i>
+        <div><span>${man ? "対象の回線" : "お見積りの回線"}</span><b>${n}回線</b><small>ご家族みんなが対象</small></div><i>＝</i>
         <div class="tot"><span>毎月</span><b>${yen(month)} 割引</b><small>1年で ${yen(year)}</small></div>
       </div>
       <div class="tloss"><div class="tlh">今のネットのままだと…</div>
@@ -941,15 +973,15 @@ function doPrint(mode) {
         <div class="tp"><span class="ck">✔</span><div><b>${gold ? "dカード GOLD ならネット代もポイント10%" : "工事ができないお部屋なら home 5G"}</b><br>${gold ? "ドコモ光の料金（税抜1,000円ごと）も10%還元の対象です" : `コンセントにさすだけ・工事不要（月${yen(H.home5g)}）。セット割は同じ額です`}</div></div>
       </div>
       <div class="tcta"><b>お住まいで使えるか、この場でお調べします。</b><span>今お使いのネットの料金がわかるものがあれば、その場でくらべられます。</span></div>
-      <div class="pn">※金額は税込。割引額は本日のお見積りのプランで計算しています（プランやデータ量により割引額が変わります。ahamo など対象外のプランがあります）。<br>
+      <div class="pn">※金額は税込。割引額は${man ? "うかがった" : "本日のお見積りの"}プランで計算しています（プランやデータ量により割引額が変わります。ahamo など対象外のプランがあります）。<br>
       ※ドコモ光の月額は、1ギガ タイプA・2年定期契約の場合（マンション${yen(H.fee.mansion)}／戸建て${yen(H.fee.kodate)}）。別に契約事務手数料${yen(H.jimu)}、新規工事料${yen(H.koji)}（代表例）がかかります。工事料実質0円の特典・乗り換え特典は、dポイント（期間・用途限定）での進呈で、条件があります（途中で解約すると進呈は終了。転用などは対象外）。2年定期契約は、更新期間以外の解約で解約金（マンション4,180円／戸建て5,500円）がかかります。<br>
       ※2026年11月時点の内容です。特典は変更・終了する場合があります。</div></div>`;
   };
 
   // ===== ご提案シート（別紙）：ドコモでんき・ドコモ ガス =====
   const denkiPage = () => {
-    if (!S.lines.some(l => !l.denki)) return "";
-    const tgt = S.lines.map(l => ({ l, amt: plan(l).denki || 0 })).filter(x => x.amt && !x.l.denki);
+    if (!man && !S.lines.some(l => !l.denki)) return "";
+    const tgt = man ? Array(M.d110 || 0).fill({ amt: PM_DENKI }) : S.lines.map(l => ({ l, amt: plan(l).denki || 0 })).filter(x => x.amt && !x.l.denki);
     const month = tgt.reduce((a, x) => a + x.amt, 0), year = month * 12, n = tgt.length, D = DENKI_INFO;
     const ex = D.examples.map(b => ({ b, green: Math.floor(b * D.green.gold / 100), basic: Math.floor(b * D.basic.card / 100) }));
     return `<div class="pg teian">${tHead("ドコモをご利用のお客さまへ　電気・ガスのご提案")}
@@ -957,7 +989,7 @@ function doPrint(mode) {
       <div class="tsub">電気の質も、停電の時の対応も、今までと同じです。工事も、今の電力会社への解約の連絡もいりません。</div>
       ${year ? `<div class="teq">
         <div><span>スマホ1回線ごとに</span><b>${yen(tgt[0].amt)}</b><small>ドコモでんきセット割（毎月）</small></div><i>×</i>
-        <div><span>お見積りの回線</span><b>${n}回線</b><small>ご家族の対象プランが割引</small></div><i>＝</i>
+        <div><span>${man ? "対象の回線" : "お見積りの回線"}</span><b>${n}回線</b><small>ご家族の対象プランが割引</small></div><i>＝</i>
         <div class="tot"><span>毎月</span><b>${yen(month)} 割引</b><small>1年で ${yen(year)}</small></div>
       </div>` : ""}
       <div class="tbars"><div class="tbh">電気代でたまる dポイント（1年間の目安）</div>
@@ -980,20 +1012,50 @@ function doPrint(mode) {
       ※ドコモでんきセット割は、ドコモ MAX・ポイ活 MAX・ポイ活 20・ドコモ mini2 などが対象です（年齢による割引の期間中は適用されません）。ドコモ ガスは東邦ガスの都市ガスエリアが対象で、一部ご利用になれない地域があります。2026年11月時点の内容です。</div></div>`;
   };
 
-  const PROPS = [["dcard", "dカード", cardPage], ["hikari", "ドコモ光", hikariPage], ["denki", "でんき・ガス", denkiPage]].map(([id, name, f]) => ({ id, name, html: f() })).filter(x => x.html);
+  const SHEETS = [["dcard", "dカード GOLD", cardPage], ["hikari", "ドコモ光", hikariPage], ["denki", "でんき・ガス", denkiPage]];
+  const PROPS = SHEETS.map(([id, name, f]) => ({ id, name, html: f() })).filter(x => x.html);
   const props = PROPS.filter(x => S.props[x.id] !== false).map(x => x.html);
-  const pages = printMode === "prop" ? (props.length ? props : [`<div class="pg"><p style="font-size:13pt;padding:20mm 0;text-align:center">この見積の内容では、ご提案できるものがありません。<br><span style="font-size:10pt">（dカード GOLD・ドコモ光・ドコモでんきを、すでにご利用の設定になっています）</span></p></div>`])
+  const isProp = printMode === "prop";
+  // ご提案は1枚ずつ見せる。見積と連動の時に、もう利用中で出せないものは、その旨を出す
+  const sheet = M.sheet || "dcard", shown = PROPS.find(x => x.id === sheet);
+  const pages = isProp ? [shown ? shown.html : `<div class="pg"><p style="font-size:13pt;padding:20mm 0;text-align:center">この見積では、すでにご利用中（または対象外のプラン）の設定になっています。<br><span style="font-size:10pt">上の「② 金額は」を「ここで手入力」にすると、見積と関係なくご提案できます。</span></p></div>`]
     : (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)]).concat(props);
   $("print").innerHTML = pages.join("");
-  $("pvmode").innerHTML = (N > 1 ? [["each", `見積書（まとめ＋${N}枚）`], ["one", "見積書（まとめて1枚）"]] : [["each", "見積書"]]).concat([["prop", "ご提案だけ"]]).map(([v, n]) => `<button class="${printMode === v ? "on" : ""}" onclick="doPrint('${v}')">${n}</button>`).join("");
-  // お客様の今の料金を入れると、ご提案の数字がその人の金額になる
-  const pin = (k, label, ph) => `<label>${label}<input type="number" inputmode="numeric" value="${S.pin[k] || ""}" placeholder="${ph}" onchange="S.pin['${k}']=this.value;doPrint()"><span>円</span></label>`;
-  $("pvin").innerHTML = PROPS.some(x => x.id !== "dcard") ? `<b>お客様の今の料金（入れると、ご提案がその金額で計算されます）</b>`
-    + (PROPS.some(x => x.id === "hikari") ? `<span class="seg">${[["", "住まい未選択"], ["mansion", "マンション"], ["kodate", "戸建て"]].map(([v, n]) => `<button class="${(S.pin.home || "") === v ? "on" : ""}" onclick="S.pin.home='${v}';doPrint()">${n}</button>`).join("")}</span>` + pin("net", "今のネット代（月）", "例 5500") : "")
-    + (PROPS.some(x => x.id === "denki") ? pin("denki", "今の電気代（月・税込のだいたいでOK）", "例 10000") + pin("gas", "今のガス代（月・だいたい）", "例 5000") : "") : "";
-  $("pvprop").innerHTML = PROPS.length ? `<span class="pvl">別紙のご提案：</span>` + PROPS.map(x => `<button class="${S.props[x.id] !== false ? "on" : ""}" onclick="S.props['${x.id}']=${S.props[x.id] === false};doPrint()">${x.name}</button>`).join("") : "";
+  // ---- 操作パネル（選んでいる方に色がつく）----
+  const pk = (on, label, click) => `<button class="pk ${on ? "on" : ""}" onclick="${click}">${on ? "✓ " : ""}${label}</button>`;
+  const row = (label, body) => `<div class="pr"><span class="pl">${label}</span><div class="pc">${body}</div></div>`;
+  const stp = (k, label) => `<div class="stl"><span>${label}</span><span class="stp"><button onclick="pmAdd('${k}',-1)">−</button><b class="${M[k] ? "" : "z"}">${M[k] || 0}</b><button onclick="pmAdd('${k}',1)">＋</button></span><span>回線</span></div>`;
+  const pin = (obj, k, label, ph) => `<label class="pinl">${label}<input type="number" inputmode="numeric" value="${S[obj][k] || ""}" placeholder="${ph}" onchange="S.${obj}['${k}']=this.value;doPrint()"><span>円</span></label>`;
+  const homeNet = [["", "未選択"], ["mansion", "マンション"], ["kodate", "戸建て"]].map(([v, n]) => pk((S.pin.home || "") === v, n, `S.pin.home='${v}';doPrint()`)).join("") + pin("pin", "net", "今のネット代（月）", "例 5500");
+  const denGas = pin("pin", "denki", "今の電気代（月・税込のだいたい）", "例 10000") + pin("pin", "gas", "今のガス代（月）", "例 5000");
+  let ctl = `<div class="pmode">${pk(!isProp, "📄 見積書", "doPrint(estMode)")}${pk(isProp, "💡 ご提案（1枚ずつ）", "doPrint('prop')")}</div>`;
+  if (!isProp) {
+    if (N > 1) ctl += row("見積書の形", pk(printMode === "each", `1回線ずつ（まとめ＋${N}枚）`, "doPrint('each')") + pk(printMode === "one", "まとめて1枚", "doPrint('one')"));
+    if (PROPS.length) ctl += row("別紙をつける", PROPS.map(x => pk(S.props[x.id] !== false, x.name, `S.props['${x.id}']=${S.props[x.id] === false};doPrint()`)).join("") + `<small>色がついているものが、見積書のうしろに付きます。押すと付ける／はずすが切り替わります。</small>`);
+    if (PROPS.some(x => x.id === "hikari") && S.props.hikari !== false) ctl += row("ドコモ光の別紙", homeNet);
+    if (PROPS.some(x => x.id === "denki") && S.props.denki !== false) ctl += row("でんきの別紙", denGas);
+  } else {
+    ctl += row("① どれを見せる？", SHEETS.map(([id, name]) => pk(sheet === id, name, `pmSet('sheet','${id}')`)).join(""));
+    ctl += row("② 金額は", pk(man, "ここで手入力", "pmSet('src','man')") + pk(!man, "見積の内容で計算", "pmSet('src','est')"));
+    if (sheet === "dcard" && man) {
+      ctl += row("③ 回線数", stp("c550", `<b class="a">${yen(PM_CARD.n[0])}</b> 引き<small>新しいプラン（MAX・ポイ活・mini2・mini）</small>`) + stp("c187", `<b class="a">${yen(PM_CARD.o[0])}</b> 引き<small>前のプラン（eximo・irumo・ギガホなど）</small>`));
+      ctl += row("④ 毎月の料金", pin("pm", "bill", "基本料金＋通話料の合計（税込・だいたい）", "例 8000") + `<small>入れると、たまるポイントも出ます（空でもOK）。mini2・mini・irumo・ahamo の回線はポイントの対象外なので、入れないでください。</small>`);
+      ctl += row("⑤ 今のお支払い", pk(M.now !== "general", "口座振替・ほかのカード", "pmSet('now','none')") + pk(M.now === "general", "dカード（年会費無料）", "pmSet('now','general')"));
+    }
+    if (sheet === "hikari") {
+      if (man) ctl += row("③ 回線数", stp("h1210", `<b class="a">1,210円</b> 引き<small>新しいプラン（MAX・ポイ活・mini2・mini）</small>`) + stp("h1100", `<b class="a">1,100円</b> 引き<small>前のプラン（eximo・irumo 3GB〜・ギガホなど）</small>`) + stp("h550", `<b class="a">550円</b> 引き<small>5Gギガライト（1GB超〜3GB）</small>`));
+      ctl += row(man ? "④ お住まい" : "③ お住まい", homeNet);
+    }
+    if (sheet === "denki") {
+      if (man) ctl += row("③ 回線数", stp("d110", `<b class="a">${yen(PM_DENKI)}</b> 引き<small>新しいプラン（MAX・ポイ活・mini2・mini）。前のプランは割引なし</small>`));
+      ctl += row(man ? "④ 電気・ガス" : "③ 電気・ガス", denGas);
+    }
+  }
+  ctl += `<div class="hint">「印刷する」で印刷画面が開かない時は、iPadのSafariなら画面上の共有ボタン（□↑）→「プリント」で印刷できます。</div>`;
+  $("pvctl").innerHTML = ctl;
+  $("pvttl").textContent = isProp ? "ご提案" : "印刷プレビュー";
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
-  $("pv").classList.add("open"); document.body.classList.add("pvopen"); $("pv").scrollTop = 0;
+  $("pv").classList.add("open"); document.body.classList.add("pvopen"); if (mode) $("pv").scrollTop = 0;
   fitPages();
 }
 // 各ページをA4縦1枚（印刷できる範囲 190×277mm）に収める。はみ出す時だけ縮小
