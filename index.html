@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -165,6 +165,8 @@ label.ck { min-height:44px; }
 #print .cardsec .rw.st { font-size:10.5pt; } #print .cardsec .rw.yr { border-top:0.2mm solid #c8c8c8; font-size:11.5pt; }
 #print .psteps + .psteps { margin-top:-2mm; }
 #print .dnw { display:flex; align-items:center; gap:3mm; padding:1mm 1mm 0; } #print .dnw img { height:24mm; max-width:26mm; object-fit:contain; flex:none; }
+#print .wt { display:inline-block; font-style:normal; font-size:8pt; font-weight:800; min-width:13mm; text-align:center; border:0.3mm solid #000; border-radius:1mm; padding:0 1mm; margin-right:2mm; }
+#print .wt.today { background:#000; color:#fff; }
 #print .dn { font-size:13.5pt; font-weight:800; padding:1.5mm 1mm 1mm; }
 #print .none { padding:2mm 1mm; color:#444; }
 #print .pn { font-size:8pt; color:#333; margin-top:3mm; line-height:1.5; }
@@ -773,8 +775,8 @@ function doPrint(mode) {
         : `<div class="none">端末のご購入なし</div>`}
       ${l.contract === "plan" && l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
     const sec4 = `<div class="sec"><h3>③ 初期費用</h3>
-      ${r.init.some(x => x[2] === "today") ? `<h4>当日のお支払い</h4>${initRows(r, "today")}` : ""}
-      ${r.init.some(x => x[2] === "next") ? `<h4>毎月のお支払いとは別に、翌月の請求に1回だけ加わるもの</h4>${initRows(r, "next")}` : ""}
+      ${[...r.init.filter(x => x[2] === "today"), ...r.init.filter(x => x[2] === "next")].map(x => `<div class="rw"><span><i class="wt ${x[2]}">${x[2] === "today" ? "当日" : "翌月請求"}</i>${esc(x[0])}</span><b>${yen(x[1])}</b></div>`).join("")}
+      ${r.init.some(x => x[2] === "next") ? `<div class="pn" style="margin-top:1mm"><i class="wt next">翌月請求</i>は、翌月の携帯料金に1回だけ加算されます。</div>` : ""}
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
       <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}${cardSec}</div></div>
