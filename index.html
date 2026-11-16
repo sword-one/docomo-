@@ -170,6 +170,8 @@ label.ck { min-height:44px; }
 #print .rw.uchi { border-bottom:none; padding:0.6mm 1mm 0.6mm 6mm; font-size:10pt; } #print .rw.uchi b { font-weight:700; }
 #print .wt { display:inline-block; font-style:normal; font-size:8pt; font-weight:800; min-width:9mm; text-align:center; border:0.3mm solid #000; border-radius:1mm; padding:0 1mm; margin-right:2mm; }
 #print .wt.today { background:#000; color:#fff; }
+#print .dm { padding:0.5mm 1mm 1mm; display:flex; flex-wrap:wrap; align-items:baseline; gap:2mm; } #print .dm span { font-size:9.5pt; font-weight:700; } #print .dm b { font-size:17pt; font-weight:800; } #print .dm small { font-size:8.5pt; color:#333; width:100%; margin-top:-1mm; }
+#print .dnw { border-bottom:0.5mm solid #000; padding-bottom:1.5mm !important; margin-bottom:0.5mm; }
 #print .dn { font-size:13.5pt; font-weight:800; padding:1.5mm 1mm 1mm; }
 #print .none { padding:2mm 1mm; color:#444; }
 #print .pn { font-size:8pt; color:#333; margin-top:3mm; line-height:1.5; }
@@ -769,7 +771,7 @@ function doPrint(mode) {
       <div class="pn" style="margin-top:1mm">※ドコモの料金をカードでお支払いの場合。割引後の基本料・通話料（税抜1,000円ごと）が対象です。${pc.some(c => c.id === "platinum") ? "PLATINUMは入会初年度（20%）の場合で、2年目以降はカードのご利用額により10〜20%です。" : ""}</div></div>` : "";
     const poiBox = r.poikatsu ? `<div class="pn" style="margin-top:-2mm;margin-bottom:2mm">※実質は、ポイ活の還元を上限（月${r.poikatsu.cap.toLocaleString()}pt）まで貯めて、基本料金に充てた場合の金額です。d払い・dカードのお買い物の${r.poikatsu.rate}%が還元され、月 約${yen(r.poikatsu.need)}のお買い物で上限になります（期間・用途限定ポイント）。</div>` : "";
     const sec3 = `<div class="sec"><h3>② 端末</h3>
-      ${dv ? `<div class="dnw">${dv.img ? `<img src="${dv.img}" alt="" onerror="this.style.display='none'">` : ""}<div class="dn">${esc(dv.name)}</div></div>`
+      ${dv ? `<div class="dnw">${dv.img ? `<img src="${dv.img}" alt="" onerror="this.style.display='none'">` : ""}<div><div class="dn">${esc(dv.name)}</div>${dv.monthly ? `<div class="dm"><span>② 毎月の分割</span><b>${yen(dv.monthly)}</b><span>× ${dv.months}回</span>${dv.first ? `<small>（1回目のみ ${yen(dv.first)}）</small>` : ""}</div>` : ""}</div></div>`
         + rw("買い方", payName(dv))
         + (dv.discount && dv.hontai != null ? rw("本体価格", yen(dv.hontai)) + rw(esc(dv.store.name), "▲" + yen(dv.discount), "dc") : "")
         + rw("端末代金（頭金込み）", dv.total !== null ? yen(dv.total) : "—")
@@ -778,7 +780,6 @@ function doPrint(mode) {
         + (Number(l.device.point) ? rw("ポイント利用", "▲" + Number(l.device.point).toLocaleString() + "pt", "dc") : "")
         + (dv.zanka ? rw("24回目のお支払い（残価）", yen(dv.zanka)) : "")
         + (dv.zanka ? rw("そのまま使い続ける場合（25か月目から）", "月 " + yen(Math.floor(dv.zanka / 24)) + " × 24回", "sub") : "")
-        + (dv.monthly ? rw("② 毎月の分割（" + dv.months + "回）", yen(dv.monthly), "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
         : `<div class="none">端末のご購入なし</div>`}
       ${l.contract === "plan" && l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
     const sec4 = `<div class="sec"><h3>③ 初期費用</h3>
