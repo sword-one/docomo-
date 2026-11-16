@@ -199,6 +199,9 @@ label.ck { min-height:44px; }
 #print .tperk { margin-bottom:4mm; display:grid; grid-template-columns:1fr 1fr; gap:2mm 6mm; } #print .tperk .tbh { grid-column:1 / -1; margin-bottom:1mm; }
 #print .tp { display:flex; gap:2.5mm; font-size:10pt; line-height:1.45; } #print .tp .ck { font-size:13pt; font-weight:800; }
 #print .tplus { font-size:10pt; background:#ebebeb; border-radius:2mm; padding:2mm 4mm; margin-bottom:5mm; }
+#print .tfam { display:flex; border:0.5mm solid #000; border-radius:3mm; overflow:hidden; margin-bottom:5mm; }
+#print .tfh { background:#e6e6e6; font-weight:800; font-size:12pt; padding:3mm 4mm; display:flex; align-items:center; width:36mm; line-height:1.4; }
+#print .tfb { padding:2.5mm 5mm; font-size:10.5pt; line-height:1.7; flex:1; } #print .tfb b { font-size:11.5pt; }
 #print .tcta { border:1mm solid #000; border-radius:3mm; padding:3.5mm 5mm; text-align:center; margin-bottom:3mm; } #print .tcta b { display:block; font-size:14pt; } #print .tcta span { font-size:9.5pt; }
 #print .tbr3 { display:grid; grid-template-columns:24mm 1fr 6mm 1fr 6mm 1.2fr; align-items:center; gap:2mm; font-size:10.5pt; padding:1.8mm 1mm; border-bottom:0.2mm solid #c8c8c8; }
 #print .tbr3 span { font-weight:800; } #print .tbr3 b { text-align:right; font-size:13pt; } #print .tbr3 i { font-style:normal; text-align:center; font-weight:800; }
@@ -863,8 +866,7 @@ function doPrint(mode) {
     const sum = id => tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.id === id); return { off: a.off + c.off, pts: a.pts + c.pts }; }, { off: 0, pts: 0 });
     const cur = tgt.reduce((a, x) => { const c = x.r.cards.find(c => c.sel); return c ? { off: a.off + c.off, pts: a.pts + c.pts } : a; }, { off: 0, pts: 0 });   // 今お使いのカード（dカード・GOLD U）の分
     const net = id => { const v = sum(id); return (v.off + v.pts) * 12 - DCARD[id].fee; };
-    const best = net("gold") >= net("general") && net("gold") > 0 ? "gold" : "general";   // 年会費を引いて一番おトクなカードをおすすめする
-    if (best === "general" && tgt.every(x => x.l.dcard === "general")) return "";           // すでにそのカードをお持ち
+    const best = "gold";   // ご提案するのは dカード GOLD（山口さん指定：年会費無料のdカードは提案しない）
     const v = sum(best), month = v.off + v.pts, year = month * 12, fee = DCARD[best].fee, card = DCARD[best];
     const pl = sum("platinum");
     const lines = tgt.length, bar = (val, max) => Math.max(4, Math.round(val / max * 100));
@@ -886,17 +888,21 @@ function doPrint(mode) {
       <div class="tbars"><div class="tbh">${fee ? "年会費とくらべると" : "年会費はかかりません"}</div>
         <div class="tbr"><span>1年間のおトク</span><div class="bar"><i style="width:${bar(year, mx)}%"></i></div><b>${yen(year)}分</b></div>
         <div class="tbr"><span>年会費</span><div class="bar"><i class="w" style="width:${fee ? bar(fee, mx) : 0}%"></i></div><b>${fee ? yen(fee) : "無料"}</b></div>
-        ${fee ? `<div class="tnet">年会費を引いても <b>年間 約 ${yen(year - fee)}分 プラス</b> です。</div>` : `<div class="tnet">年会費がかからないので、<b>おトクな分がそのまま残ります。</b></div>`}
+        ${year >= fee ? `<div class="tnet">年会費を引いても <b>年間 約 ${yen(year - fee)}分 プラス</b> です。</div>` : `<div class="tnet">料金のおトクに加えて、<b>下の特典も合わせてご覧ください。</b></div>`}
       </div>
 
       ${best === "gold" ? `<div class="tperk"><div class="tbh">料金のおトクだけではありません</div>
         ${DCARD_GOLD_PERKS.map(x => `<div class="tp"><span class="ck">✔</span><div><b>${x[0]}</b><br>${x[1]}</div></div>`).join("")}</div>
         <div class="tplus">さらに <b>dカード PLATINUM</b> なら、たまるポイントは 毎月 ${pl.pts.toLocaleString("ja-JP")}pt（入会初年度。2年目以降はカードのご利用額により変わります）。</div>` : ""}
 
+      <div class="tfam"><div class="tfh">ご家族も<br>家族カードを<br>作ると</div><div class="tfb">
+        <div><b>1枚目は 年会費無料</b>（2枚目からは1枚 1,100円）</div>
+        <div>✔ ご家族のお買い物でも dポイントがたまり、<b>ポイントはまとめて1つに</b></div>
+        <div>✔ ご家族のスマホにも <b>dカードケータイ補償</b>／<b>お買物あんしん保険</b></div></div></div>
       <div class="tcta"><b>お申込みは、この場でスタッフがお手伝いします。</b><span>お手続きに必要なもの・入会特典は、スタッフにおたずねください。</span></div>
 
       <div class="pn">※金額は税込。本日のお見積りの料金をもとにした目安で、実際の割引・ポイントはご利用状況により変わります。ポイントは割引後の基本料金・通話料（税抜1,000円ごと）が対象で、端末代金・事務手数料などは対象外です。ドコモ mini2・ahamo などポイント還元の対象外のプランがあります。<br>
-      ※dカードお支払割は、対象プランの料金をカードでお支払いの場合に適用されます。${fee ? `${card.name}の年会費は${yen(fee)}（税込）です。` : ""}カードのお申込みには所定の審査があります（満18歳以上・高校生を除く）。<br>
+      ※dカードお支払割は、対象プランの料金をカードでお支払いの場合に適用されます。${fee ? `${card.name}の年会費は${yen(fee)}（税込）です。` : ""}カードのお申込みには所定の審査があります（満18歳以上・高校生を除く）。家族カードは、生計を共にする満18歳以上（高校生を除く）の配偶者・お子さま・ご両親が対象で、ポイントは本会員にまとまります。ケータイ補償のご利用には携帯電話番号の登録が必要です。<br>
       ※${DATA_AS_OF.replace("改定後の料金", "時点の内容")}。特典・還元率は変更になる場合があります。</div>
     </div>`;
   };
