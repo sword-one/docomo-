@@ -780,7 +780,7 @@ function doPrint(mode) {
       ${r.init.length ? rw("初期費用 合計", yen(r.initTotal), "st") + rw("うち 当日のお支払い" + (r.today ? "（" + payM.name + "）" : ""), yen(r.today), "uchi") + rw("うち 翌月のご請求に加算", yen(r.nextInit), "uchi") + (r.today && payM.note ? `<div class="pn" style="margin-top:0.5mm">※${payM.note}</div>` : "") : ""}
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
-      <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}${cardSec}</div></div>
+      <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}</div></div>
       <div class="totl">合計</div>${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula)}${stepsBox(r)}${poiBox}${notes}</div>`;
   };
 
