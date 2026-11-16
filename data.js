@@ -195,6 +195,21 @@ const OPTIONS = [
   { id: "tentou", group: "みんスマ", name: "あんしん店頭サポート", plans: P_SMART, choices: [{ l: "ミニ", p: 550 }, { l: "", p: 990 }] },
 ];
 
+// パックに含まれるオプション。パックを選ぶと、中身のオプションは選べなくなる（二重に入れないため）
+// 出典：各パックの公式ページ（smartあんしんパック／あんしんパック モバイル／dバリューパスパック／オプションパック割引）
+const PACK_INCLUDES = {
+  smartpack: ["hosho", "security", "enkaku"],            // smartあんしん補償＋あんしんセキュリティ（220円）＋あんしん遠隔サポート
+  anshinmobile: ["keitaihosho", "security", "enkaku"],   // ケータイ補償サービス＋あんしんセキュリティ＋あんしん遠隔サポート
+  dvaluepack: ["dvalue", "mydaiz", "cloud"],             // dバリューパス＋my daiz＋クラウド容量オプション（50GB）
+  optpack: ["rusuden", "catch", "melody"],               // 留守番電話＋キャッチホン＋メロディコール（＋転送でんわ）
+};
+// 当日のお支払い方法
+const PAY_METHODS = [
+  { id: "cash", name: "現金", note: "" },
+  { id: "card", name: "クレジットカード", note: "お引き落とし日は、カード会社の締め日によります。" },
+  { id: "dpay", name: "d払い", note: "d払い（電話料金合算払い）は、ご利用月の携帯料金と一緒のご請求になります。" },
+];
+
 // プランに最初から含まれているもの（オプション欄の上に表示）
 const PLAN_INCLUDES = {
   eximo: "ドコモメール・spモード込み（旧プラン）",

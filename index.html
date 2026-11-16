@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -120,7 +120,7 @@ label.ck { min-height:44px; }
 #print .ph .who small { font-size:11pt; font-weight:700; margin-left:3mm; }
 #print .ph .meta { font-size:9pt; text-align:right; line-height:1.5; white-space:nowrap; }
 /* いちばん上：毎月・当日・翌月 */
-#print .hero { display:grid; grid-template-columns:1.65fr 1fr; gap:4mm; margin-bottom:4mm; }
+#print .hero { display:grid; grid-template-columns:2fr 1fr; align-items:stretch; gap:4mm; margin-bottom:4mm; }
 #print .hero.solo { grid-template-columns:1fr; }
 #print .totl { font-size:12pt; font-weight:800; letter-spacing:.3em; border-top:0.9mm solid #000; padding-top:2.5mm; margin:2mm 0 2.5mm; }
 #print .psteps { margin-top:-1mm; }
@@ -136,9 +136,12 @@ label.ck { min-height:44px; }
 #print .fm i { font-style:normal; font-weight:800; font-size:13pt; align-self:center; }
 #print .hs { display:grid; gap:3mm; }
 #print .hs > div { border:0.5mm solid #000; border-radius:3mm; padding:2.5mm 4.5mm; display:flex; flex-direction:column; justify-content:center; }
-#print .hs > div.td { background:#000; color:#fff; }
+#print .hs > div.td { background:#fff; color:#000; border:0.7mm solid #000; }
+#print .hs span em { font-style:normal; font-size:8.5pt; font-weight:700; border:0.25mm solid #000; border-radius:1mm; padding:0 1.5mm; margin-left:2mm; }
+#print .optdiv { border-top:1mm solid #000; margin-top:1.5mm; padding:1mm 1mm 0.3mm; font-size:8.5pt; font-weight:800; color:#333; }
+#print .card1 .optdiv { font-size:8pt; }
 #print .hs span { font-size:10.5pt; font-weight:800; }
-#print .hs b { font-size:26pt; font-weight:800; line-height:1.25; }
+#print .hs b { font-size:17pt; font-weight:800; line-height:1.3; }
 #print .hs small { font-size:8pt; }
 #print .psteps { background:#ebebeb; border-radius:2mm; padding:2mm 4mm; margin-bottom:4mm; font-size:10.5pt; }
 #print .psteps b { font-size:12.5pt; }
@@ -259,7 +262,7 @@ function newLine(n) {
     device: { use: true, cat: "", model: "", pay: "kaedoki", storeOn: false, manualPrice: null, atama: null, shitadori: 0, point: 0 },
     init: { jimu: true }, initAmt: {}, initWhen: {}, freeInit: [{ name: "", price: 0 }] };
 }
-let S = { lines: [newLine(1)], cur: 0, extra: 0 };
+let S = { lines: [newLine(1)], cur: 0, extra: 0, pay: "cash" };
 
 function plan(l) { const p = PLANS.find(x => x.id === l.plan); if (l.tier >= p.tiers.length) l.tier = p.tiers.length - 1; const vs = VOICE[p.voice] || VOICE.none; if (!vs.find(v => v.id === l.voice)) l.voice = vs[0].id; return p; }
 const tierOff = (p, l) => (p.noDiscTiers || []).includes(l.tier);                 // この段階は割引・回線数カウントの対象外（irumo 0.5GB）
@@ -296,7 +299,7 @@ function calc(l) {
   if (p.senior60Kakeho && l.voice === "kakeho" && l.age === "s60") { r.voice = SENIOR60_KAKEHO; r.voiceName = "かけ放題（60歳以上）"; }
   if (hearty && p.voice === "std" && HEARTY.voice[l.voice] != null) { r.voice = HEARTY.voice[l.voice]; r.voiceName += "（ハーティ割引）"; }
   else if (kosodate && l.voice !== "none") { r.voice = Math.max(0, r.voice - KOSODATE.voiceOff); r.voiceName += "（子育てサポート割引）"; }
-  OPTIONS.forEach(o => { if (!l.opts[o.id] || !optOK(o, p, l)) return;
+  OPTIONS.forEach(o => { if (!l.opts[o.id] || !optOK(o, p, l) || packOf(l, o, p)) return;
     const e = optEff(l, o, p);
     const ht = HOSHO_OPT[o.id] ? hoshoTarget(l) : null;   // 補償はどの機種の金額かを書く
     r.opts.push([o.name + (ht && ht.h ? "（" + ht.name.replace("（店頭のみ）", "") + "）" : "") + (e.why ? "（" + e.why + "）" : ""), e.amt]);
@@ -317,7 +320,8 @@ function calc(l) {
   }).sort((a, b) => ["general", "goldu", "gold", "platinum"].indexOf(a.id) - ["general", "goldu", "gold", "platinum"].indexOf(b.id));
   // ポイ活プラン：還元の上限まで貯めた場合の実質
   const pk = POIKATSU[p.id];
-  r.poikatsu = pk ? { cap: pk.cap, rate: pk.rates[l.dcard] || pk.rates.none, need: Math.ceil(pk.cap / ((pk.rates[l.dcard] || pk.rates.none) / 100)), jisshitsu: Math.max(0, r.monthly - pk.cap) } : null;
+  r.poikatsu = pk ? { cap: pk.cap, rate: pk.rates[l.dcard] || pk.rates.none, need: Math.ceil(pk.cap / ((pk.rates[l.dcard] || pk.rates.none) / 100)), jisshitsu: (() => { const nuki = Math.round(r.planNet / 1.1);   // 割引後の基本料（税抜）からポイント分を引き、税を掛け直す（公式の「実質」と同じ計算）
+      return r.monthly - r.planNet + Math.round(Math.max(0, nuki - pk.cap) * 1.1); })() } : null;
   // 期間限定の割引が終わった後の月額
   const ends = [...new Set(r.disc.filter(d => d[2]).map(d => d[2]).concat(r.promos.map(x => x.months)))].sort((a, b) => a - b);
   r.steps = ends.map(m => { const ds = r.disc.filter(d => !d[2] || d[2] > m).reduce((a, b) => a + b[1], 0) + r.late.filter(d => m >= d[2]).reduce((a, b) => a + b[1], 0);
@@ -368,6 +372,15 @@ function optEff(l, o, p) {
   return r;
 }
 function initWhen(l, i) { return i.when === "choose" ? (l.initWhen[i.id] || "today") : i.when || "today"; }
+// このオプションを中身に含むパックが選ばれていれば、そのパックを返す
+function packOf(l, o, p) {
+  for (const [pk, items] of Object.entries(PACK_INCLUDES)) {
+    if (!items.includes(o.id) || !l.opts[pk]) continue;
+    const po = OPTIONS.find(x => x.id === pk);
+    if (po && optOK(po, p, l)) return po;
+  }
+  return null;
+}
 function kosodateOn(l, p) { return l.kosodate && KOSODATE.plans[p.id] != null && !heartyOn(l, p); }   // ハーティ割引とは併用不可
 function heartyOn(l, p) { return l.hearty && HEARTY.plans[p.id] != null; }
 function optOK(o, p, l) {
@@ -397,6 +410,9 @@ function optAmt(l, o) {
   if (o.input) { const man = l.optAmt[o.id]; if (man !== undefined && man !== null && man !== "") return Number(man); const a = hoshoAuto(l, o); return a ?? 0; }
   return o.choices ? Number(l.optAmt[o.id] ?? o.choices[0].p) : o.price;
 }
+// 機種名からメーカーを判定（Androidの機種選びで使う）
+const MAKERS = [[/Galaxy/i, "Galaxy"], [/Pixel/i, "Google Pixel"], [/Xperia/i, "Xperia"], [/AQUOS/i, "AQUOS"], [/arrows|らくらく/i, "arrows・らくらく"], [/motorola|moto |razr/i, "motorola"]];
+function makerOf(d) { const m = MAKERS.find(x => x[0].test(d.name)); return m ? m[1] : "その他"; }
 function devFind(l) { return DEV.find(d => d.name === l.device.model); }
 function devPrice(d, contract) {
   if (!d) return null; const k = contract === "plan" ? "kihen" : contract; const pr = (d.prices || {})[k] || {};
@@ -454,7 +470,9 @@ function render() {
   const vEff = v => { if (p.senior60Kakeho && l.age === "s60" && v.id === "kakeho") return SENIOR60_KAKEHO; if (heartyOn(l, p) && p.voice === "std" && HEARTY.voice[v.id] != null) return HEARTY.voice[v.id]; if (kosodateOn(l, p) && v.price) return Math.max(0, (p.senior60Kakeho && l.age === "s60" && v.id === "kakeho" ? SENIOR60_KAKEHO : v.price) - KOSODATE.voiceOff); return v.price; };
   const voices = (VOICE[p.voice] || VOICE.none).map(v => { const e = vEff(v); return `<div class="chip ${l.voice === v.id ? "on" : ""}" onclick="set('voice','${v.id}')">${v.name}<small>${e !== v.price ? `<s>${yen(v.price)}</s> ${yen(e)}` : v.price ? yen(v.price) : ""}</small></div>`; }).join("");
   const cats = [...new Set(DEV.map(d => d.cat))];
-  const models = DEV.filter(d => d.cat === l.device.cat);
+  const catDev = DEV.filter(d => d.cat === l.device.cat);
+  const makers = [...new Set(catDev.map(makerOf))];
+  const models = catDev.filter(d => makers.length < 2 || !l.device.maker || makerOf(d) === l.device.maker);
   const d = devFind(l), pr = devPrice(d, l.contract) || {};
   const dv = r.dev;
   $("editor").innerHTML = `
@@ -517,7 +535,8 @@ function render() {
   <div class="card"><h2>⑤ 端末</h2>
     <label class="ck"><input type="checkbox" ${l.device.use ? "checked" : ""} onchange="setDev('use',this.checked)">端末を購入する</label>
     ${l.device.use ? `
-    <div class="row" style="margin:6px 0">${cats.length ? cats.map(c => `<div class="chip ${l.device.cat === c ? "on" : ""}" onclick="setDev('cat','${c}');setDev('model','')">${c}</div>`).join("") : `<span class="warn">機種データが未登録です（金額は手入力してください）</span>`}</div>
+    <div class="row" style="margin:6px 0">${cats.length ? cats.map(c => `<div class="chip ${l.device.cat === c ? "on" : ""}" onclick="S.lines[S.cur].device.maker='';setDev('cat','${c}');setDev('model','')">${c}</div>`).join("") : `<span class="warn">機種データが未登録です（金額は手入力してください）</span>`}</div>
+    ${makers.length > 1 ? `<div class="row" style="margin:6px 0"><span class="note">メーカー：</span>${[["", "すべて"]].concat(makers.map(m => [m, m])).map(([v, n]) => `<div class="chip ${(l.device.maker || "") === v ? "on" : ""}" style="padding:6px 10px" onclick="S.lines[S.cur].device.maker='${v}';${"S.lines[S.cur].device.model='';"}render()">${n}</div>`).join("")}</div>` : ""}
     ${models.length ? `<select onchange="setDev('model',this.value)" style="width:100%;max-width:520px"><option value="">機種を選択</option>${models.map(m => `<option ${m.name === l.device.model ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select>` : ""}
     ${d && d.img ? `<div class="devimg"><img src="${d.img}" alt="" onerror="this.parentNode.style.display='none'"></div>` : ""}
     <table class="kv" style="margin-top:8px">
@@ -542,6 +561,9 @@ function render() {
   </div>`}
 
   <div class="card"><h2>⑥ 初期費用</h2>
+    <div class="row" style="padding:2px 0 8px;border-bottom:1px dashed #e3e7ee;margin-bottom:4px"><b style="font-size:14px">当日のお支払い方法</b>
+      <span class="seg">${PAY_METHODS.map(m => `<button class="${(S.pay || "cash") === m.id ? "on" : ""}" onclick="S.pay='${m.id}';render()">${m.name}</button>`).join("")}</span>
+      <span class="note">（全回線共通。見積書に載ります）</span></div>
     ${l.contract !== "plan" && p.id !== "ahamo" ? `<label class="ck"><input type="checkbox" ${l.init.jimu ? "checked" : ""} onchange="S.lines[S.cur].init.jimu=this.checked;render()">契約事務手数料（翌月請求）<span class="p">4,950円</span></label>` : ""}
     ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name} ${i.when === "choose" ? `<span class="seg" style="transform:scale(.85);transform-origin:left center">${[["today", "当日払い"], ["next", "翌月請求"]].map(([w, n]) => `<button class="${initWhen(l, i) === w ? "on" : ""}" style="min-height:30px;padding:3px 10px" onclick="S.lines[S.cur].initWhen['${i.id}']='${w}';S.lines[S.cur].init['${i.id}']=true;render();event.preventDefault()">${n}</button>`).join("")}</span>` : `<span class="wtag ${i.when}">${i.when === "next" ? "翌月請求" : "当日払い"}</span>`}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.choices ? `<span class="p">${i.choices.map(c => `<span class="chip ${l.init[i.id] && Number(l.initAmt[i.id] ?? i.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 10px" onclick="S.lines[S.cur].init['${i.id}']=true;S.lines[S.cur].initAmt['${i.id}']=${c.p};render();event.preventDefault()">${c.l} ${yen(c.p)}</span>`).join(" ")}</span>` : i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
     ${l.freeInit.map((f, i) => `<div class="row" style="padding:6px 0"><input type="text" placeholder="その他" value="${esc(f.name)}" onchange="S.lines[S.cur].freeInit[${i}].name=this.value;render()"><input class="yen" type="number" value="${f.price || ""}" placeholder="円" onchange="S.lines[S.cur].freeInit[${i}].price=this.value;render()"></div>`).join("")}
@@ -633,6 +655,8 @@ function optRow(l, o, p) {
   let right;
   const e = optEff(l, o, p);
   const auto = hoshoAuto(l, o), man = l.optAmt[o.id] !== undefined && l.optAmt[o.id] !== null && l.optAmt[o.id] !== "";
+  const inPack = packOf(l, o, p);
+  if (inPack) return `<label class="ck" style="opacity:.55"><input type="checkbox" disabled><span>${o.name}<br><span class="note">「${inPack.name}」に含まれています（別に入れる必要はありません）${o.id === "cloud" ? "。含まれるのは+50GB" : ""}${o.id === "security" ? "。含まれるのは220円のプラン" : ""}</span></span><span class="p note">パックに含む</span></label>`;
   o._warn = o.input && on && !optAmt(l, o);
   if (o.input) right = `<input class="yen" type="number" value="${man ? l.optAmt[o.id] : auto ?? ""}" placeholder="円" onchange="S.lines[S.cur].optAmt['${o.id}']=this.value;S.lines[S.cur].opts['${o.id}']=true;render()">`
     + (auto != null && !man ? `<br><span class="note">機種から自動</span>` : man && auto != null ? `<br><span class="note" style="cursor:pointer;text-decoration:underline" onclick="delete S.lines[S.cur].optAmt['${o.id}'];render();event.preventDefault()">自動（${yen(auto)}）に戻す</span>` : "");
@@ -655,10 +679,10 @@ function optRow(l, o, p) {
   if (o.promo && o.promo[p.id]) tips.push(`${p.name}は最大${o.promo[p.id]}か月 ${yen(o.promoAmt)}引き${o.promoNote ? "（" + o.promoNote + "）" : ""}`);
   else if (o.hint2) tips.push(o.hint2);
 
-  if (o.id === "optpack" && l.opts.optpack && (l.opts.rusuden || l.opts.catch)) tips.push("⚠ 留守電・キャッチとパックが重複しています");
+  if (PACK_INCLUDES[o.id]) tips.push("含まれるもの：" + PACK_INCLUDES[o.id].map(id => (OPTIONS.find(x => x.id === id) || {}).name).filter(Boolean).join("・") + "（選ぶと、これらは別に選べなくなります）");
   if (o._warn) tips.unshift('<span class="warn">金額を入力してください（機種によって変わります）</span>');
   const sub = tips.join("／");
-  return `<label class="ck"><input type="checkbox" ${on ? "checked" : ""} onchange="S.lines[S.cur].opts['${o.id}']=this.checked;render()"><span>${o.name}${sub ? `<br><span class="note">${sub}</span>` : ""}</span><span class="p">${right}</span></label>`;
+  return `<label class="ck"><input type="checkbox" ${on ? "checked" : ""} onchange="setOpt('${o.id}',this.checked)"><span>${o.name}${sub ? `<br><span class="note">${sub}</span>` : ""}</span><span class="p">${right}</span></label>`;
 }
 function renderSum() {
   const rs = S.lines.map(calc);
@@ -668,6 +692,13 @@ function renderSum() {
     + (S.lines.length > 1 ? `<span class="note">（${S.lines.map((l, k) => esc(l.label) + " " + yen(rs[k].monthly)).join("／")}）</span>` : "");
 }
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// オプションを選ぶ。パックと補償は「どれか1つ」（smartあんしんパック⇔あんしんパック モバイル、補償どうし）
+const EXCL = [["smartpack", "anshinmobile"], ["hosho", "keitaihosho"]];
+function setOpt(id, v) {
+  const l = S.lines[S.cur]; l.opts[id] = v;
+  if (v) EXCL.forEach(g => { if (g.includes(id)) g.forEach(x => { if (x !== id) delete l.opts[x]; }); });
+  render();
+}
 function set(k, v) { S.lines[S.cur][k] = v; render(); }
 function setDev(k, v) { S.lines[S.cur].device[k] = v; render(); }
 function setPlan(id) { planOpen = false; planTab = PLANS.find(x => x.id === id).legacy ? "old" : "now"; const l = S.lines[S.cur]; l.plan = id; const p = plan(l);
@@ -703,9 +734,10 @@ function doPrint(mode) {
   const optRows = r => r.opts.length ? r.opts.map(x => x[1] < 0 ? rw(esc(x[0]), "▲" + yen(-x[1]), "dc") : rw(esc(x[0]), yen(x[1]))).join("") : `<div class="none">なし</div>`;
   const payName = dv => dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括払い" }[dv.pay];
   const notes = `<div class="pn">※金額はすべて税込です（${DATA_AS_OF}）。端末代金は店頭の割引（5G WELCOME割など）を引いた価格に頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
+  const payM = PAY_METHODS.find(m => m.id === (S.pay || "cash")) || PAY_METHODS[0];
   const hero = (label, monthly, todayAmt, nextAmt, formula) => `<div class="hero ${todayAmt ? "" : "solo"}">
     <div class="hm"><div class="lb">${label}</div><div class="big"><em>約</em>${(Math.round(monthly) || 0).toLocaleString("ja-JP")}<small>円／月</small></div>${formula || ""}</div>
-    ${todayAmt ? `<div class="hs"><div class="td"><span>当日のお支払い</span><b>${yen(todayAmt)}</b><small>頭金・アクセサリーなど、今日お店でお支払いいただく金額</small></div></div>` : ""}</div>`;
+    ${todayAmt ? `<div class="hs"><div class="td"><span>当日のお支払い<em>${payM.name}</em></span><b>${yen(todayAmt)}</b><small>頭金・アクセサリーなど、本日お店で決済する金額です。${payM.note}</small></div></div>` : ""}</div>`;
   const stepsBox = r => r.steps.length ? `<div class="psteps">${r.steps.map(x => `▶ <b>${x.from}か月目から</b>は 約 <b>${yen(x.monthly)}</b>／月`).join("　")}<span style="font-size:9pt">（期間限定の割引が終わるため）</span></div>` : "";
 
   // 内訳の部品（1回線ずつのページ・まとめて1枚の両方で使う）
@@ -720,7 +752,7 @@ function doPrint(mode) {
     const r = rs[k], p = plan(l), dv = r.dev, c = CONTRACTS.find(x => x.id === l.contract).name;
     const planSum = r.planNet + r.voice, optSum = r.opts.reduce((a, b) => a + b[1], 0), devM = dv ? dv.monthly : 0;
     const formula = devM ? `<div class="fm"><div><span>① 料金プラン・オプション</span><b>${yen(planSum + optSum)}</b></div><i>＋</i><div><span>② 端末の分割</span><b>${yen(devM)}</b></div></div>` : "";
-    const sec1 = `<div class="sec"><h3>① 料金プラン・オプション</h3>${planRows(l, r, p)}${r.opts.length ? optRows(r) : ""}${rw("① 小計", yen(planSum + optSum), "st")}</div>`;
+    const sec1 = `<div class="sec"><h3>① 料金プラン・オプション</h3>${planRows(l, r, p)}${r.opts.length ? `<div class="optdiv">オプション</div>` + optRows(r) : ""}${rw("① 小計", yen(planSum + optSum), "st")}</div>`;
     const sec2 = "";
     const pc = r.cards.filter(c => c.pts > 0);
     const cardSec = pc.length ? `<div class="sec cardsec"><h3>dカードでたまるポイント <small>目安</small></h3>
@@ -741,7 +773,7 @@ function doPrint(mode) {
         : `<div class="none">端末のご購入なし</div>`}
       ${l.contract === "plan" && l.curModel ? rw("今お使いの機種", esc(l.curModel), "sub") : ""}</div>`;
     const sec4 = `<div class="sec"><h3>③ 初期費用</h3>
-      ${r.init.some(x => x[2] === "today") ? `<h4>当日のお支払い</h4>${initRows(r, "today")}${rw("当日のお支払い 合計", yen(r.today), "st")}` : ""}
+      ${r.init.some(x => x[2] === "today") ? `<h4>当日のお支払い</h4>${initRows(r, "today")}` : ""}
       ${r.init.some(x => x[2] === "next") ? `<h4>毎月のお支払いとは別に、翌月の請求に1回だけ加わるもの</h4>${initRows(r, "next")}` : ""}
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
@@ -763,7 +795,7 @@ function doPrint(mode) {
     const cards = S.lines.map((l, k) => {
       const r = rs[k], p = plan(l), dv = r.dev, optSum = r.opts.reduce((a, b) => a + b[1], 0);
       return `<div class="card1"><div class="ch"><span>${N > 1 ? nm(k) + "　" : ""}${CONTRACTS.find(x => x.id === l.contract).name}</span><span>毎月 <b>約 ${yen(r.monthly)}</b></span></div>
-        <div class="cb"><div><h5>① 料金プラン・オプション</h5>${planRows(l, r, p)}${r.opts.length ? optRows(r) : ""}${rw("小計", yen(r.planNet + r.voice + optSum), "st")}</div>
+        <div class="cb"><div><h5>① 料金プラン・オプション</h5>${planRows(l, r, p)}${r.opts.length ? `<div class="optdiv">オプション</div>` + optRows(r) : ""}${rw("小計", yen(r.planNet + r.voice + optSum), "st")}</div>
         <div><h5>② 端末・③ 初期費用</h5>${dv ? `<div class="dn">${esc(dv.name)}</div>` + rw(payName(dv), dv.monthly ? yen(dv.monthly) + "×" + dv.months + "回" : (dv.total !== null ? yen(dv.total) : "—")) : `<div class="none" style="padding:1mm 0">端末のご購入なし</div>`}
           ${r.today ? rw("当日のお支払い", yen(r.today), "st") : ""}${r.nextInit ? rw("事務手数料など（翌月に1回だけ加算）", yen(r.nextInit)) : ""}</div></div></div>`;
     });
