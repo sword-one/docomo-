@@ -59,6 +59,14 @@ details.others > summary::before { content:"＋ "; } details.others[open] > summ
 .drow .ds { font-size:12px; color:#666; margin-top:4px; line-height:1.4; }
 .drow .da { text-align:right; } .drow .da small { display:block; font-size:11px; color:#666; }
 .dv { font-size:16px; color:var(--red); } .dv.off { color:#aaa; font-weight:400; font-size:14px; }
+.chgbox { border-top:1px dashed #e3e7ee; margin-top:6px; padding-top:8px; }
+.chgh { font-weight:700; font-size:15px; margin-bottom:6px; } .chgh .note { margin-left:8px; font-weight:400; }
+.chgs { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:8px; margin-bottom:4px; }
+.chg { display:flex; align-items:center; gap:10px; text-align:left; border:2px solid #c9d3e3; background:#f6f7f9; color:#444; border-radius:12px; padding:8px 12px; min-height:68px; font-size:14px; cursor:pointer; touch-action:manipulation; }
+.chg .ci { flex:none; width:46px; height:50px; display:flex; align-items:center; justify-content:center; color:#7a8290; } .chg .ci svg, .chg .ci img { width:100%; height:100%; object-fit:contain; }
+.chg .cn { flex:1; line-height:1.35; font-weight:700; } .chg .cn em { display:inline-block; font-style:normal; font-size:11px; font-weight:700; margin-left:6px; padding:0 6px; border-radius:4px; background:#fde8e8; color:var(--red); }
+.chg b { font-size:16px; white-space:nowrap; }
+.chg.on { background:var(--navy); border-color:var(--navy); color:#fff; } .chg.on .ci { color:#fff; } .chg.on .cn em { background:#fff; }
 .seg { display:inline-flex; flex-wrap:wrap; border:1.5px solid var(--line); border-radius:10px; overflow:hidden; background:#fff; vertical-align:middle; }
 .seg button { border:none; border-right:1px solid var(--line); background:#fff; padding:8px 14px; font-size:15px; min-height:42px; cursor:pointer; touch-action:manipulation; color:#222; }
 .seg button:last-child { border-right:none; }
@@ -389,6 +397,7 @@ function calc(l) {
   if (l.contract !== "plan" && l.init.jimu && p.id !== "ahamo") r.init.push(hearty ? ["契約事務手数料（ハーティ割引で無料）", 0, "next"] : ["契約事務手数料", 4950, "next"]);
   INITIAL.filter(i => !i.auto && l.init[i.id]).forEach(i => { const w = initWhen(l, i);
     r.init.push(hearty && HEARTY.initFree.includes(i.id) ? [i.name + "（ハーティ割引で無料）", 0, w] : i.choices ? [i.name + "（" + (i.choices.find(c => c.p === Number(l.initAmt[i.id] ?? i.choices[0].p)) || i.choices[0]).l + "）", Number(l.initAmt[i.id] ?? i.choices[0].p), w] : [i.name, i.input ? Number(l.initAmt[i.id] || 0) : i.price, w]); });
+  if (typeof CHARGERS !== "undefined") CHARGERS.forEach(c => { if ((l.chargers || {})[c.id]) r.init.push([c.name, c.price, "today"]); });
   l.freeInit.forEach(f => { if (f.name || f.price) r.init.push([f.name || "その他", Number(f.price || 0), "today"]); });
   if (r.dev && r.dev.atama !== null) r.init.push(["頭金", r.dev.atama, "today"]);
   if (r.dev && r.dev.pay === "ikkatsu" && r.dev.total !== null) r.init.push(["端末代金（一括）", r.dev.total - (r.dev.atama || 0), "today"]);
@@ -427,6 +436,24 @@ function optEff(l, o, p) {
   if (o.packWithVoice != null && p.voice === "std" && l.voice !== "none") { r.amt = o.packWithVoice; r.why = "通話オプション加入中はパック割引の代わりに留守電・キャッチが無料。残るのはメロディコール110円"; }
   if (o.promo && o.promo[p.id]) { const pm = o.promo[p.id]; r.promo = { name: o.name + (o.id === "disney" ? "セット割" : "特典") + "（最大" + pm + "か月）", amt: Math.min(o.promoAmt, base), months: pm }; }
   return r;
+}
+// 充電器：よく使うものを大きく、ほかは折りたたみ。選んだものは色がつく（画像は入力画面だけ）
+function chargerIcon(c) {
+  if (c.img) return `<img src="${c.img}" alt="" onerror="this.outerHTML=chargerIcon({kind:'${c.kind || ""}'})">`;
+  const plug = `<path d="M17 6v7M27 6v7" stroke-width="3"/>`;
+  const body = c.kind === "apple" ? `<rect x="9" y="13" width="26" height="26" rx="6"/><circle cx="22" cy="26" r="2.2"/>`
+    : c.kind === "two" ? `<rect x="8" y="13" width="28" height="24" rx="4"/><rect x="13" y="30" width="7" height="3.4" rx="1.4"/><rect x="24" y="30" width="7" height="3.4" rx="1.4"/>`
+    : `<rect x="10" y="13" width="24" height="22" rx="4"/><path d="M22 35v4c0 4 10 2 10 7"/>`;
+  return `<svg viewBox="0 0 44 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${plug}${body}</svg>`;
+}
+function setCharger(id) { const l = S.lines[S.cur]; if (!l.chargers) l.chargers = {}; l.chargers[id] = !l.chargers[id]; render(); }
+function chargerBox(l) {
+  const sel = l.chargers || {};
+  const card = c => `<button class="chg ${sel[c.id] ? "on" : ""}" onclick="setCharger('${c.id}')"><span class="ci">${chargerIcon(c)}</span><span class="cn">${sel[c.id] ? "✓ " : ""}${c.name}${c.fav ? `<em>よく使う</em>` : ""}</span><b>${yen(c.price)}</b></button>`;
+  const fav = CHARGERS.filter(c => c.fav), rest = CHARGERS.filter(c => !c.fav), restOn = rest.some(c => sel[c.id]);
+  return `<div class="chgbox"><div class="chgh">充電器 <span class="wtag today">当日払い</span><span class="note">押すと選べます（もう一度押すと外れます）</span></div>
+    <div class="chgs">${fav.map(card).join("")}</div>
+    ${rest.length ? `<details class="others" ${restOn ? "open" : ""}><summary>ほかの充電器（${rest.length}種類）</summary><div class="chgs">${rest.map(card).join("")}</div></details>` : ""}</div>`;
 }
 function initWhen(l, i) { return i.when === "choose" ? (l.initWhen[i.id] || i.def || "today") : i.when || "today"; }
 // このオプションを中身に含むパックが選ばれていれば、そのパックを返す
@@ -623,6 +650,7 @@ function render() {
       <span class="note">（全回線共通。見積書に載ります）</span></div>
     ${l.contract !== "plan" && p.id !== "ahamo" ? `<label class="ck"><input type="checkbox" ${l.init.jimu ? "checked" : ""} onchange="S.lines[S.cur].init.jimu=this.checked;render()">契約事務手数料（翌月請求）<span class="p">4,950円</span></label>` : ""}
     ${INITIAL.filter(i => !i.auto).map(i => `<label class="ck"><input type="checkbox" ${l.init[i.id] ? "checked" : ""} onchange="S.lines[S.cur].init['${i.id}']=this.checked;render()">${i.name} ${i.when === "choose" ? `<span class="seg" style="transform:scale(.85);transform-origin:left center">${[["today", "当日払い"], ["next", "翌月請求"]].map(([w, n]) => `<button class="${initWhen(l, i) === w ? "on" : ""}" style="min-height:30px;padding:3px 10px" onclick="S.lines[S.cur].initWhen['${i.id}']='${w}';S.lines[S.cur].init['${i.id}']=true;render();event.preventDefault()">${n}</button>`).join("")}</span>` : `<span class="wtag ${i.when}">${i.when === "next" ? "翌月請求" : "当日払い"}</span>`}${i.input && l.init[i.id] && !Number(l.initAmt[i.id] || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}${i.choices ? `<span class="p">${i.choices.map(c => `<span class="chip ${l.init[i.id] && Number(l.initAmt[i.id] ?? i.choices[0].p) === c.p ? "on" : ""}" style="padding:4px 10px" onclick="S.lines[S.cur].init['${i.id}']=true;S.lines[S.cur].initAmt['${i.id}']=${c.p};render();event.preventDefault()">${c.l} ${yen(c.p)}</span>`).join(" ")}</span>` : i.input ? `<span class="p"><input class="yen" type="number" value="${l.initAmt[i.id] || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt['${i.id}']=this.value;S.lines[S.cur].init['${i.id}']=true;render()"></span>` : `<span class="p">${yen(i.price)}</span>`}</label>`).join("")}
+    ${typeof CHARGERS !== "undefined" ? chargerBox(l) : ""}
     ${l.freeInit.map((f, i) => `<div class="row" style="padding:6px 0"><input type="text" placeholder="その他" value="${esc(f.name)}" onchange="S.lines[S.cur].freeInit[${i}].name=this.value;render()"><input class="yen" type="number" value="${f.price || ""}" placeholder="円" onchange="S.lines[S.cur].freeInit[${i}].price=this.value;render()"></div>`).join("")}
   </div>
 
