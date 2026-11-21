@@ -266,18 +266,18 @@ const INITIAL = [
   { id: "support", name: "店頭サポート", price: 3300, when: "today" },
   { id: "film", name: "フィルム", input: true, when: "today" },
   { id: "case", name: "ケース", input: true, when: "today" },
-  { id: "charger", name: "充電器（その他・手入力）", input: true, when: "today" },
+  { id: "charger", name: "充電器（その他）", input: true, when: "today" },
   { id: "coat", name: "ハルトコーティング", choices: [{ l: "片面", p: 5500 }, { l: "両面", p: 6600 }], when: "today" },
 ];
 
 // 充電器（店頭の価格・税込）。ボタンで選べる。fav＝よく使うもの（先頭に大きく出す）。img＝商品画像のURL（空なら絵を出す。画像は入力画面だけで、印刷には出さない）
 // 価格の出典：ドコモショップ刈谷店 内川副店長の価格表（2026/8/21改定後・税抜、2026/11/21受領）×1.1（1円未満切り捨て）
 const CHARGERS = [
-  { id: "ac09", code: "AFU39050", name: "ACアダプタ 09", price: 4840, fav: true, img: "" },                         // 税抜4,400
+  { id: "ac09", code: "AFU39050", name: "ACアダプタ 09M", price: 4840, fav: true, img: "" },                         // 税抜4,400
   { id: "apple20", code: "APL39213", name: "Apple 20W USB-C電源アダプタ", price: 3880, fav: true, kind: "apple", img: "" },   // 税抜3,528
-  { id: "ac2p01", code: "AFU39018", name: "2ポートACアダプタ 01（ケーブル同梱）", price: 4796, kind: "two", img: "" },      // 税抜4,360
+  { id: "ac2p01", code: "AFU39018", name: "2ポートACアダプタ 01M（ケーブル同梱）", price: 4796, kind: "two", img: "" },      // 税抜4,360
   { id: "pac02", code: "AMD39014", name: "ポータブルACアダプタ 02", price: 3080, img: "" },                          // 税抜2,800
-  { id: "pac04", code: "AMT39012／AMT39009", name: "ポータブルACアダプタ 04（ブラック／ホワイト）", price: 3520, img: "" },   // 税抜3,200
+  { id: "pac04", code: "AMT39012／AMT39009", name: "ポータブルACアダプタ 04M（ブラック／ホワイト）", price: 3520, img: "" },   // 税抜3,200
 ];
 
 // 頭金（店頭）のよく使う金額。ボタンで選べて、手入力もできる
