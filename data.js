@@ -281,6 +281,13 @@ const CHARGERS = [
   { id: "pac04", code: "AMT39012／AMT39009", name: "ポータブルACアダプタ 04M（ブラック／ホワイト）", price: 3520, img: "" },   // 税抜3,200
 ];
 
+// ahamo をドコモショップで申し込む・変更する時の有料サポート。ahamo 自体の契約事務手数料は無料（ahamoはオンライン受付のプラン）。
+// 出典：docomo.ne.jp/charge/ahamo_notice/（「ahamo WEBお申込み／お手続きサポート」は手続きの補助）、faq.ahamo.com。金額3,300円は2026/11/22時点（公式FAQを引用した記事で確認。店頭で要確認）
+const AHAMO_SUPPORT = {
+  moshikomi: { id: "ahamosup", name: "ahamo WEBお申込みサポート", price: 3300, when: "choose", def: "today" },   // 新規・のりかえ
+  tetsuzuki: { id: "ahamosup", name: "ahamo WEBお手続きサポート", price: 3300, when: "choose", def: "today" },   // プラン変更・機種変更など
+};
+
 // 頭金（店頭）のよく使う金額。ボタンで選べて、手入力もできる
 const ATAMA_CHOICES = [0, 19800, 22000];
 
