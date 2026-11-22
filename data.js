@@ -186,6 +186,8 @@ const OPTIONS = [
   { id: "security", group: "補償・あんしん", name: "あんしんセキュリティ", plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15", "keitai2"],
     choices: [{ l: "", p: 220 }, { l: "スタンダード", p: 550 }, { l: "詐欺対策プラス", p: 999 }, { l: "トータル詐欺対策プラス", p: 1815 }],
     pnote: { ahamo: "迷惑メール対策を使うにはドコモメール持ち運びが必要", keitai2: "ケータイは迷惑電話・迷惑メール対策のみ。補償に入っていると110円" } },
+  // 広告ブロック（みんスマの商品）は、あんしんセキュリティのすぐ下に並べる（山口さん指定 2026/11/22）
+  { id: "adblock", group: "補償・あんしん", name: "広告ブロック", plans: P_SMART, choices: [{ l: "", p: 330 }, { l: "Pro", p: 550 }, { l: "Premium", p: 880 }] },
   { id: "enkaku", group: "補償・あんしん", name: "あんしん遠隔サポート", price: 660, plans: ["max", "poimax", "poi20", "mini2", "ahamo", "u15"] },
   { id: "imadoko", group: "補償・あんしん", name: "イマドコサーチ（見守る側が払う）", price: 330, plans: P_ALL, need: "見守る側の回線で申し込む。初回31日間無料" },
   // ---- 動画・サブスク（tokuten＝MAX・ポイ活MAXの「選べる特典」。月額の高い2つが0円） ----
@@ -219,7 +221,6 @@ const OPTIONS = [
   // ---- みんスマ商材 ----
   { id: "connect", group: "みんスマ", name: "コネクトα", plans: P_SMART, choices: [{ l: "Plus", p: 550 }, { l: "PLATINUM", p: 870 }, { l: "PLATINUM", p: 1280 }] },
   { id: "rakuraku", group: "みんスマ", name: "らくらくバックアップ", plans: P_SMART, choices: [{ l: "", p: 550 }, { l: "Premium", p: 880 }] },
-  { id: "adblock", group: "みんスマ", name: "広告ブロック", plans: P_SMART, choices: [{ l: "", p: 330 }, { l: "Pro", p: 550 }, { l: "Premium", p: 880 }] },
   { id: "tentou", group: "みんスマ", name: "あんしん店頭サポート", plans: P_SMART, choices: [{ l: "ミニ", p: 550 }, { l: "", p: 990 }] },
 ];
 
