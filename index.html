@@ -116,7 +116,8 @@ label.ck { min-height:44px; }
 .sum { padding-bottom:calc(8px + env(safe-area-inset-bottom)); }
 
 /* ===== 印刷（A4縦） ===== */
-@page { size:A4 portrait; margin:10mm 10mm 10mm; }
+/* 用紙の余白を0にすると、ブラウザが紙のすみに入れるURL・日付・ページ番号が出なくなる。余白は中身の側で10mmとる */
+@page { size:A4 portrait; margin:0; }
 /* 見積書の中身（プレビュー・印刷で共通）。罫線の表をやめ、大きな数字＋行リストで見せる */
 #print { color:#000; font-size:10.5pt; line-height:1.4; }
 #print * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -266,6 +267,8 @@ body.pvopen { overflow:hidden; }
   header.bar, main, .sum, .pvbar, #pvctl { display:none !important; }
   #pv { display:block !important; position:static; background:none; overflow:visible; }
   .sheet { width:auto; max-width:none; min-height:0; margin:0; padding:0; box-shadow:none; }
+  #print { padding:0 10mm; }
+  #print .pg { padding-top:10mm; }
 }
 </style>
 <script>
