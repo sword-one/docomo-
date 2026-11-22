@@ -59,6 +59,7 @@ details.others > summary::before { content:"＋ "; } details.others[open] > summ
 .drow .ds { font-size:12px; color:#666; margin-top:4px; line-height:1.4; }
 .drow .da { text-align:right; } .drow .da small { display:block; font-size:11px; color:#666; }
 .dv { font-size:16px; color:var(--red); } .dv.off { color:#aaa; font-weight:400; font-size:14px; }
+.doclist { margin:0 0 6px; padding-left:20px; font-size:14px; line-height:1.55; } .doclist li { margin-bottom:6px; }
 .chgbox { border-top:1px dashed #e3e7ee; margin-top:6px; padding-top:8px; }
 .chgh { font-weight:700; font-size:15px; margin-bottom:6px; } .chgh .note { margin-left:8px; font-weight:400; }
 .chgs { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:8px; margin-bottom:4px; }
@@ -222,6 +223,16 @@ label.ck { min-height:44px; }
 #print .tcmp span { display:block; font-size:9.5pt; font-weight:800; } #print .tcmp b { display:block; font-size:19pt; font-weight:800; line-height:1.3; } #print .tcmp small { font-size:10pt; font-weight:700; }
 #print .tcmp i { font-style:normal; font-size:15pt; font-weight:800; align-self:center; }
 #print .ttab tr.you td { background:#e6e6e6; border-top:0.6mm solid #000; border-bottom:0.6mm solid #000; }
+#print .docs { border:0.5mm solid #000; border-radius:2.5mm; padding:2.5mm 3.5mm 2mm; margin:0 0 3mm; break-inside:avoid; }
+#print .docs .dh { font-size:11pt; font-weight:800; margin-bottom:1.5mm; } #print .docs .dh small { font-size:8.5pt; font-weight:500; margin-left:3mm; }
+#print .docs .dg { display:grid; grid-template-columns:1fr 1fr; gap:1.5mm 5mm; }
+#print .docs .db { font-size:8.6pt; line-height:1.4; } #print .docs .db b { display:block; font-size:9.6pt; }
+#print .docs .db b i { display:inline-block; width:3mm; height:3mm; border:0.4mm solid #000; border-radius:0.5mm; margin-right:1.5mm; vertical-align:-0.4mm; }
+#print .docs .db span { display:block; } #print .docs .db small { display:block; font-size:7.6pt; color:#222; line-height:1.38; }
+#print .docs.big { margin-top:5mm; padding:4mm 5mm 3mm; } #print .docs.big .dh { font-size:14pt; }
+#print .docs.big .dg { grid-template-columns:1fr; gap:4mm; }
+#print .docs.big .db { font-size:11.5pt; line-height:1.5; } #print .docs.big .db b { font-size:13.5pt; margin-bottom:0.5mm; }
+#print .docs.big .db b i { width:4.2mm; height:4.2mm; margin-right:2mm; } #print .docs.big .db small { font-size:10pt; line-height:1.5; margin-top:0.5mm; }
 /* 家族のまとめ表 */
 #print table.fam { width:100%; border-collapse:collapse; margin-top:2mm; }
 #print table.fam th { text-align:left; font-size:9.5pt; padding:2mm 2mm; border-bottom:0.6mm solid #000; white-space:nowrap; }
@@ -273,7 +284,7 @@ body.pvopen { overflow:hidden; }
 </style>
 <script>
 // 毎日更新されるデータを、iPadに古いまま残さず必ず最新で読み込む
-(function () { const v = Date.now(); ["data.js", "devices.js", "hosho.js", "updates.js"].forEach(f => document.write('<script src="' + f + '?v=' + v + '"><\/script>')); })();
+(function () { const v = Date.now(); ["data.js", "devices.js", "hosho.js", "updates.js", "docs.js"].forEach(f => document.write('<script src="' + f + '?v=' + v + '"><\/script>')); })();
 </script>
 </head>
 <body>
@@ -472,6 +483,24 @@ function chargerBox(l) {
     <label class="ck" style="border-bottom:none"><input type="checkbox" ${l.init.charger ? "checked" : ""} onchange="S.lines[S.cur].init.charger=this.checked;render()">上にない充電器（手入力）${l.init.charger && !Number(l.initAmt.charger || 0) ? ' <span class="warn">金額を入力してください</span>' : ""}<span class="p"><input class="yen" type="number" value="${l.initAmt.charger || ""}" placeholder="円" onchange="S.lines[S.cur].initAmt.charger=this.value;S.lines[S.cur].init.charger=true;render()"></span></label></div>`;
 }
 // ahamo を店頭で手続きする時のサポート料金（新規・のりかえ＝お申込みサポート／それ以外＝お手続きサポート）
+// お手続きに必要なもの：お手続きの種類・分割払い・外国籍かどうかで、載せる項目を決める
+function docsLive() { return (typeof DOCS_STATUS !== "undefined" && DOCS_STATUS && DOCS_STATUS.live) || {}; }
+function docsChanged() { return typeof DOCS_STATUS !== "undefined" && DOCS_STATUS && (DOCS_STATUS.changed || []).length ? DOCS_STATUS.changed : null; }
+function docsFor(l, r) {
+  if (typeof DOCS === "undefined" || l.contract === "plan") return [];
+  const L = docsLive(), months = r.dev && r.dev.pay !== "ikkatsu" ? r.dev.months : 0;
+  const fill = t => t.replace("{mynaPw}", L.mynaPw || "6～16桁").replace("{mnpDays}", L.mnpDays || 15).replace("{months}", months);
+  const b = (o, extra) => ({ t: o.t, items: o.items, tail: o.tail, note: fill([o.note, extra].filter(Boolean).join("")) });
+  const id = Object.assign({}, DOCS.id, { items: L.idDocs && L.idDocs.length >= 3 ? L.idDocs : DOCS.id.items });
+  const out = [];
+  if (l.contract === "mnp") out.push(b(DOCS.mnp));
+  out.push(b(id, l.contract === "kihen" ? DOCS.idKihen : ""));
+  if (l.contract === "kihen") out.push(b(DOCS.kihen, r.dev && !months ? DOCS.kihenIkkatsu : ""));
+  else out.push(b(DOCS.pay));
+  if (months) out.push(b(DOCS.bunkatsu));
+  if (l.gaikoku) out.push(b(DOCS.gaikoku, months ? DOCS.gaikokuBunkatsu : ""));
+  return out;
+}
 // ahamo の契約事務手数料（店頭）：新規・のりかえ・機種変更は最初から入れる（山口さん確認 2026/11/22）。プラン変更のみは最初は入れない
 function ahamoJimu(l) { return l.init.jimuAhamo ?? (l.contract !== "plan"); }
 function ahamoSup(l, p) { if (p.id !== "ahamo" || typeof AHAMO_SUPPORT === "undefined") return null; return l.contract === "shinki" || l.contract === "mnp" ? AHAMO_SUPPORT.moshikomi : AHAMO_SUPPORT.tetsuzuki; }
@@ -677,6 +706,14 @@ function render() {
     ${typeof CHARGERS !== "undefined" ? chargerBox(l) : ""}
   </div>
 
+  ${(() => { const ds = docsFor(l, r), ch = docsChanged(); if (typeof DOCS === "undefined") return "";
+    return `<div class="card"><h2>⑦ お手続きに必要なもの <span class="note" style="font-weight:400">（見積書の下に載ります）</span></h2>
+      <div class="row" style="padding:2px 0 8px"><b style="font-size:14px">お客さまは</b>
+        <span class="seg">${[[false, "日本国籍の方"], [true, "外国籍の方"]].map(([v, n]) => `<button class="${!!l.gaikoku === v ? "on" : ""}" onclick="S.lines[S.cur].gaikoku=${v};render()">${n}</button>`).join("")}</span></div>
+      ${ch ? `<div class="warn" style="margin-bottom:6px">⚠ ドコモ公式の「${ch.map(esc).join("」「")}」のページが更新されています。下の内容が古い可能性があるので、公式ページで確認してから案内してください。</div>` : ""}
+      ${ds.length ? `<ul class="doclist">${ds.map(d => `<li><b>${d.t}</b>${d.items ? `<br>${d.items.join("／")} ${d.tail}` : ""}${d.note ? `<br><span class="note">${d.note}</span>` : ""}</li>`).join("")}</ul>` : `<p class="note">プラン変更のみの場合は、ここには何も載りません。</p>`}
+      <p class="note">${DOCS_AS_OF}。${typeof DOCS_STATUS !== "undefined" && DOCS_STATUS ? `毎朝、公式ページが変わっていないかをチェックしています（最終チェック ${esc(DOCS_STATUS.checked_at)}）。` : ""}${DOCS.foot}</p></div>`; })()}
+
   <div class="card"><h2>この回線の合計</h2><table class="kv">
     <tr><td>基本料金（${p.name} ${p.tiers[l.tier].label}）</td><td class="r">${yen(r.base)}</td></tr>
     ${r.disc.map(x => `<tr><td>　${x[0]}</td><td class="r">▲${yen(x[1])}</td></tr>`).join("")}
@@ -843,6 +880,7 @@ function pmAdd(k, d) { const M = pmInit(); M[k] = Math.max(0, Math.min(20, (M[k]
 let printMode = "each";   // each＝1回線ずつ1枚（家族はまとめ付き）／one＝全回線を1枚に
 function doPrint(mode) {
   if (mode) printMode = mode;
+  if (!doPrint._pass2) doPrint._sep = false;
   if (mode && mode !== "prop") estMode = mode;
   const M = pmInit(), man = printMode === "prop" && pmSrc() === "man";   // man＝手入力の数字でご提案を作る
   const needIn = t => `<div class="pg"><p style="font-size:13pt;padding:20mm 0;text-align:center">上の欄で、${t}を入れてください。</p></div>`;
@@ -906,11 +944,25 @@ function doPrint(mode) {
       ${r.init.map(x => rw(`<i class="wt ${x[2]}">${x[2] === "today" ? "当日" : "翌月"}</i>` + esc(x[0]), yen(x[1]))).join("")}
       ${r.init.length ? rw("初期費用 合計", yen(r.initTotal), "st") + (r.creditSum ? r.credits.map(c => rw(c[0], "▲" + (c[2] === "pt" ? c[1].toLocaleString("ja-JP") + "pt" : yen(c[1])), "dc")).join("") + rw("お支払い金額（差し引き後）", yen(r.initPay), "st") : "") + rw("うち 当日のお支払い" + (r.today ? "（" + payM.name + "）" : ""), yen(r.today), "uchi") + rw("うち 翌月のご請求に加算", yen(r.nextInit), "uchi") + (r.today && payM.note ? `<div class="pn" style="margin-top:0.5mm">※${payM.note}</div>` : "") : ""}
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
+    const dl = S.props.docs !== false && !doPrint._sep ? docsFor(l, r) : [], dch = docsChanged();
+    const docSec = dl.length ? `<div class="docs"><div class="dh">お手続きに必要なもの<small>ご来店のときにお持ちください</small></div>
+      <div class="dg">${dl.map(d => `<div class="db"><b><i></i>${d.t}</b>${d.items ? `<span>${d.items.join("／")} ${d.tail}</span>` : ""}${d.note ? `<small>${d.note}</small>` : ""}</div>`).join("")}</div>
+      <div class="pn" style="margin-top:1mm">※${DOCS_AS_OF}。${DOCS.foot}${dch ? "<b>公式の案内が更新されている可能性があります。最新の内容はスタッフがご案内します。</b>" : ""}</div></div>` : "";
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
       <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}</div></div>
-      <div class="totl">合計</div>${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula, r.poikatsu ? r.poikatsu.jisshitsu : null)}${poiBox}${stepsBox(r)}${dv && dv.pay === "ikkatsu" ? notes.replace("引いた価格に頭金を加えた金額です", "引いた店頭での価格です") : notes}</div>`;
+      <div class="totl">合計</div>${hero("毎月のお支払い（目安）", r.monthly, r.today, r.nextInit, formula, r.poikatsu ? r.poikatsu.jisshitsu : null)}${poiBox}${stepsBox(r)}${docSec}${dv && dv.pay === "ikkatsu" ? notes.replace("引いた価格に頭金を加えた金額です", "引いた店頭での価格です") : notes}</div>`;
   };
 
+  // --- お手続きに必要なもの（別の1枚。見積書に入りきらない時・まとめて1枚の時）---
+  const docsPage = () => {
+    const secs = S.lines.map((l, k) => ({ l, k, ds: docsFor(l, rs[k]) })).filter(x => x.ds.length), dch = docsChanged();
+    if (!secs.length) return "";
+    return `<div class="pg"><div class="ph"><div><div class="ttl">簡易見積書　別紙</div><div class="who">お手続きに必要なもの<small>ご来店のときにお持ちください</small></div></div>
+      <div class="meta">${ds}<br>${esc(store)}${staff ? "<br>担当：" + esc(staff) : ""}</div></div>
+      ${secs.map(x => `<div class="docs big">${N > 1 ? `<div class="dh">${nm(x.k)}<small>${CONTRACTS.find(c => c.id === x.l.contract).name}</small></div>` : ""}
+        <div class="dg">${x.ds.map(d => `<div class="db"><b><i></i>${d.t}</b>${d.items ? `<span>${d.items.join("／")} ${d.tail}</span>` : ""}${d.note ? `<small>${d.note}</small>` : ""}</div>`).join("")}</div></div>`).join("")}
+      <div class="pn">※${DOCS_AS_OF}。${DOCS.foot}${dch ? "<b>公式の案内が更新されている可能性があります。最新の内容はスタッフがご案内します。</b>" : ""}</div></div>`;
+  };
   const sumAll = f => rs.reduce((a, r) => a + f(r), 0);
   // --- 家族のまとめページ ---
   const famPage = () => { const anyT = sumAll(r => r.today) > 0;
@@ -1075,7 +1127,8 @@ function doPrint(mode) {
   // ご提案は1枚ずつ見せる。見積と連動の時に、もう利用中で出せないものは、その旨を出す
   const sheet = M.sheet || "dcard", shown = PROPS.find(x => x.id === sheet);
   const pages = isProp ? [shown ? shown.html : `<div class="pg"><p style="font-size:13pt;padding:20mm 0;text-align:center">この見積では、すでにご利用中（または対象外のプラン）の設定になっています。<br><span style="font-size:10pt">上の「② 金額は」を「ここで手入力」にすると、見積と関係なくご提案できます。</span></p></div>`]
-    : (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)]).concat(props);
+    : (printMode === "one" ? [onePage()] : [...(N > 1 ? [famPage()] : []), ...S.lines.map(linePage)])
+      .concat(S.props.docs !== false && (printMode === "one" || doPrint._sep) ? [docsPage()].filter(Boolean) : []).concat(props);
   $("print").innerHTML = pages.join("");
   // ---- 操作パネル（選んでいる方に色がつく）----
   const pk = (on, label, click) => `<button class="pk ${on ? "on" : ""}" onclick="${click}">${on ? "✓ " : ""}${label}</button>`;
@@ -1088,6 +1141,7 @@ function doPrint(mode) {
   if (!isProp) {
     if (N > 1) ctl += row("見積書の形", pk(printMode === "each", `1回線ずつ（まとめ＋${N}枚）`, "doPrint('each')") + pk(printMode === "one", "まとめて1枚", "doPrint('one')"));
     if (PROPS.length) ctl += row("別紙をつける", PROPS.map(x => pk(S.props[x.id] !== false, x.name, `S.props['${x.id}']=${S.props[x.id] === false};doPrint()`)).join("") + `<small>色がついているものが、見積書のうしろに付きます。押すと付ける／はずすが切り替わります。</small>`);
+    ctl += row("必要なもの", pk(S.props.docs !== false, "お手続きに必要なものを載せる", `S.props.docs=${S.props.docs === false};doPrint()`));
     if (PROPS.some(x => x.id === "dcard") && S.props.dcard !== false) ctl += row("dカードの別紙", pk(M.card !== "platinum", "dカード GOLD", "pmSet('card','gold')") + pk(M.card === "platinum", "dカード PLATINUM", "pmSet('card','platinum')"));
     if (PROPS.some(x => x.id === "hikari") && S.props.hikari !== false) ctl += row("ドコモ光の別紙", homeNet);
     if (PROPS.some(x => x.id === "denki") && S.props.denki !== false) ctl += row("でんきの別紙", denGas);
@@ -1116,6 +1170,10 @@ function doPrint(mode) {
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
   $("pv").classList.add("open"); document.body.classList.add("pvopen"); if (mode) $("pv").scrollTop = 0;
   fitPages(); pdfReset();
+  // 「お手続きに必要なもの」を入れたせいで見積書が小さくなりすぎた時は、別の1枚に分けて作り直す
+  if (!doPrint._pass2 && !doPrint._sep && [...document.querySelectorAll("#print .pg")].some(pg => pg.querySelector(".docs") && parseFloat(pg.style.zoom || 1) < 0.9)) {
+    doPrint._sep = true; doPrint._pass2 = true; try { doPrint(); } finally { doPrint._pass2 = false; }
+  }
 }
 // iPadのSafariは、印刷すると紙のすみにURLを入れる（ページ側では消せない）。
 // そこで見積書をPDFにして、PDFを印刷する。1回目の押下でPDFを作り、2回目の押下で共有（プリント）を開く

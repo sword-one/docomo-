@@ -1,0 +1,27 @@
+{
+ "_verified": "2026-11-22",
+ "id": {
+  "name": "本人確認書類",
+  "url": "https://www.docomo.ne.jp/support/identification/",
+  "hash": "d09468bf876db15e",
+  "len": 13411
+ },
+ "mnp": {
+  "name": "のりかえ（MNP）",
+  "url": "https://www.docomo.ne.jp/support/mnp_subscribe/",
+  "hash": "16002d1b8357ecf9",
+  "len": 4419
+ },
+ "kihen": {
+  "name": "機種変更（店頭）",
+  "url": "https://www.docomo.ne.jp/support/switch_shop/",
+  "hash": "e14820e67fc61f05",
+  "len": 4399
+ },
+ "bunkatsu": {
+  "name": "分割払い",
+  "url": "https://www.docomo.ne.jp/support/payment_installment/",
+  "hash": "ee1633afbb93799f",
+  "len": 2697
+ }
+}

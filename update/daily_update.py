@@ -317,6 +317,16 @@ def main():
             log("補償の金額を取得できなかったため前回のまま")
     except Exception as e:   # noqa
         log("補償の金額の取得でエラー", e)
+    # お手続きに必要なもの（本人確認書類など）の公式ページが、確認した時から変わっていないか
+    try:
+        import docs
+        dst, _ = docs.run(NOW)
+        dprev = load_json("docs_prev.json", {"changed": []})
+        newly = [n for n in dst["changed"] if n not in dprev.get("changed", [])]
+        if newly: news.append({"date": TODAY, "kind": "docs", "text": "必要書類の公式ページが更新されました：" + "、".join(newly) + "。見積書の「お手続きに必要なもの」の内容を確認してください"})
+        save_json("docs_prev.json", {"changed": dst["changed"]})
+    except Exception as e:   # noqa
+        log("必要書類のページの確認でエラー", e)
     st = {"news": news, "auto_plans": auto_plans, "plan_overrides": overrides}
     write_updates(st, news, status)
     return 0
