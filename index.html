@@ -249,6 +249,7 @@ label.ck { min-height:44px; }
 #print .dcard .dchk { flex:none; align-self:center; } #print .dcard .dchk i { width:7mm; height:7mm; }
 #print .dcard .dinote { font-size:10.5pt; margin-top:1.5mm; font-weight:700; }
 #print .dcard ul { margin:2.5mm 0 0; padding-left:5.5mm; font-size:11pt; line-height:1.55; } #print .dcard li { margin-bottom:0.6mm; }
+#print .pn .asof { font-size:9pt; font-weight:800; color:#000; }
 /* 家族のまとめ表 */
 #print table.fam { width:100%; border-collapse:collapse; margin-top:2mm; }
 #print table.fam th { text-align:left; font-size:9.5pt; padding:2mm 2mm; border-bottom:0.6mm solid #000; white-space:nowrap; }
@@ -908,7 +909,7 @@ function doPrint(mode) {
   if (!S.props) S.props = {};
   if (!S.pin) S.pin = {};
   const rs = S.lines.map(calc), N = S.lines.length;
-  const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+  const today = new Date(), ds = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日時点`;   // 右上の日付は「○年○月○日時点」と書く
   const staff = $("staff").value, store = $("store").value;
   const nm = k => (k + 1) + "回線目";   // 見積書にはお客様名・続柄などの個人情報は載せない
   const head = (who, sub) => `<div class="ph"><div><div class="ttl">簡易見積書</div><div class="who">${who}${sub ? `<small>${sub}</small>` : ""}</div></div>
@@ -916,7 +917,7 @@ function doPrint(mode) {
   const rw = (a, b, cls) => `<div class="rw ${cls || ""}"><span>${a}</span><b>${b}</b></div>`;
   const optRows = r => r.opts.length ? r.opts.map(x => x[1] < 0 ? rw(esc(x[0]), "▲" + yen(-x[1]), "dc") : rw(esc(x[0]), yen(x[1]))).join("") : `<div class="none">なし</div>`;
   const payName = dv => dv.pay === "kaedoki" && dv.program ? dv.program : { kaedoki: "24回分割", b12: "12回分割", b24: "24回分割", b36: "36回分割", ikkatsu: "一括払い" }[dv.pay];
-  const notes = `<div class="pn">※金額はすべて税込です（${DATA_AS_OF}）。端末代金は店頭の割引（5G WELCOME割など）を引いた価格に頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
+  const notes = `<div class="pn"><b class="asof">※このお見積りは、${ds}の情報で作成しています。料金・割引・機種代金などは、予告なく変わる場合があります。</b><br>※金額はすべて税込です（${DATA_AS_OF}）。端末代金は店頭の割引（5G WELCOME割など）を引いた価格に頭金を加えた金額です。毎月のお支払いは目安で、1か月目は日割りなどで変わる場合があります。<br>※割引・キャンペーンには適用条件があります。実際のご請求額と異なる場合があります。</div>`;
   const payM = PAY_METHODS.find(m => m.id === (S.pay || "cash")) || PAY_METHODS[0];
   // jis＝ポイ活の還元を引いた実質の月額（ポイ活プランがある時だけ、毎月のお支払いの横に出す）
   const hero = (label, monthly, todayAmt, nextAmt, formula, jis) => `<div class="hero solo">
