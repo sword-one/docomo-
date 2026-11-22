@@ -244,7 +244,7 @@ label.ck { min-height:44px; }
 #pv.open { display:block; }
 .pvbar { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--navy); color:#fff; padding:10px 16px; }
 .pvbar b { font-size:17px; margin-right:auto; }
-.pvbar .btn { background:#fff; }
+.pvbar .btn { background:#fff; } .pvbar .btn.ready { background:#ffe27a; border-color:#ffe27a; } .pvbar .btn:disabled { opacity:.7; }
 #pvctl { max-width:210mm; margin:12px auto 0; background:#fff; border-radius:12px; padding:12px 14px 8px; box-shadow:0 2px 10px rgba(0,0,0,.25); font-size:14px; color:#222; box-sizing:border-box; }
 #pvctl .pmode { display:flex; gap:8px; margin-bottom:10px; } #pvctl .pmode .pk { flex:1; font-size:17px; min-height:50px; }
 .pk { border:2px solid #c9d3e3; background:#f1f3f6; color:#7a8290; border-radius:10px; padding:8px 14px; font-size:15px; min-height:44px; cursor:pointer; touch-action:manipulation; }
@@ -298,6 +298,7 @@ body.pvopen { overflow:hidden; }
 <div id="pv">
   <div class="pvbar"><b><span id="pvttl">印刷プレビュー</span> <span id="pvcount" style="font-size:13px;font-weight:400"></span></b>
     <button class="btn" onclick="window.print()">🖨 印刷する</button>
+    <button class="btn" id="pdfbtn" onclick="pdfPrint(this)">📄 PDFで印刷（URLが入らない）</button>
     <button class="btn" onclick="closePv()">✕ 閉じる（見積に戻る）</button></div>
   <div id="pvctl"></div>
   <div class="sheet"><div id="print"></div></div>
@@ -1104,8 +1105,46 @@ function doPrint(mode) {
   $("pvttl").textContent = isProp ? "ご提案" : "印刷プレビュー";
   $("pvcount").textContent = `A4縦 ${pages.length}枚`;
   $("pv").classList.add("open"); document.body.classList.add("pvopen"); if (mode) $("pv").scrollTop = 0;
-  fitPages();
+  fitPages(); pdfReset();
 }
+// iPadのSafariは、印刷すると紙のすみにURLを入れる（ページ側では消せない）。
+// そこで見積書をPDFにして、PDFを印刷する。1回目の押下でPDFを作り、2回目の押下で共有（プリント）を開く
+let pdfFile = null;
+function loadJs(src) { return new Promise((ok, ng) => { const e = document.createElement("script"); e.src = src; e.onload = ok; e.onerror = () => ng(new Error("読み込めませんでした")); document.head.appendChild(e); }); }
+async function pdfPrint(btn) {
+  if (pdfFile) {   // 2回目：できたPDFを開く
+    const f = pdfFile; pdfReset();
+    try { if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    const u = URL.createObjectURL(f); const w = window.open(u, "_blank"); if (!w) location.href = u;
+    return;
+  }
+  const label = btn.textContent; btn.disabled = true;
+  try {
+    btn.textContent = "PDFを作っています…";
+    if (!window.html2canvas) await loadJs("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+    if (!window.jspdf) await loadJs("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const pgs = [...document.querySelectorAll("#print .pg")], pdf = new jspdf.jsPDF({ unit: "mm", format: "a4", compress: true });
+    for (let i = 0; i < pgs.length; i++) {
+      btn.textContent = `PDFを作っています…（${i + 1}／${pgs.length}枚）`;
+      const pg = pgs[i], z = pg.style.zoom; pg.style.zoom = 1;   // 縮小表示は画像にする時に効かないので、等倍で撮ってPDF側で縮める
+      let cv; try { cv = await html2canvas(pg, { scale: 2.5, useCORS: true, backgroundColor: "#ffffff", logging: false, onclone: pdfClone }); } finally { pg.style.zoom = z; }
+      let w = 210, h = cv.height / cv.width * 210; if (h > 297) { w = w * 297 / h; h = 297; }
+      if (i) pdf.addPage();
+      pdf.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", (210 - w) / 2, 0, w, h);
+    }
+    const d = new Date(), name = `見積書_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}.pdf`;
+    pdfFile = new File([pdf.output("blob")], name, { type: "application/pdf" });
+    btn.textContent = "✓ PDFができました。ここを押して印刷へ"; btn.classList.add("ready");
+  } catch (e) { btn.textContent = label; alert("PDFを作れませんでした（" + (e && e.message || e) + "）。「印刷する」をお使いください。"); }
+  btn.disabled = false;
+}
+// 画像にする時、文字を1文字ずつ正しい位置に置かせる（そのままだと文字が重なったり、空白が消えたりする）。
+// 機種の写真はドコモのサイトの画像で、画像化には使えないため、PDFでは外す
+function pdfClone(doc, el) {
+  el.querySelectorAll("*").forEach(e => { const ls = doc.defaultView.getComputedStyle(e).letterSpacing; if (ls === "normal" || ls === "0px") e.style.letterSpacing = "0.01px"; });
+  el.querySelectorAll("img").forEach(i => { if (!/^data:/.test(i.src) && new URL(i.src, location.href).origin !== location.origin) i.remove(); });
+}
+function pdfReset() { pdfFile = null; const b = $("pdfbtn"); if (b) { b.textContent = "📄 PDFで印刷（URLが入らない）"; b.classList.remove("ready"); } }
 // 各ページをA4縦1枚（印刷できる範囲 190×277mm）に収める。はみ出す時だけ縮小
 function fitPages() {
   const mm = 96 / 25.4, H = 262 * mm;
