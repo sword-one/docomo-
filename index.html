@@ -886,8 +886,8 @@ function doPrint(mode) {
         + rw(ik ? "端末代金" : "端末代金（総額）", dv.total !== null ? yen(dv.total) : "—")
         + (!ik && dv.atama !== null ? rw("頭金（当日お支払い）", yen(dv.atama)) : "")
         + (!ik && Number(l.device.shitadori) ? rw("下取り", "▲" + yen(l.device.shitadori), "dc") : "")
-        + (dv.monthly ? rw("② 毎月の分割金", yen(dv.monthly) + " × " + dv.months + "回", "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
-        + (!ik && pt && dv.monthly ? `<div class="pn" style="margin-top:0.5mm">※dポイント ${pt.toLocaleString()}pt を端末代金に充てた金額を分割しています。</div>` : "")
+        + (!ik && dv.months ? rw("② 毎月の分割金", yen(dv.monthly) + " × " + dv.months + "回", "st") + (dv.first ? rw("1回目のみ", yen(dv.first), "sub") : "") : "")
+        + (!ik && pt ? `<div class="pn" style="margin-top:0.5mm">※dポイント ${pt.toLocaleString()}pt を端末代金に充てた金額を分割しています。</div>` : "")
         + (dv.zanka ? rw("24回目のお支払い（残価）", yen(dv.zanka)) : "")
         + (dv.zanka ? rw("そのまま使い続ける場合（25か月目から）", "月 " + yen(Math.floor(dv.zanka / 24)) + " × 24回", "sub") : ""); })()
         : `<div class="none">端末のご購入なし</div>`}
@@ -1127,10 +1127,10 @@ async function pdfPrint(btn) {
     for (let i = 0; i < pgs.length; i++) {
       btn.textContent = `PDFを作っています…（${i + 1}／${pgs.length}枚）`;
       const pg = pgs[i], z = pg.style.zoom; pg.style.zoom = 1;   // 縮小表示は画像にする時に効かないので、等倍で撮ってPDF側で縮める
-      let cv; try { cv = await html2canvas(pg, { scale: 2.5, useCORS: true, backgroundColor: "#ffffff", logging: false, onclone: pdfClone }); } finally { pg.style.zoom = z; }
+      let cv; try { cv = await html2canvas(pg, { scale: 3, useCORS: true, backgroundColor: "#ffffff", logging: false, onclone: pdfClone }); } finally { pg.style.zoom = z; }
       let w = 210, h = cv.height / cv.width * 210; if (h > 297) { w = w * 297 / h; h = 297; }
       if (i) pdf.addPage();
-      pdf.addImage(cv.toDataURL("image/jpeg", 0.92), "JPEG", (210 - w) / 2, 0, w, h);
+      pdf.addImage(cv.toDataURL("image/png"), "PNG", (210 - w) / 2, 0, w, h, undefined, "FAST");
     }
     const d = new Date(), name = `見積書_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}.pdf`;
     pdfFile = new File([pdf.output("blob")], name, { type: "application/pdf" });
@@ -1149,13 +1149,18 @@ function pdfReset() { pdfFile = null; const b = $("pdfbtn"); if (b) { b.textCont
 function fitPages() {
   const mm = 96 / 25.4, H = 262 * mm;
   document.querySelectorAll("#print .pg").forEach(pg => {
-    let z = 1; pg.style.zoom = 1; pg.style.width = "190mm";
+    // 中身そのものの高さを、等倍のまま測る（画面用の余白・最小の高さは除く）。
+    // 縮小した状態で測ると、ブラウザ（iPadのSafariなど）によって値が変わり、必要以上に縮んでしまうため
+    let z = 1; pg.style.zoom = 1; pg.style.width = "190mm"; pg.style.minHeight = "0";
+    const cs = getComputedStyle(pg), pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    const natural = () => pg.getBoundingClientRect().height - pad;
     for (let k = 0; k < 30; k++) {
-      const h = pg.getBoundingClientRect().height;
+      const h = natural() * z;                 // 幅 190/z で組んだ中身を z 倍に縮めた時の高さ
       if (h <= H) break;
-      z = Math.max(0.35, z * Math.sqrt(H / h) * 0.99); pg.style.zoom = z; pg.style.width = (190 / z) + "mm";
+      z = Math.max(0.35, z * Math.sqrt(H / h) * 0.99); pg.style.width = (190 / z) + "mm";
       if (z === 0.35) break;
     }
+    pg.style.minHeight = ""; pg.style.zoom = z;
   });
 }
 $("store").innerHTML = STORES.map(s => `<option>${s}</option>`).join("");
