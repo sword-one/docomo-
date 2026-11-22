@@ -59,7 +59,10 @@ details.others > summary::before { content:"＋ "; } details.others[open] > summ
 .drow .ds { font-size:12px; color:#666; margin-top:4px; line-height:1.4; }
 .drow .da { text-align:right; } .drow .da small { display:block; font-size:11px; color:#666; }
 .dv { font-size:16px; color:var(--red); } .dv.off { color:#aaa; font-weight:400; font-size:14px; }
-.doclist { margin:0 0 6px; padding-left:20px; font-size:14px; line-height:1.55; } .doclist li { margin-bottom:6px; }
+.doclist { margin:0 0 6px; padding-left:20px; font-size:14px; line-height:1.55; } .doclist li { margin-bottom:8px; }
+.doclist small { display:block; color:#666; font-size:12px; } .doclist .di { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:3px 0; }
+.doclist .di em { font-style:normal; font-size:11px; font-weight:700; background:var(--navy); color:#fff; border-radius:10px; padding:1px 8px; }
+.doclist .di u { text-decoration:none; border:1px solid #9aa7bd; border-radius:6px; padding:1px 8px; background:#fff; }
 .chgbox { border-top:1px dashed #e3e7ee; margin-top:6px; padding-top:8px; }
 .chgh { font-weight:700; font-size:15px; margin-bottom:6px; } .chgh .note { margin-left:8px; font-weight:400; }
 .chgs { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:8px; margin-bottom:4px; }
@@ -229,10 +232,23 @@ label.ck { min-height:44px; }
 #print .docs .db { font-size:8.6pt; line-height:1.4; } #print .docs .db b { display:block; font-size:9.6pt; }
 #print .docs .db b i { display:inline-block; width:3mm; height:3mm; border:0.4mm solid #000; border-radius:0.5mm; margin-right:1.5mm; vertical-align:-0.4mm; }
 #print .docs .db span { display:block; } #print .docs .db small { display:block; font-size:7.6pt; color:#222; line-height:1.38; }
-#print .docs.big { margin-top:5mm; padding:4mm 5mm 3mm; } #print .docs.big .dh { font-size:14pt; }
-#print .docs.big .dg { grid-template-columns:1fr; gap:4mm; }
-#print .docs.big .db { font-size:11.5pt; line-height:1.5; } #print .docs.big .db b { font-size:13.5pt; margin-bottom:0.5mm; }
-#print .docs.big .db b i { width:4.2mm; height:4.2mm; margin-right:2mm; } #print .docs.big .db small { font-size:10pt; line-height:1.5; margin-top:0.5mm; }
+#print .docs .db { display:flex; gap:1.5mm; align-items:flex-start; } #print .docs .db .cb { flex:none; width:3mm; height:3mm; border:0.4mm solid #000; border-radius:0.5mm; margin-top:0.6mm; }
+#print .docs .di { display:flex; flex-wrap:wrap; gap:0.8mm 1.2mm; align-items:center; margin:0.5mm 0; } #print .docs .di em { font-style:normal; font-size:7.4pt; font-weight:800; background:#000; color:#fff; border-radius:3mm; padding:0 2mm; }
+#print .docs .di u { text-decoration:none; border:0.25mm solid #000; border-radius:1mm; padding:0 1.5mm; font-size:8.4pt; }
+/* 必要なもの：別の1枚（大きい版） */
+#print .dline { font-size:14pt; font-weight:800; margin:5mm 0 2mm; border-left:2mm solid #000; padding-left:3mm; } #print .dline small { font-size:10pt; font-weight:500; margin-left:3mm; }
+#print .dcard { display:flex; gap:4mm; align-items:flex-start; border:0.5mm solid #000; border-radius:3mm; padding:4mm 5mm; margin-top:4mm; break-inside:avoid; }
+#print .dcard .dno { flex:none; width:10mm; height:10mm; border-radius:50%; background:#000; color:#fff; font-size:15pt; font-weight:800; display:flex; align-items:center; justify-content:center; }
+#print .dcard .dbody { flex:1; min-width:0; }
+#print .dcard .dt { font-size:16pt; font-weight:800; line-height:1.3; } #print .dcard .dt small { font-size:10.5pt; font-weight:500; margin-left:3mm; }
+#print .dcard .dpick { display:flex; gap:3mm; align-items:center; margin-top:2.5mm; }
+#print .dcard .dpick em { flex:none; font-style:normal; font-size:11pt; font-weight:800; background:#000; color:#fff; border-radius:5mm; padding:1mm 4mm; }
+#print .dcard .dis { display:flex; flex-wrap:wrap; gap:2mm; }
+#print .dcard .dit { display:flex; align-items:center; gap:2mm; border:0.4mm solid #000; border-radius:2mm; padding:1.4mm 3.5mm 1.4mm 2.5mm; font-size:12.5pt; font-weight:700; background:#f2f2f2; }
+#print .dcard .dit i, #print .dcard .dchk i { flex:none; display:block; width:4.5mm; height:4.5mm; border:0.5mm solid #000; border-radius:0.8mm; background:#fff; }
+#print .dcard .dchk { flex:none; align-self:center; } #print .dcard .dchk i { width:7mm; height:7mm; }
+#print .dcard .dinote { font-size:10.5pt; margin-top:1.5mm; font-weight:700; }
+#print .dcard ul { margin:2.5mm 0 0; padding-left:5.5mm; font-size:11pt; line-height:1.55; } #print .dcard li { margin-bottom:0.6mm; }
 /* 家族のまとめ表 */
 #print table.fam { width:100%; border-collapse:collapse; margin-top:2mm; }
 #print table.fam th { text-align:left; font-size:9.5pt; padding:2mm 2mm; border-bottom:0.6mm solid #000; white-space:nowrap; }
@@ -490,7 +506,7 @@ function docsFor(l, r) {
   if (typeof DOCS === "undefined" || l.contract === "plan") return [];
   const L = docsLive(), months = r.dev && r.dev.pay !== "ikkatsu" ? r.dev.months : 0;
   const fill = t => t.replace("{mynaPw}", L.mynaPw || "6～16桁").replace("{mnpDays}", L.mnpDays || 15).replace("{months}", months);
-  const b = (o, extra) => ({ t: o.t, items: o.items, tail: o.tail, note: fill([o.note, extra].filter(Boolean).join("")) });
+  const b = (o, extra) => ({ t: o.t, info: o.info, sub: o.sub, pick: o.pick, items: o.items, itemNote: o.itemNote, notes: (o.notes || []).concat(extra ? [extra] : []).map(fill) });
   const id = Object.assign({}, DOCS.id, { items: L.idDocs && L.idDocs.length >= 3 ? L.idDocs : DOCS.id.items });
   const out = [];
   if (l.contract === "mnp") out.push(b(DOCS.mnp));
@@ -500,6 +516,10 @@ function docsFor(l, r) {
   if (months) out.push(b(DOCS.bunkatsu));
   if (l.gaikoku) out.push(b(DOCS.gaikoku, months ? DOCS.gaikokuBunkatsu : ""));
   return out;
+}
+// 必要なものの1項目を、小さく1かたまりで書く（入力画面・見積書の中に入れる時）
+function docSmall(d) {
+  return `<b>${d.t}</b>${d.items ? `<span class="di">${d.pick ? `<em>${d.pick}</em>` : ""}${d.items.map(x => `<u>${x}</u>`).join("")}</span>` : ""}${d.itemNote ? `<small>${d.itemNote}</small>` : ""}${d.notes.length ? `<small>${d.notes.join("。")}。</small>` : ""}`;
 }
 // ahamo の契約事務手数料（店頭）：新規・のりかえ・機種変更は最初から入れる（山口さん確認 2026/11/22）。プラン変更のみは最初は入れない
 function ahamoJimu(l) { return l.init.jimuAhamo ?? (l.contract !== "plan"); }
@@ -711,7 +731,7 @@ function render() {
       <div class="row" style="padding:2px 0 8px"><b style="font-size:14px">お客さまは</b>
         <span class="seg">${[[false, "日本国籍の方"], [true, "外国籍の方"]].map(([v, n]) => `<button class="${!!l.gaikoku === v ? "on" : ""}" onclick="S.lines[S.cur].gaikoku=${v};render()">${n}</button>`).join("")}</span></div>
       ${ch ? `<div class="warn" style="margin-bottom:6px">⚠ ドコモ公式の「${ch.map(esc).join("」「")}」のページが更新されています。下の内容が古い可能性があるので、公式ページで確認してから案内してください。</div>` : ""}
-      ${ds.length ? `<ul class="doclist">${ds.map(d => `<li><b>${d.t}</b>${d.items ? `<br>${d.items.join("／")} ${d.tail}` : ""}${d.note ? `<br><span class="note">${d.note}</span>` : ""}</li>`).join("")}</ul>` : `<p class="note">プラン変更のみの場合は、ここには何も載りません。</p>`}
+      ${ds.length ? `<ul class="doclist">${ds.map(d => `<li>${docSmall(d)}</li>`).join("")}</ul>` : `<p class="note">プラン変更のみの場合は、ここには何も載りません。</p>`}
       <p class="note">${DOCS_AS_OF}。${typeof DOCS_STATUS !== "undefined" && DOCS_STATUS ? `毎朝、公式ページが変わっていないかをチェックしています（最終チェック ${esc(DOCS_STATUS.checked_at)}）。` : ""}${DOCS.foot}</p></div>`; })()}
 
   <div class="card"><h2>この回線の合計</h2><table class="kv">
@@ -946,7 +966,7 @@ function doPrint(mode) {
       ${r.init.length ? "" : `<div class="none">なし</div>`}</div>`;
     const dl = S.props.docs !== false && !doPrint._sep ? docsFor(l, r) : [], dch = docsChanged();
     const docSec = dl.length ? `<div class="docs"><div class="dh">お手続きに必要なもの<small>ご来店のときにお持ちください</small></div>
-      <div class="dg">${dl.map(d => `<div class="db"><b><i></i>${d.t}</b>${d.items ? `<span>${d.items.join("／")} ${d.tail}</span>` : ""}${d.note ? `<small>${d.note}</small>` : ""}</div>`).join("")}</div>
+      <div class="dg">${dl.map(d => `<div class="db">${d.info ? `<i class="cb" style="border-color:transparent"></i>` : `<i class="cb"></i>`}<div>${docSmall(d)}</div></div>`).join("")}</div>
       <div class="pn" style="margin-top:1mm">※${DOCS_AS_OF}。${DOCS.foot}${dch ? "<b>公式の案内が更新されている可能性があります。最新の内容はスタッフがご案内します。</b>" : ""}</div></div>` : "";
     return `<div class="pg">${head(N > 1 ? nm(k) : c, N > 1 ? `全${N}回線　${c}` : "")}
       <div class="cols"><div>${sec1}${sec2}</div><div>${sec3}${sec4}</div></div>
@@ -959,8 +979,12 @@ function doPrint(mode) {
     if (!secs.length) return "";
     return `<div class="pg"><div class="ph"><div><div class="ttl">簡易見積書　別紙</div><div class="who">お手続きに必要なもの<small>ご来店のときにお持ちください</small></div></div>
       <div class="meta">${ds}<br>${esc(store)}${staff ? "<br>担当：" + esc(staff) : ""}</div></div>
-      ${secs.map(x => `<div class="docs big">${N > 1 ? `<div class="dh">${nm(x.k)}<small>${CONTRACTS.find(c => c.id === x.l.contract).name}</small></div>` : ""}
-        <div class="dg">${x.ds.map(d => `<div class="db"><b><i></i>${d.t}</b>${d.items ? `<span>${d.items.join("／")} ${d.tail}</span>` : ""}${d.note ? `<small>${d.note}</small>` : ""}</div>`).join("")}</div></div>`).join("")}
+      ${secs.map(x => `${N > 1 ? `<div class="dline">${nm(x.k)}<small>${CONTRACTS.find(c => c.id === x.l.contract).name}</small></div>` : ""}
+        ${x.ds.map((d, i) => `<div class="dcard"><div class="dno">${i + 1}</div><div class="dbody">
+          <div class="dt">${d.t}${d.sub ? `<small>${d.sub}</small>` : ""}</div>
+          ${d.items ? `<div class="dpick">${d.pick ? `<em>${d.pick}</em>` : ""}<div class="dis">${d.items.map(it => `<div class="dit"><i></i>${it}</div>`).join("")}</div></div>` : ""}
+          ${d.itemNote ? `<div class="dinote">※${d.itemNote}</div>` : ""}
+          ${d.notes.length ? `<ul>${d.notes.map(n => `<li>${n}</li>`).join("")}</ul>` : ""}</div>${d.items || d.info ? "" : `<div class="dchk"><i></i></div>`}</div>`).join("")}`).join("")}
       <div class="pn">※${DOCS_AS_OF}。${DOCS.foot}${dch ? "<b>公式の案内が更新されている可能性があります。最新の内容はスタッフがご案内します。</b>" : ""}</div></div>`;
   };
   const sumAll = f => rs.reduce((a, r) => a + f(r), 0);
