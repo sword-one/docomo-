@@ -1,6 +1,6 @@
 // お手続きに必要なもの：公式ページの毎朝チェック結果（update/docs.py が書き出し）
 const DOCS_STATUS = {
- "checked_at": "2026-11-22 12:07",
+ "checked_at": "2026-11-23 09:36",
  "verified": "2026-11-22",
  "changed": [],
  "failed": [],
