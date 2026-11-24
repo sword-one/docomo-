@@ -2904,39 +2904,39 @@
 "key": "pixel10a",
 "prices": {
 "shinki": {
-"ikkatsu": 95513,
-"hontai": 95513,
+"ikkatsu": 108570,
+"hontai": 108570,
 "kaedoki": {
 "program": "いつでもカエドキプログラム",
-"monthly": 1914,
+"monthly": 1908,
 "months": 23,
-"zanka": 51480,
-"return23": 44033,
+"zanka": 64680,
+"return23": 43890,
 "return12": null
 }
 },
 "mnp": {
-"ikkatsu": 51513,
-"hontai": 95513,
-"discount": 44000,
+"ikkatsu": 64713,
+"hontai": 108570,
+"discount": 43857,
 "kaedoki": {
 "program": "いつでもカエドキプログラム",
 "monthly": 1,
 "months": 23,
-"zanka": 51480,
+"zanka": 64680,
 "return23": 33,
 "return12": null
 }
 },
 "kihen": {
-"ikkatsu": 95513,
-"hontai": 95513,
+"ikkatsu": 108570,
+"hontai": 108570,
 "kaedoki": {
 "program": "いつでもカエドキプログラム",
-"monthly": 2293,
+"monthly": 2860,
 "months": 23,
 "zanka": 42768,
-"return23": 52745,
+"return23": 65802,
 "return12": null
 }
 }
@@ -2944,12 +2944,12 @@
 "store": {
 "mnp": {
 "name": "5G WELCOME割",
-"amt": 44000,
+"amt": 43857,
 "cond": ""
 },
 "shinki": {
 "name": "（U22＆MAX／スマデビュU15）5G WELCOME割",
-"amt": 33000,
+"amt": 32857,
 "cond": "機種ご利用者が購入時に22歳以下（年齢確認が必要）でドコモ MAXをご契約（予約申込み除く）の方、またはドコモ スマホデビュープラン U15をご契約（予約申込み除く）の方が対象です。"
 },
 "kihen": {
