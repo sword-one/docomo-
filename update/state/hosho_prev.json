@@ -2548,6 +2548,13 @@
 "series": "data_card"
 },
 {
+"name": "home 5G HR03",
+"price": 490,
+"type": "smart",
+"cat": "タブレット等",
+"series": "5g_home_router"
+},
+{
 "name": "home 5G HR02",
 "price": 330,
 "type": "smart",

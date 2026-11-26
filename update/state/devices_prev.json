@@ -1014,15 +1014,14 @@
 }
 },
 "mnp": {
-"ikkatsu": 338250,
+"ikkatsu": 349250,
 "hontai": 349250,
-"discount": 11000,
 "kaedoki": {
 "program": "いつでもカエドキプログラム",
-"monthly": 7532,
+"monthly": 8010,
 "months": 23,
 "zanka": 165000,
-"return23": 169950,
+"return23": 180950,
 "return12": null
 }
 },
@@ -1816,6 +1815,52 @@
 }
 },
 "img": "https://www.docomo.ne.jp/flcache_data/iphone/images/top/img_iphone_15-pro.png"
+},
+{
+"cat": "Android",
+"name": "AQUOS sense11 SH-53G",
+"maker": null,
+"online": true,
+"key": "sh53g",
+"prices": {
+"shinki": {
+"ikkatsu": 109780,
+"hontai": 109780,
+"kaedoki": {
+"program": "いつでもカエドキプログラム",
+"monthly": 3108,
+"months": 23,
+"zanka": 38280,
+"return23": 68200,
+"return12": null
+}
+},
+"mnp": {
+"ikkatsu": 109780,
+"hontai": 109780,
+"kaedoki": {
+"program": "いつでもカエドキプログラム",
+"monthly": 3108,
+"months": 23,
+"zanka": 38280,
+"return23": 68200,
+"return12": null
+}
+},
+"kihen": {
+"ikkatsu": 109780,
+"hontai": 109780,
+"kaedoki": {
+"program": "いつでもカエドキプログラム",
+"monthly": 3338,
+"months": 23,
+"zanka": 33000,
+"return23": 73480,
+"return12": null
+}
+}
+},
+"img": "https://www.docomo.ne.jp/images_osp/common/product_pics/android_smartphone/2026_/SH53G/SH53G_wk.jpg"
 },
 {
 "cat": "Android",
@@ -3039,15 +3084,14 @@
 }
 },
 "kihen": {
-"ikkatsu": 136290,
+"ikkatsu": 152790,
 "hontai": 152790,
-"discount": 16500,
 "kaedoki": {
 "program": "いつでもカエドキプログラム",
-"monthly": 2596,
+"monthly": 3314,
 "months": 23,
 "zanka": 76560,
-"return23": 59730,
+"return23": 76230,
 "return12": null
 }
 }
