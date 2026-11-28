@@ -1,8 +1,10 @@
 // お手続きに必要なもの：公式ページの毎朝チェック結果（update/docs.py が書き出し）
 const DOCS_STATUS = {
- "checked_at": "2026-11-27 11:39",
+ "checked_at": "2026-11-28 11:28",
  "verified": "2026-11-22",
- "changed": [],
+ "changed": [
+  "本人確認書類"
+ ],
  "failed": [],
  "pages": [
   {
@@ -10,7 +12,7 @@ const DOCS_STATUS = {
    "name": "本人確認書類",
    "url": "https://www.docomo.ne.jp/support/identification/",
    "ok": true,
-   "same": true
+   "same": false
   },
   {
    "key": "mnp",
